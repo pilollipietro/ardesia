@@ -83,7 +83,8 @@ add_defaults_to_commandline( CommandLine* commandline ) {
     commandline->mode = DRAW_ON_MONITOR;
     commandline->workspace_monitor = 1;
     commandline->tools_monitor = 1;
-    commandline->clipRect = g_new(GdkRectangle,1) ;
+    commandline->clipRect = g_new(GdkRectangle,1);
+    commandline->tools_monitor = 0;
 
     commandline->clipRect->x = 0;
     commandline->clipRect->y = 0;
@@ -105,10 +106,7 @@ print_version      ()
 static void
 print_help         ()
 {
-  gchar *original_year = "2009-2010";
-  gchar *original_author = "Pietro Pilolli";
-  gchar *new_year = "2018";
-  gchar *new_author = "Tom McCallum";
+  gchar *authors = "Tom McCallum (2018-2019), Pietro Pilolli (2009-2013)";
   g_printf ("Usage: %s [options] [filename]\n\n", PACKAGE_NAME);
   g_printf ("Ardesia the free digital sketchpad\n\n");
   g_printf ("options:\n");
@@ -140,8 +138,7 @@ print_help         ()
   g_printf ("\n");
   g_printf ("filename:\t\t  \t\tThe interactive Whiteboard Common File (iwb)\n");
   g_printf ("\n");
-  g_printf ( "Originally written by %s in %s\n", original_author, original_year );
-  g_printf ("%s (C) %s %s\n", PACKAGE_STRING, new_year, new_author);
+  g_printf ("%s (C) %s\n", PACKAGE_STRING, authors);
   exit (EXIT_FAILURE);
 }
 

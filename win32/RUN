@@ -36,17 +36,6 @@ In order to use the screencast on windows:
 You can uninstall Ardesia in the standard way:
 http://windows.microsoft.com/en-US/windows7/Uninstall-or-change-a-program
 
-----------------
- Known Bugs
-----------------
-
-- Ardesia on windows is not able to include the sound
-  in the screencast:
-  http://code.google.com/p/ardesia/issues/detail?id=19
-
-- The highlighter does not work under windows:
-  http://code.google.com/p/ardesia/issues/detail?id=21
-
 
 ------
  Info

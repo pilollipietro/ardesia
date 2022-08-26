@@ -1,60 +1,106 @@
-2013-04-03 14:25  alpha@paranoici.org
-        * TODO,
+2018-10-18 14:25  this_is_not_an_email@no_where.com    
+	* README,
+	* configure.ac,
+	* desktop/annotation_window.glade,
+        * desktop/horizontal_bar.glade,
+	* desktop/icons/.directory,
+	* desktop/icons/clear_16x16.png,
+	* desktop/icons/eye_closed.png,
+	* desktop/icons/eye_closed_16x16.png,
+	* desktop/icons/eye_open.png,
+	* desktop/icons/eye_open_16x16.png,
+	* desktop/original.vertical_bar.glade,
+	* desktop/original_horizontal_bar.glade,
+	* desktop/scripts/screencast.sh,
+	* desktop/text_window.glade,
+	* desktop/vertical_bar.glade,
+	* po/ardesia.pot,
+	* src/Makefile.am,
 	* src/annotation_window.c,
+	* src/annotation_window.h,
 	* src/annotation_window_callbacks.c,
+	* src/annotation_window_callbacks.h,
+	* src/ardesia.c,
+	* src/ardesia.h,
+	* src/background_window.c,
+	* src/background_window.h,
+	* src/background_window_callbacks.c,
+	* src/background_window_callbacks.h,
+	* src/bar.c,
+	* src/bar.h,
 	* src/bar_callbacks.c,
 	* src/bar_callbacks.h,
+	* src/broken.c,
+	* src/cairo_functions.c,
+	* src/cairo_functions.h,
+	* src/color_selector.c,
+	* src/commandline.c,
+	* src/commandline.h,
 	* src/cursors.c,
-	* src/cursors.h,
 	* src/input.c,
-	* src/fill.c,
-	* src/fill.h,
+	* src/iwb_loader.c,
+	* src/iwb_saver.c,
+	* src/monitor.c,
+	* src/monitor.h,
+	* src/pdf_saver.c,
+	* src/pdf_saver.h,
+	* src/preference_dialog.c,
+	* src/preference_dialog_callbacks.c,
+	* src/recorder.c,
+	* src/recorder.h,
+	* src/saver.c,
+	* src/saver.h,
+	* src/text_window.c,
+	* src/text_window.h,
+	* src/text_window_callbacks.c,
+	* src/text_window_callbacks.h,
 	* src/utils.c,
-	* src/utils.h:
-	- Filler magic wand; flood filler algorithm based on SeedFill.c
-	  from GraphicsGems. It uses a fixed color threshold.
+	* src/utils.h,
+	* src/workspace.c,
+	* src/workspace.h:
+	- Bulk changes by Tom McCallum
 
 
-2013-02-25 10:46  alpha@paranoici.org
+2013-02-25 10:46  pietro.pilolli@gmail.com
 	* src/preference_dialog.c:
 	- Fixed preference filter code.
 	  The tool support only png background using cairo surface.
 	  Jpg format is not supported.
 
 
-2013-02-13 20:06  alpha@paranoici.org
+2013-02-13 20:06  pietro.pilolli@gmail.com
 	* src/annotation_window_callbacks.c:
 	- Fix rectifier and roundifier broken since revision 2930.
 
 
-2013-02-11 13:35  alpha@paranoici.org
+2013-02-11 13:35  pietro.pilolli@gmail.com
 	* src/annotation_window_callbacks.c:
 	- Fix the filler broken since revision 2930.
 
 
-2013-01-21 13:51  alpha@paranoici.org
+2013-01-21 13:51  pietro.pilolli@gmail.com
 	* src/annotation_window.c,
 	* src/annotation_window_callbacks.c:
 	- Fix the automatic change of pen depending on source device.
 
 
-2013-01-21 13:38  alpha@paranoici.org
+2013-01-21 13:38  pietro.pilolli@gmail.com
 	* src/annotation_window_callbacks.c:
 	- Fix eraser tool broken after the gtk3 porting.
 
 
-2012-11-25 19:36  alpha@paranoici.org
+2012-11-25 19:36  pietro.pilolli@gmail.com
 	* src/annotation_window.c,
 	* src/annotation_window_callbacks.c:
 	- Solved a segfault.
 
 
-2012-11-25 19:09  alpha@paranoici.org
+2012-11-25 19:09  pietro.pilolli@gmail.com
 	* src/annotation_window_callbacks.c:
 	- Fix the color at release time pressure based
 
 
-2012-11-25 14:19  alpha@paranoici.org
+2012-11-25 14:19  pietro.pilolli@gmail.com
 	* desktop/annotation_window.glade,
 	* src/annotation_window.c,
 	* src/annotation_window.h,
@@ -69,12 +115,12 @@
 	  now listening move events.
 
 
-2012-11-23 18:55  alpha@paranoici.org
+2012-11-23 18:55  pietro.pilolli@gmail.com
 	* src/input.c:
 	- Fix discrimination bug deciding about idevice SCREEN or WINDOW mode.
 
 
-2012-11-23 13:32  alpha@paranoici.org
+2012-11-23 13:32  pietro.pilolli@gmail.com
 	* desktop/backgrounds/first_year_highlighted_ruled_paper.png,
 	* desktop/backgrounds/first_year_ruled_paper.png:
 	* desktop/backgrounds/big_squared_paper.png,
@@ -84,7 +130,7 @@
 	- Update some backgrounds images.
 
 
-2012-10-03 10:00  alpha@paranoici.org
+2012-10-03 10:00  pietro.pilolli@gmail.com
 	* src/annotation_window.c:
 	- Fix a segfault that occurs using some multitouch devices.
 

@@ -1,16 +1,23 @@
-ardesia (1.2-1) unstable; urgency=low
+ardesia (2.0-1) focal; urgency=low
+
+  * New upstream release; GTK 3 and cairo surfaces 
+
+ -- PILOLLI Pietro <pilolli.pietro@gmail.com>  Mon, 29 Aug 2022 00:00:11 +0100
+
+
+ardesia (1.2-1) focal; urgency=low
 
   * New upstream release 
 
  -- PILOLLI Pietro <pilolli.pietro@gmail.com>  Mon, 3 Apr 2013 00:00:11 +0100
 
-ardesia (1.1-1) unstable; urgency=low
+ardesia (1.1-1) focal; urgency=low
 
   * New upstream release 
 
  -- PILOLLI Pietro <pilolli.pietro@gmail.com>  Mon, 24 Jun 2012 00:00:11 +0100
 
-ardesia (1.0-2) unstable; urgency=low
+ardesia (1.0-2) focal; urgency=low
 
   * debian/control: Remove libsigsegv-dev and binutils-dev from Build-Depends.
   * debian/copyright: Update upstream author email address.
@@ -20,38 +27,38 @@ ardesia (1.0-2) unstable; urgency=low
 
  -- TANIGUCHI Takaki <takaki@debian.org>  Mon, 27 Feb 2012 10:09:09 +0900
 
-ardesia (1.0-1) unstable; urgency=low
+ardesia (1.0-1) focal; urgency=low
 
   * New upstream release (Closes: #636589)
 
  -- TANIGUCHI Takaki <takaki@debian.org>  Mon, 03 Oct 2011 11:55:11 +0900
 
-ardesia (0.9-2) unstable; urgency=low
+ardesia (0.9-2) focal; urgency=low
 
   * Add libgsf-1-dev to Build-Depends. (Closes: #637103).
 
  -- TANIGUCHI Takaki <takaki@debian.org>  Wed, 10 Aug 2011 11:12:30 +0900
 
-ardesia (0.9-1) unstable; urgency=low
+ardesia (0.9-1) focal; urgency=low
 
   * New upstream
   * Bump Standards-Version to 3.9.2.
 
  -- TANIGUCHI Takaki <takaki@debian.org>  Mon, 08 Aug 2011 09:52:17 +0900
 
-ardesia (0.8-3) unstable; urgency=low
+ardesia (0.8-3) focal; urgency=low
 
   * Build with new binutils. 
 
  -- TANIGUCHI Takaki <takaki@debian.org>  Wed, 20 Apr 2011 23:28:03 +0900
 
-ardesia (0.8-2) unstable; urgency=low
+ardesia (0.8-2) focal; urgency=low
 
   * debian/control: add libxml2-dev to Build-Depends. (Closes: #620884)
 
  -- TANIGUCHI Takaki <takaki@debian.org>  Tue, 05 Apr 2011 11:22:34 +0900
 
-ardesia (0.8-1) unstable; urgency=low
+ardesia (0.8-1) focal; urgency=low
 
   * New upstream.
   * debian/watch: Fix filename.
@@ -59,7 +66,7 @@ ardesia (0.8-1) unstable; urgency=low
 
  -- TANIGUCHI Takaki <takaki@debian.org>  Mon, 04 Apr 2011 22:59:03 +0900
 
-ardesia (0.6-1) unstable; urgency=low
+ardesia (0.6-1) focal; urgency=low
 
   * Initial release (Closes: #599359)
 

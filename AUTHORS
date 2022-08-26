@@ -1,5 +1,8 @@
 Pietro Pilolli  <pilolli.pietro@gmail.com>
+Tom McCallum
 
 CONTRIBUTORS
+
+- Tom McCallum: gtk3, porting, use cairo contexts instead windows and more 
 - Giuseppe Tamanini: icons
 - Claus Hentschel: font selection, tab and left margin size in the text insertion
