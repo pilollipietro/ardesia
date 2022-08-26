@@ -1,6 +1,6 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: ardesia
-Source: http://code.google.com/p/ardesia/
+Source: https://github.com/pilollipietro/ardesia
 
 Files: *
 Copyright: 2009-2012, PILOLLI Pietro <pilolli.pietro@gmail.com>
