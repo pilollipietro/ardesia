@@ -46,11 +46,11 @@ static struct option long_options[] = {
     {"tabsize", required_argument, 0, 't'},
     {"tools-monitor",required_argument, 0, 'm'},
     {"workspace-monitor",required_argument, 0, 'M'},
-    {"x",required_argument,0,'x'},
-    {"y",required_argument,0,'y'},
-    {"width",required_argument,0,1000},
-    {"height",required_argument,0,1001},
-    {"opaque",no_argument,0,'o'},
+    {"x", required_argument, 0, 'x'},
+    {"y", required_argument, 0, 'y'},
+    {"width", required_argument, 0, 1000},
+    {"height", required_argument, 0, 1001},
+    {"opaque", no_argument, 0, 'o'},
     {0, 0, 0, 0}
 };
 
