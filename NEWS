@@ -1,6 +1,23 @@
 Ardesia free digital sketchpad
 
 ---------------
+ ardesia 2.0
+---------------
+
+Features:
+- Stable API for GTK 3.20
+- Removes the need for 3 windows, instead providing support for a number of cairo contexts instead.
+- An additional tool has been added for hiding the drawing items.
+- Allows toolbar and drawing surface to be placed on different monitors.
+- Allows drawing surface to exist as a certain size, full screen, or an individual monitor.
+- Modified the VLC script so that it matches the screen.
+- Modified screenshot to ensure toolbar is out of the way before screen shot is taken.
+- Some modifications to the shape recognition to try to make it more intuitive.
+- Added a backgrounds window for selecting common backgrounds
+- Added a recording window for common recording functionality
+- Added a unit testing framework - unity
+
+---------------
  ardesia 1.1
 ---------------
 
