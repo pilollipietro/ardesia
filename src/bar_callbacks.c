@@ -121,7 +121,7 @@ on_bar_configure_event            (GtkWidget  *widget,
 }
 
 
-/* Called when push the quit button or the window close action*/
+/* Called when push the quit button or the window close action */
 G_MODULE_EXPORT gboolean
 on_bar_quit                     (GtkToolButton   *toolbutton,
                                  gpointer         func_data)
@@ -188,13 +188,11 @@ on_bar_enter_notify_event         (GtkWidget       *widget,
                                    GdkEvent        *event,
                                    gpointer         func_data)
 {
-    g_printf("bar enter notify event\n");
+  g_printf("bar enter notify event\n");
   if (is_text_toggle_tool_button_active ())
     {
       stop_text_widget ();
     }
-
-    
   return TRUE;
 }
 
@@ -270,7 +268,7 @@ on_bar_thick_activate             (GtkToolButton   *toolbutton,
 
   if (bar_data->thickness == MICRO_THICKNESS)
     {
-    replace_status_message(gettext("Brush thickness set to thin"));
+      replace_status_message(gettext("Brush thickness set to thin"));
       /* Set the thin icon. */
       GObject *thin_obj = gtk_builder_get_object (bar_gtk_builder, "thin");
       gtk_tool_button_set_icon_widget (toolbutton, GTK_WIDGET (thin_obj));
@@ -278,29 +276,28 @@ on_bar_thick_activate             (GtkToolButton   *toolbutton,
     }
   else if (bar_data->thickness == THIN_THICKNESS)
     {
-        replace_status_message(gettext("Brush thickness set to medium"));
+      replace_status_message(gettext("Brush thickness set to medium"));
       /* Set the medium icon. */
       GObject *medium_obj = gtk_builder_get_object (bar_gtk_builder, "medium");
       gtk_tool_button_set_icon_widget (toolbutton, GTK_WIDGET (medium_obj));
       bar_data->thickness = MEDIUM_THICKNESS;
     }
-  else if (bar_data->thickness==MEDIUM_THICKNESS)
+  else if (bar_data->thickness == MEDIUM_THICKNESS)
     {
-    replace_status_message(gettext("Brush thickness set to thick"));
+      replace_status_message(gettext("Brush thickness set to thick"));
       /* Set the thick icon. */
       GObject *thick_obj = gtk_builder_get_object (bar_gtk_builder, "thick");
       gtk_tool_button_set_icon_widget (toolbutton, GTK_WIDGET (thick_obj));
       bar_data->thickness = THICK_THICKNESS;
     }
-  else if (bar_data->thickness==THICK_THICKNESS)
+  else if (bar_data->thickness == THICK_THICKNESS)
     {
-        replace_status_message(gettext("Brush thickness set to micro"));
+      replace_status_message(gettext("Brush thickness set to micro"));
       /* Set the micro icon. */
       GObject *micro_obj = gtk_builder_get_object (bar_gtk_builder, "micro");
       gtk_tool_button_set_icon_widget (toolbutton, GTK_WIDGET (micro_obj));
       bar_data->thickness = MICRO_THICKNESS;
     }
-
 }
 
 
@@ -309,7 +306,6 @@ G_MODULE_EXPORT void
 on_bar_arrow_activate             (GtkToolButton   *toolbutton,
                                    gpointer         func_data)
 {
-
   BarData *bar_data = (BarData *) func_data;
   lock (bar_data);
   set_color (bar_data, bar_data->color);
@@ -322,7 +318,6 @@ G_MODULE_EXPORT void
 on_bar_pencil_activate            (GtkToolButton   *toolbutton,
                                    gpointer         func_data)
 {
-
   BarData *bar_data = (BarData *) func_data;
   lock (bar_data);
   set_color (bar_data, bar_data->color);
@@ -369,7 +364,7 @@ on_bar_eraser_activate            (GtkToolButton   *toolbutton,
 /* Push save (screen-shoot) button. */
 G_MODULE_EXPORT void
 on_bar_screenshot_activate	      (GtkToolButton   *toolbutton,
-                                   gpointer         func_data)
+		                       gpointer         func_data)
 {
   BarData *bar_data = (BarData *) func_data;
   gboolean grab_value = bar_data->grab;
@@ -396,7 +391,7 @@ on_bar_add_pdf_activate	          (GtkToolButton   *toolbutton,
   /* Release grab. */
   annotate_release_grab ();
 
-replace_status_message(gettext("Exporting as PDF"));
+  replace_status_message(gettext("Exporting as PDF"));
   add_pdf_page (GTK_WINDOW (get_bar_widget ()));
   bar_data->grab = grab_value;
   start_tool (bar_data);
@@ -421,14 +416,13 @@ on_bar_showhide_activate     (GtkToolButton            *toolButton,
       GtkWidget* window = get_annotation_window ();
       if ( window != NULL ) {
           replace_status_message(gettext("Annotations hidden"));
-          gtk_widget_hide( window ); // @TODO loses its position so we need to save the position and loses image
+          gtk_widget_hide( window );
+	  /* @TODO loses its position so we need to save the position and loses image */
           bar_data->annotation_is_visible = FALSE;
-
 
           /* Set the stop tool-tip. */
           gtk_tool_item_set_tooltip_text ( (GtkToolItem *) toolButton,
                                           gettext ("Show Annotations"));
-
 
 
           /* Put the show icon. */
@@ -636,6 +630,7 @@ on_background_selection_window_configure_event(GtkWidget *widget, GdkEvent  *eve
     return FALSE;
 }
 
+
 // void
 // background_selection_on_button_size_allocate(GtkWidget* widget, GdkRectangle *allocation, gpointer user_data) {
 //     if ( annotation_data->background_button_data != NULL ) {
@@ -660,6 +655,7 @@ on_background_selection_window_configure_event(GtkWidget *widget, GdkEvent  *eve
 //         }
 //     }
 // }
+
 
 void
 add_background_button(gchar* label, gint mode, gchar* filename, gchar* color) {
@@ -703,6 +699,7 @@ add_background_button(gchar* label, gint mode, gchar* filename, gchar* color) {
     }
 }
 
+
 void
 on_background_selection_window_destroy (GtkWidget *object, gpointer   user_data) {
     annotation_data->background_selection_window = NULL;
@@ -712,10 +709,12 @@ on_background_selection_window_destroy (GtkWidget *object, gpointer   user_data)
     annotation_data->background_button_last_selected = BACKGROUND_NONE_SELECTED;
 }
 
+
 void
 on_background_selection_size_allocate(GtkWidget* widget, GdkRectangle *allocation, gpointer user_data) {
-//    g_printf("size allocate %d %d\n", allocation->width, allocation->height);
+    //g_printf("size allocate %d %d\n", allocation->width, allocation->height);
 }
+
 
 void create_background_window(/* arguments */) {
     GtkWidget* window = NULL;
@@ -750,12 +749,14 @@ void create_background_window(/* arguments */) {
     gtk_widget_show_all( window );
 }
 
+
 /* Push fonts button. */
 G_MODULE_EXPORT void
 on_bar_fonts_clicked(GtkToolButton   *toolbutton, gpointer         func_data)
 {
     create_text_settings_window();
 }
+
 
 /* Push preference button. */
 G_MODULE_EXPORT void
