@@ -6,7 +6,7 @@ m4_define([ardesia_version], [2.0])
 m4_define([gtk_required_version], [3.20])
 
 AC_INIT([ardesia], [ardesia_version],
-	http://code.google.com/p/ardesia/issues/list,
+	https://github.com/pilollipietro/ardesia/issues,
 	[ardesia])
 
 AC_PREFIX_DEFAULT(/usr)

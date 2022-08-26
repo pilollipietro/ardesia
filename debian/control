@@ -11,7 +11,7 @@ Build-Depends: debhelper (>= 7.0.50~), autotools-dev,
 	librsvg2-dev,
 	libgsf-1-dev
 Standards-Version: 3.9.3
-Homepage: http://code.google.com/p/ardesia/
+Homepage: https://github.com/pilollipietro/ardesia
 Vcs-Git: git://git.debian.org/collab-maint/ardesia.git
 Vcs-Browser: http://git.debian.org/?p=collab-maint/ardesia.git;a=summary
 

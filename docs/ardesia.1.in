@@ -34,7 +34,7 @@ Possible values are: east [default], west, north, south
 
 .SH SUGGESTIONS AND BUG REPORTS
 Any bugs found should be reported to the online bug-tracking system
-available on the web at http://code.google.com/p/ardesia/issues/list. Before reporting bugs, please check to see if the bug has already been reported.
+available on the web at https://github.com/pilollipietro/ardesia/issues. Before reporting bugs, please check to see if the bug has already been reported.
 
 When reporting Ardesia bugs, it is important to include a reliable way to
 reproduce the bug, version number of Ardesia (and probably GTK+), OS name
