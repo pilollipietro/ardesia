@@ -274,7 +274,6 @@ filename:	  		The interactive Whiteboard Common File (iwb)
 
 # Original Author Info
 
-* See the original GitHub source https://github.com/gfreeau/ardesia
 * To get info about the tool, please contact:
       pilolli.pietro@gmail.com
 * To report bugs, please contact:
