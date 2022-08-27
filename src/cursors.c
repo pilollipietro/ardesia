@@ -26,6 +26,7 @@
 #include <librsvg/rsvg.h>
 #include <librsvg/rsvg-cairo.h>
 
+
 /* The image surface that will contain the pen icon. */
 static cairo_surface_t *pen_image_surface         = (cairo_surface_t*) NULL;
 

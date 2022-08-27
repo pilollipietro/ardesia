@@ -104,7 +104,6 @@ add_background_color_reference (xmlXPathContextPtr  context,
        update_background_color (rgba);
     }
 
-
   g_free( (gchar *) alpha);
   g_free( (gchar *) xpath);
 }

@@ -55,36 +55,6 @@ on_configure       (GtkWidget      *widget,
              state,
              gtk_widget_is_focus (widget)
              );
-//
-//   cairo_region_t* existing_surface = gdk_window_get_visible_region( gtk_widget_get_window(data->annotation_window) );
-//   if ( existing_surface == NULL ) {
-//       g_printf("on_configure: no existing surface\n");
-//   } else {
-//       g_printf("on_configure: existing surface\n");
-//   }
-//
-//   if (data->debug)
-//     {
-//       g_printerr("DEBUG: Annotation window get configure event (%d,%d)\n",
-//                  gtk_widget_get_allocated_width (widget),
-//                  gtk_widget_get_allocated_height (widget));
-//     }
-//
-//
-//
-//   //gint is_fullscreen = state & GDK_WINDOW_STATE_FULLSCREEN;
-//
-//   // if (!is_fullscreen)
-//   //   {
-//   //     return FALSE;
-//   //   }
-//
- // build_background_window();
- // gtk_window_set_keep_above (GTK_WINDOW (background_window), FALSE);
- // gtk_window_set_keep_above (GTK_WINDOW (data->annotation_window), TRUE);
- // initialize_annotation_cairo_context (data);
-
-// gtk_widget_queue_resize( GTK_WINDOW (data->annotation_window) );
   if (!data->is_grabbed)
     {
       return FALSE;
@@ -104,98 +74,6 @@ on_configure       (GtkWidget      *widget,
     if ( data->is_text_editor_visible == TRUE ) {
         annotation_window_change(width, height);
     }
-
-
-//
-//   /* Postcondition; data->annotation_cairo_context is not NULL. */
-  return TRUE;
-//
-
-
- // *** just these two lines plus full screen will show the square
- // initialize_annotation_cairo_context (data);
- // annotate_restore_surface ();
-
-
- // bring in cairo_context code
-//  if (data->annotation_cairo_context == NULL)
-//    {
-//        g_printf("initializing annotation cairo context\n");
-//          /* Initialize a transparent window. */
-//          data->annotation_cairo_context = gdk_cairo_create (gtk_widget_get_window (data->annotation_window));
-//
-//      if (cairo_status (data->annotation_cairo_context) != CAIRO_STATUS_SUCCESS)
-//        {
-//          g_printerr ("Failed to allocate the annotation cairo context");
-//          annotate_quit ();
-//          exit (EXIT_FAILURE);
-//        }
-//        cairo_set_operator (data->annotation_cairo_context, CAIRO_OPERATOR_OVER);
-//
-//        if (data->savepoint_list == NULL)
-//        {
-//          // THIS MUST BE RUN
-//          // adds a blank save point
-//          annotate_clear_screen ();
-//        }
-//        // this must be included
-//        gtk_window_set_opacity (GTK_WINDOW (data->annotation_window), 1.0);
-//
-//        guint i = data->current_save_index;
-//
-//        AnnotateSavepoint *savepoint = (AnnotateSavepoint *) g_slist_nth_data (data->savepoint_list, i);
-//
-//        if (!savepoint)
-//          {
-//              g_printf("savepoint is FALSE\n");
-//              draw_test_square(data->annotation_cairo_context );
-//            return;
-//          }
-//
-//
-//         // cairo_new_path (data->annotation_cairo_context);
-//          cairo_set_operator (data->annotation_cairo_context, CAIRO_OPERATOR_OVER);
-// draw_test_square(data->annotation_cairo_context );
-// draw_test_square_with_color( data->annotation_cairo_context, 0, 0, 255 );
-//        if (savepoint->filename)
-//          {
-//              g_printf("load savepoint from filename %s\n", savepoint->filename);
-//            /* Load the file in the annotation surface. */
-//            cairo_surface_t *image_surface = cairo_image_surface_create_from_png (savepoint->filename);
-//            if (data->debug)
-//              {
-//                g_printerr ("The save-point %s has been loaded from file\n", savepoint->filename);
-//              }
-//
-//            if (image_surface)
-//              {
-//                  g_printf("writing surface from vellum\n");
-//                cairo_save( data->annotation_cairo_context);
-//                cairo_new_path(data->annotation_cairo_context);
-//                cairo_set_operator (data->annotation_cairo_context, CAIRO_OPERATOR_SOURCE);
-//                cairo_set_source_surface (data->annotation_cairo_context, image_surface, 0, 0);
-//                cairo_paint (data->annotation_cairo_context);
-//                cairo_stroke (data->annotation_cairo_context);
-//                cairo_surface_flush( cairo_get_target(data->annotation_cairo_context) );
-//                cairo_surface_destroy (image_surface);
-//
-//                draw_test_square_with_color( data->annotation_cairo_context, 0, 255, 0 );
-//                cairo_restore( data->annotation_cairo_context);
-//
-//              }
-//
-//          }
-//          int width = gtk_widget_get_allocated_width(data->annotation_window);
-//          int height = gtk_widget_get_allocated_width(data->annotation_window);
-//
-//          //gtk_widget_queue_draw_area (data->annotation_window, 0, 0, width, height );
-//          // try and redraw
-//          //draw_test_square(data->annotation_cairo_context );
-//      }
-//
-//
-//
-//  return FALSE;
 }
 
 G_MODULE_EXPORT gboolean
@@ -233,37 +111,15 @@ on_keyrelease (GtkWidget *widget,
                 return FALSE;
 }
 
+
 /** When the window changes z-order or state */
 G_MODULE_EXPORT gboolean
 on_window_state_event (GtkWidget *widget,
                GdkEvent  *event,
                gpointer   user_data){
-    // AnnotateData *data = (AnnotateData *) user_data;
-    // g_printf("DEBUG: Annotation window state event (%d)\n",
-    //          event->type
-    //       );
-    // if (data->debug)
-    // {
-    //     g_printerr("DEBUG: Annotation window state event (%d)\n",
-    //              event->type
-    //           );
-    // }
-    //
-    // if ( event->type == GDK_WINDOW_STATE ) {
-    //     GdkEventWindowState* state = (GdkEventWindowState*) event;
-    //     g_printf("New window State: %d %d\n", state->changed_mask, state->new_window_state);
-    //
-    //     // the state of the window has changed
-    //     //g_printerr ("on_window_state_event: Moving ardesia_bar_window to top\n");
-    //     //gtk_window_set_keep_above (GTK_WINDOW (ardesia_bar_window), TRUE);
-    //     //gtk_widget_show (ardesia_bar_window);
-    // }
-    //
-    // // TRUE will stop the propagation to other windows
-    // return FALSE; // propagate the event further
-
     return FALSE;
 }
+
 
 /* On screen changed.
  * Required to make window transparent
@@ -273,7 +129,7 @@ on_screen_changed       (GtkWidget  *widget,
                          GdkScreen  *previous_screen,
                          gpointer    user_data)
 {
-    AnnotateData *data = (AnnotateData *) user_data;
+  AnnotateData *data = (AnnotateData *) user_data;
   if (data->debug)
     {
       g_printerr ("DEBUG: Annotation window get screen-changed event\n");
@@ -433,18 +289,6 @@ on_expose          (GtkWidget *widget,
         use_paint = TRUE;
     }
 
-
-//    cairo_set_fill_rule (cr, CAIRO_FILL_RULE_EVEN_ODD);
-
-//     cairo_set_fill_rule (cr, CAIRO_FILL_RULE_EVEN_ODD);
-    //cairo_rectangle(cr, 10,10, 50, 50);
-    // cairo_set_source_rgba(cr,1,1,0,1);
-    // cairo_fill_preserve(cr); // paint does not observe paths
-    // cairo_surface_write_to_png( cairo_get_target(cr), "path.png");
-//     cairo_fill_preserve(cr);
-// return FALSE;
-
-
     if ( annotation_data->is_background_visible == TRUE ) {
         // draw background layer on context cr
         if ( background_data->cr ) {
@@ -473,8 +317,6 @@ on_expose          (GtkWidget *widget,
         }
     }
 
-
-
   return TRUE;
 }
 
@@ -490,7 +332,7 @@ on_button_press    (GtkWidget      *win,
                     GdkEventButton *ev,
                     gpointer        user_data)
 {
-g_printf("annotation_window:: on_button_press\n");
+  g_printf("annotation_window:: on_button_press\n");
   AnnotateData *data = (AnnotateData *) user_data;
   gboolean retval = FALSE;
 
@@ -513,7 +355,7 @@ on_motion_notify   (GtkWidget       *win,
   AnnotateData *data = (AnnotateData *) user_data;
   gboolean retval = FALSE;
   if ( data->is_annotation_visible == TRUE &&
-        data->is_text_editor_visible == FALSE ) {
+       data->is_text_editor_visible == FALSE ) {
       retval = annotation_window_mouse_move( ev, data );
   }
   return retval;
@@ -526,7 +368,7 @@ on_button_release  (GtkWidget       *win,
                     GdkEventButton  *ev,
                     gpointer         user_data)
 {
-    g_printf("annotation_window::on_button_release\n");
+  g_printf("annotation_window::on_button_release\n");
   AnnotateData *data = (AnnotateData *) user_data;
   gboolean retval = FALSE;
   if ( data->is_text_editor_visible == TRUE ) {

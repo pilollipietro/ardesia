@@ -59,9 +59,6 @@ create_text_config() {
 }
 
 
-
-
-
 /* Stop the timer to handle the blocking cursor. */
 void
 stop_timer              ()
@@ -73,6 +70,7 @@ stop_timer              ()
     }
 }
 
+
 void
 start_blink_cursor() {
     // start blink cursor every second
@@ -81,76 +79,13 @@ start_blink_cursor() {
     text_data->timer = g_timeout_add (750, blink_cursor, NULL);
 }
 
+
 void
 stop_blink_cursor() {
     stop_timer ();
     text_data->blink_show=FALSE;
     blink_cursor (NULL);
 }
-
-
-
-// /* Create the text window. */
-// static void
-// create_text_window           (GtkWindow *parent)
-// {
-//   GError *error = (GError *) NULL;
-//
-//   if (!text_data->text_window_gtk_builder)
-//     {
-//       /* Initialize the main window. */
-//       text_data->text_window_gtk_builder = gtk_builder_new ();
-//
-//       /* Load the gtk builder file created with glade. */
-//       gtk_builder_add_from_file (text_data->text_window_gtk_builder, TEXT_UI_FILE, &error);
-//
-//       if (error)
-//         {
-//           g_warning ("Failed to load builder file: %s", error->message);
-//           g_error_free (error);
-//           return;
-//         }
-//
-//     }
-//
-//   if (!text_data->window)
-//     {
-//       GObject *text_obj = gtk_builder_get_object (text_data->text_window_gtk_builder, "text_window");
-//       text_data->window = GTK_WIDGET (text_obj);
-//
-//       /* Connect all the callback from gtkbuilder xml file. */
-//       gtk_builder_connect_signals (text_data->text_window_gtk_builder, (gpointer) text_data->window);
-//
-//       /* This trys to set an alpha channel. */
-//       on_text_window_screen_changed(text_data->window, NULL, text_data);
-//       gtk_window_set_opacity (GTK_WINDOW (text_data->window), 1);
-//       #ifdef _WIN32
-//         /* I use a layered window that use the black as transparent color. */
-//         setLayeredGdkWindowAttributes (gtk_widget_get_window  (text_data->window), RGB (0,0,0), 0, LWA_COLORKEY);
-//       #endif
-//
-//       //gtk_widget_grab_focus (text_data->window);
-//       gtk_widget_show_all( text_data->window );
-//
-//       // test window should be same as the annotation window
-//       int width = gtk_widget_get_allocated_width(annotation_window);
-//       int height = gtk_widget_get_allocated_width(annotation_window);
-//       g_printf("resizing text window: %d %d\n", width, height);
-//       gtk_widget_set_size_request (GTK_WIDGET (text_data->window), width, height);
-//
-//       // move to be over the top of the annotation window
-//       int x,y;
-//       gdk_window_get_root_coords( gtk_widget_get_window(annotation_window), 0,0, &x, &y );
-//       g_printf("relocating text window: %d %d\n", x, y);
-//       gdk_window_move( gtk_widget_get_window(text_data->window), x, y);
-//
-//       // keep above other windows
-//       gtk_window_set_keep_above (GTK_WINDOW (text_data->window), TRUE);
-//   }
-// }
-
-
-
 
 
 /* Blink cursor. */
@@ -198,11 +133,6 @@ gboolean blink_cursor        (gpointer data)
 
   return TRUE;
 }
-
-
-
-
-
 
 
 
@@ -293,6 +223,7 @@ save_text()
     }
 }
 
+
 static void
 clear_if_empty() {
     if (!text_data->letterlist) {
@@ -302,13 +233,6 @@ clear_if_empty() {
         }
     }
 }
-
-// static void
-// embed_tools_window(GtkWidget* widget) {
-//     // make room for tools screen shape if appropriate
-//     gtk_widget_input_shape_combine_region(widget, NULL);
-//     drill_window_in_bar_area (widget);
-// }
 
 
 static void
@@ -361,6 +285,7 @@ init_text_widget             (GtkWidget *widget)
 
 }
 
+
 static void
 create_text_data() {
     g_print("create_text_data\n");
@@ -381,6 +306,7 @@ create_text_data() {
         text_data->pen_width = 1;
     }
 }
+
 
 /* Start the widget for the text insertion.
  * Triggered by the leaving of the mouse of the tool bar.

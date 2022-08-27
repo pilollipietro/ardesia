@@ -146,5 +146,3 @@ windows_create_link (gchar *src,
 }
 
 #endif
-
-

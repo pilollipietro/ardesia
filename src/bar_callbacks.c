@@ -62,6 +62,7 @@ on_bar_window_state_event         (GtkWidget            *widget,
   return TRUE;
 }
 
+
 G_MODULE_EXPORT gboolean
 on_bar_draw_event          (GtkWidget *widget,
                     cairo_t   *cr,
@@ -205,7 +206,6 @@ on_bar_pointer_activate           (GtkToolButton   *toolbutton,
   BarData *bar_data = (BarData *) func_data;
   release_lock (bar_data);
 }
-
 
 
 /* Push text button. */
@@ -363,8 +363,8 @@ on_bar_eraser_activate            (GtkToolButton   *toolbutton,
 
 /* Push save (screen-shoot) button. */
 G_MODULE_EXPORT void
-on_bar_screenshot_activate	      (GtkToolButton   *toolbutton,
-		                       gpointer         func_data)
+on_bar_screenshot_activate	   (GtkToolButton   *toolbutton,
+		                    gpointer         func_data)
 {
   BarData *bar_data = (BarData *) func_data;
   gboolean grab_value = bar_data->grab;
@@ -381,8 +381,8 @@ on_bar_screenshot_activate	      (GtkToolButton   *toolbutton,
 
 /* Add page to pdf. */
 G_MODULE_EXPORT void
-on_bar_add_pdf_activate	          (GtkToolButton   *toolbutton,
-                                   gpointer         func_data)
+on_bar_add_pdf_activate	   (GtkToolButton   *toolbutton,
+                                    gpointer         func_data)
 {
   BarData *bar_data = (BarData *) func_data;
   gboolean grab_value = bar_data->grab;
@@ -397,11 +397,12 @@ on_bar_add_pdf_activate	          (GtkToolButton   *toolbutton,
   start_tool (bar_data);
 }
 
-/* Hide state event: this occurs when the show/hide widget event happens
- * 2018-08-09 : Added by TM
+
+/*
+ * Hide state event: this occurs when the show/hide widget event happens
  */
 G_MODULE_EXPORT void
-on_bar_showhide_activate     (GtkToolButton            *toolButton,
+on_bar_showhide_activate          (GtkToolButton            *toolButton,
                                    gpointer              func_data)
 {
   BarData *bar_data = (BarData *) func_data;
@@ -446,7 +447,6 @@ on_bar_showhide_activate     (GtkToolButton            *toolButton,
                                           gettext ("Hide Annotations"));
 
 
-
           /* Put the hide icon. */
           GtkImage* icon = get_image_from_builder( gettext("hide") );
           gtk_tool_button_set_icon_widget (toolButton, (GtkWidget*) icon);
@@ -461,7 +461,7 @@ G_MODULE_EXPORT void
 on_bar_recorder_activate          (GtkToolButton   *toolbutton,
                                    gpointer         func_data)
 {
-    GError* error = (GError *) NULL;
+  GError* error = (GError *) NULL;
   // we want to show the recording studio window at this point
   if ( annotation_data->recordingstudio_window == NULL ) {
       g_printf("Showing recording menu");
@@ -499,6 +499,7 @@ on_bar_recorder_activate          (GtkToolButton   *toolbutton,
 
 }
 
+
 gboolean
 on_remove_background_button( GtkMenuItem *menuitem, gpointer user_data) {
     GtkWidget* widget = GTK_WIDGET( user_data );
@@ -511,6 +512,7 @@ on_remove_background_button( GtkMenuItem *menuitem, gpointer user_data) {
     gtk_window_resize( GTK_WINDOW(annotation_data->background_selection_window), cwidth - width, cheight );
     return TRUE;
 }
+
 
 void
 background_selection_on_toggled (GtkToggleToolButton *toggle_tool_button, gpointer userdata) {
@@ -528,6 +530,7 @@ background_selection_on_toggled (GtkToggleToolButton *toggle_tool_button, gpoint
        annotation_data->background_button_last_selected = BACKGROUND_NONE_SELECTED;
     }
 }
+
 
 gboolean
 background_selection_on_button_press( GtkWidget* widget, GdkEvent *event, gpointer userdata ) {
@@ -556,11 +559,13 @@ background_selection_on_button_press( GtkWidget* widget, GdkEvent *event, gpoint
     return FALSE;
 }
 
+
 gboolean
 on_add_new_background( GtkWidget* widget, gpointer user_data ) {
     start_preference_dialog( GTK_WINDOW(user_data) );
     return TRUE;
 }
+
 
 /**
  * Effects will not show until after another gtk_widget_show_all call
@@ -629,32 +634,6 @@ on_background_selection_window_configure_event(GtkWidget *widget, GdkEvent  *eve
     }
     return FALSE;
 }
-
-
-// void
-// background_selection_on_button_size_allocate(GtkWidget* widget, GdkRectangle *allocation, gpointer user_data) {
-//     if ( annotation_data->background_button_data != NULL ) {
-//         BackgroundButtonData* data = (BackgroundButtonData*) ( g_slist_nth( annotation_data->background_button_data, 0 )->data );
-//         gint expected_width = ( g_slist_length( annotation_data->background_button_data ) + 1 ) * data->size;
-//         g_printf("on_button size allocate %d %d\n", allocation->width, allocation->height);
-//         gint window_width = gtk_widget_get_allocated_width( annotation_data->background_selection_window );
-//         //data->size > allocation->height - 11 &&
-//         if ( expected_width > window_width ) {
-//             // resize at lower size
-//             gint m = (int) log2( (double) allocation->height );
-//             m = (int) pow( 2.0 , m-1 );
-//             gint elements = g_slist_length( annotation_data->background_button_data );
-//             for( gint ii=0; ii < elements; ii++ ) {
-//                 //if ( data->button == widget ) {
-//                     data = (BackgroundButtonData*) ( g_slist_nth( annotation_data->background_button_data, ii )->data );
-//                     resize_image_to_button( data, m );
-//                 //}
-//             }
-//             gtk_widget_set_size_request( widget, m, -1 );
-//             //gtk_widget_show_all( annotation_data->background_selection_window );
-//         }
-//     }
-// }
 
 
 void
@@ -788,12 +767,6 @@ on_bar_preferences_activate	      (GtkToolButton   *toolbutton,
             bar_data->grab = grab_value;
             start_tool (bar_data);
             annotation_data->background_button_last_selected = BACKGROUND_NONE_SELECTED;
-            // // need to create hole in the background layer for this window
-            // gtk_widget_input_shape_combine_region (annotation_data->annotation_window, NULL);
-            // drill_window_in_bar_area( annotation_data->annotation_window, get_bar_widget() );
-            // drill_window_in_bar_area( annotation_data->annotation_window, annotation_data->background_selection_window );
-            // //gtk_window_present( GTK_WINDOW(annotation_data->background_selection_window) );
-
         }
     }
 }

@@ -96,18 +96,8 @@ calculate_initial_position (GtkWidget *ardesia_bar_window,
                             GdkRectangle* rect,
                             gint position)
 {
-    // GdkDisplay* display = gdk_display_get_default();
-    // assert( display != NULL );
-    // GdkMonitor* monitor = gdk_display_get_monitor_at_window(display, gtk_widget_get_window(ardesia_bar_window));
-    // assert( monitor != NULL );
-    // //int scaleFactor = gdk_monitor_get_scale_factor (monitor);
-    // GdkRectangle* rect = g_new(GdkRectangle,1);
-    // gdk_monitor_get_geometry( monitor, rect);
-    // assert(rect != NULL);
-    // g_printf("Monitor Geometry: %d %d\n", rect->width, rect->height);
-    gint d_width = rect->width;
-    gint d_height = rect->height;
-    //g_free(rect);
+  gint d_width = rect->width;
+  gint d_height = rect->height;
   /* Resize if larger that screen width. */
   if (w_width>d_width)
     {
@@ -145,6 +135,7 @@ init_bar_data ()
   bar_data->screenshot_saved_location_y = -1;
   return bar_data;
 }
+
 
 gchar*
 get_xdg_config_file (const char *name)
@@ -214,11 +205,6 @@ create_bar_window (CommandLine *commandline,
   else
     {
       /* East or west. */
-      // GdkDisplay* display = gdk_display_get_default();
-      // GdkMonitor* monitor = gdk_display_get_primary_monitor(display);
-      // //int scaleFactor = gdk_monitor_get_scale_factor (monitor);
-      // GdkRectangle* rect = NULL;
-      // gdk_monitor_get_geometry( monitor, rect);
       int height_in_application_pixels = rect->height;
       if (height_in_application_pixels < 720)
         {
@@ -232,7 +218,6 @@ create_bar_window (CommandLine *commandline,
         }
 
     }
-
 
   /* Load the bar_gtk_builder file with the definition of the ardesia bar gui. */
   g_printf("File: %s\n", file);
@@ -263,9 +248,6 @@ create_bar_window (CommandLine *commandline,
     }
 
   gtk_window_get_size (GTK_WINDOW (bar_window) , &width, &height);
-
-  // returns the bounds of where we would the area to be
-  //GdkRectangle* bounds =  get_toolbar_area();
 
   /* x and y will be the bar left corner coordinates. */
   calculate_initial_position (bar_window,
@@ -300,6 +282,7 @@ GtkStatusbar* getStatusbar() {
     return GTK_STATUSBAR( g_object );
 }
 
+
 void
 replace_status_message( gchar* message ) {
     GtkStatusbar* bar = getStatusbar();
@@ -310,12 +293,15 @@ replace_status_message( gchar* message ) {
     }
 }
 
+
 void
 setStatusbarLabel( gchar* message ) {
     GObject *g_object = gtk_builder_get_object (bar_gtk_builder, gettext("labelCurrentSelection") );
     GtkLabel* label = GTK_LABEL( g_object );
     gtk_label_set_label( label, gettext(message) );
 }
+
+
 /* Try to up-rise the window;
  * this is used for the window manager
  * that does not support the stay above directive.
@@ -342,6 +328,7 @@ is_toggle_tool_button_active      (gchar *toggle_tool_button_name)
   return gtk_toggle_tool_button_get_active (toggle_tool_button);
 }
 
+
 /* Get GtkImage object from builder
  * 2018-08-09: TM
  */
@@ -351,16 +338,6 @@ GtkImage* get_image_from_builder(gchar *image_name) {
     return image;
 }
 
-/* Is the show/hide toggle tool button active?
- * 2018-08-09 : Added by TM
- */
-// static
-// gboolean is_hide_toggle_tool_button_active    ()
-// {
-//   return is_toggle_tool_button_active ("buttonShowHide");
-// }
-
-/* Is the text toggle tool button active? */
 
 gboolean is_text_toggle_tool_button_active       ()
 {
@@ -377,7 +354,6 @@ gboolean is_highlighter_toggle_tool_button_active          ()
 
 
 /* Is the filler toggle tool button active? */
-
 gboolean is_filler_toggle_tool_button_active          ()
 {
   return is_toggle_tool_button_active ("buttonFiller");
@@ -385,7 +361,6 @@ gboolean is_filler_toggle_tool_button_active          ()
 
 
 /* Is the eraser toggle tool button active? */
-
 gboolean is_eraser_toggle_tool_button_active     ()
 {
   return is_toggle_tool_button_active ("buttonEraser");
@@ -393,7 +368,6 @@ gboolean is_eraser_toggle_tool_button_active     ()
 
 
 /* Is the eraser toggle tool button active? */
-
 gboolean is_pen_toggle_tool_button_active     ()
 {
   return is_toggle_tool_button_active ("buttonPencil");
@@ -401,7 +375,6 @@ gboolean is_pen_toggle_tool_button_active     ()
 
 
 /* Is the pointer toggle tool button active? */
-
 gboolean is_pointer_toggle_tool_button_active    ()
 {
   return is_toggle_tool_button_active ("buttonPointer");
@@ -409,7 +382,6 @@ gboolean is_pointer_toggle_tool_button_active    ()
 
 
 /* Is the pointer toggle tool button active? */
-
 gboolean is_arrow_toggle_tool_button_active      ()
 {
   return is_toggle_tool_button_active ("buttonArrow");
@@ -420,7 +392,7 @@ gboolean is_arrow_toggle_tool_button_active      ()
 void
 add_alpha               (BarData *bar_data)
 {
-    assert(strlen(bar_data->color) == 8 );
+  assert(strlen(bar_data->color) == 8 );
   if (is_highlighter_toggle_tool_button_active ())
     {
       strncpy (&bar_data->color[6], SEMI_OPAQUE_ALPHA, 2);
@@ -570,10 +542,6 @@ void set_options      (BarData *bar_data)
 }
 
 
-
-
-
-
 /* Start to paint with the selected tool. */
 void
 start_tool                   (BarData *bar_data)
@@ -603,6 +571,7 @@ start_tool                   (BarData *bar_data)
     }
 }
 
+
 gboolean end_clapperboad_countdown(gpointer user_data) {
     g_print("END on_clapperboard_click");
     gboolean grab_value = bar_data->grab;
@@ -618,6 +587,7 @@ gboolean end_clapperboad_countdown(gpointer user_data) {
     gtk_widget_queue_draw(annotation_data->annotation_window);
     return FALSE;
 }
+
 
 void begin_clapperboard_countdown() {
     timer = g_timeout_add (BAR_TO_TOP_TIMEOUT, end_clapperboad_countdown, NULL);

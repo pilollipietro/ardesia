@@ -32,6 +32,7 @@
 #include <keyboard.h>
 #include <bar.h>
 
+
 /* internal structure allocated once. */
 static PdfData *pdf_data;
 
@@ -197,12 +198,13 @@ add_pdf_page (GtkWindow *parent)
   grab_screenshot (add_pdf_page_callback);
 }
 
+
 void
 add_pdf_page_callback( GdkPixbuf* pixbuf ) {
-    GtkWidget* parent = get_bar_widget();
+  GtkWidget* parent = get_bar_widget();
 
-    int width = gtk_widget_get_allocated_width( annotation_data->annotation_window );
-    int height = gtk_widget_get_allocated_height( annotation_data->annotation_window );
+  int width = gtk_widget_get_allocated_width( annotation_data->annotation_window );
+  int height = gtk_widget_get_allocated_height( annotation_data->annotation_window );
   cairo_surface_t *saved_surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
                                                                width,
                                                                height);

@@ -23,9 +23,11 @@
 
 #include <monitor.h>
 
+
 guint DRAW_ON_MONITOR = 0;
 guint DRAW_ON_CLIPAREA = 1;
 guint DRAW_ON_FULLDESKTOP = 2;
+
 
 /**
  * Creates a GList of monitors sorted by the pixel area they service
@@ -63,6 +65,7 @@ create_monitor_list() {
     return monitors;
 }
 
+
 void
 print_monitor_list(GList* monitors) {
     if ( monitors != NULL ) {
@@ -71,12 +74,14 @@ print_monitor_list(GList* monitors) {
     }
 }
 
+
 void
 destroy_monitor_list(GList* monitors) {
     if ( monitors != NULL ) {
         g_list_free_full( monitors, (GDestroyNotify) destroy_monitor_struct );
     }
 }
+
 
 Monitor* copy_monitor_struct( Monitor* m ) {
     Monitor* new_m = g_new(Monitor,1);
@@ -91,17 +96,20 @@ Monitor* copy_monitor_struct( Monitor* m ) {
     return new_m;
 }
 
+
 void
 destroy_monitor_struct( gpointer data) {
     Monitor* m = (Monitor*) data;
     g_free(m->rect);
 }
 
+
 void
 print_monitor_struct( gpointer data, gpointer userdata ) {
     Monitor* m = (Monitor*) data;
     g_printf("Monitor %d: %d %d %d %d\n", m->monitor_index, m->rect->x, m->rect->y, m->rect->width, m->rect->height );
 }
+
 
 int
 is_to_left_of( gconstpointer a, gconstpointer b, gpointer data ) {

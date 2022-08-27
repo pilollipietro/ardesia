@@ -58,7 +58,6 @@ on_record_click            (GtkToggleButton   *toolbutton,
     /* Release grab. */
     annotate_release_grab ();
 
-
     bar_data->grab = FALSE;
 
     if (is_started ())
@@ -137,17 +136,7 @@ on_record_click            (GtkToggleButton   *toolbutton,
     start_tool (bar_data);
 }
 
-// Region CreateRegion(int x, int y, int w, int h) {
-//     Region region = XCreateRegion();
-//     XRectangle rectangle;
-//     rectangle.x = x;
-//     rectangle.y = y;
-//     rectangle.width = w;
-//     rectangle.height = h;
-//     XUnionRectWithRegion(&rectangle, region, region);
-//
-//     return region;
-// }
+
 void drill_window_in_cursor_area();
 
 void
@@ -159,6 +148,7 @@ get_desktop_mouse_location(int* x, int* y) {
     GdkDevice* device = gdk_seat_get_pointer( seat );
     gdk_window_get_device_position( desktop, device, x, y, NULL );
 }
+
 
 gboolean
 move_cursor_window(gpointer data) {
@@ -182,6 +172,7 @@ move_cursor_window(gpointer data) {
         return TRUE; // continue timer
     }
 }
+
 
 void drill_window_in_cursor_area() {
     GtkWidget *cursor_window= annotation_data->cursor_window;
@@ -210,7 +201,9 @@ void drill_window_in_cursor_area() {
     g_free( rA );
 }
 
+
 void draw_video_cursor(cairo_t* cr, GtkWidget* widget);
+
 
 /**
  * Called by Gtk on draw event for cursor window
@@ -221,22 +214,23 @@ void draw_video_cursor(cairo_t* cr, GtkWidget* widget);
  */
 static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr, gpointer user_data)
 {
-  draw_video_cursor(cr, widget);
-  return FALSE;
+    draw_video_cursor(cr, widget);
+    return FALSE;
 }
+
 
 static void setup_transparency(GtkWidget *win)
 {
-  GdkScreen *screen;
-  GdkVisual *visual;
+    GdkScreen *screen;
+    GdkVisual *visual;
 
-  gtk_widget_set_app_paintable(win, TRUE);
-  screen = gdk_screen_get_default();
-  visual = gdk_screen_get_rgba_visual(screen);
+    gtk_widget_set_app_paintable(win, TRUE);
+    screen = gdk_screen_get_default();
+    visual = gdk_screen_get_rgba_visual(screen);
 
-  if (visual != NULL && gdk_screen_is_composited(screen)) {
-      gtk_widget_set_visual(win, visual);
-  }
+    if (visual != NULL && gdk_screen_is_composited(screen)) {
+        gtk_widget_set_visual(win, visual);
+    }
 }
 
 
@@ -411,6 +405,7 @@ on_cursor_click            (GtkToggleButton   *toolbutton,
     }
 }
 
+
 G_MODULE_EXPORT void
 on_clapperboard_click            (GtkToolButton   *toolbutton,
                                    gpointer         func_data)
@@ -436,6 +431,7 @@ on_clapperboard_click            (GtkToolButton   *toolbutton,
     begin_clapperboard_countdown();
 }
 
+
 G_MODULE_EXPORT void
 on_new_click              (GtkToolButton   *toolbutton,
                                    gpointer         func_data)
@@ -448,11 +444,13 @@ on_new_click              (GtkToolButton   *toolbutton,
     on_record_click( (GtkToggleButton*) beginRecordingButton, func_data );
 }
 
+
 G_MODULE_EXPORT void
 on_recordingstudio_window_destroy_event (GtkWidget *widget, GdkEvent *event, gpointer data) {
 
     g_print("recording studio window being destroyed\n");
 }
+
 
 G_MODULE_EXPORT gboolean
 on_recordingstudio_window_delete_event (GtkWidget *widget, GdkEvent *event, gpointer data) {

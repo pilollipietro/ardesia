@@ -29,6 +29,7 @@
 #include <fill.h>
 #include <utils.h>
 
+
 /*
  * Get color of the surface at point with coordinates (x,y).
  */

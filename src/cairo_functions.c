@@ -24,6 +24,7 @@
 #include <cairo_functions.h>
 #include <utils.h>
 
+
 /**
  * Paint from one context to another
  * @param source the context on which we want to paint
@@ -86,8 +87,6 @@ load_file_onto_context(gchar* image_filename, cairo_t* cr)
 }
 
 
-
-
 /* The windows has been exposed after the show_all request to change the background color. */
 void
 load_color_onto_context(gchar* hex_color, cairo_t* cr)
@@ -110,42 +109,25 @@ load_color_onto_context(gchar* hex_color, cairo_t* cr)
         cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
 
 
-// #ifdef WIN32
-//       gdouble opacity = BACKGROUND_OPACITY;
-//       cairo_set_source_rgb (cr, (gdouble) r/256, (gdouble) g/256, (gdouble) b/256);
-//
-//       /*
-//        * @TODO Implement with a full opaque windows and use cairo_set_source_rgba
-//        * function to paint.
-//        * I set the opacity with alpha and I use cairo_set_source_rgb to workaround
-//        * the problem on windows with rgba.
-//        */
-//        if (((gdouble) a/256) >  BACKGROUND_OPACITY)
-//          {
-//            opacity = (gdouble) a/256;
-//          }
-//       gtk_window_set_opacity (GTK_WINDOW (annotation_data->annotation_window), opacity);
-// #else
-      cairo_set_source_rgba (cr,
-                             (gdouble) r/256,
-                             (gdouble) g/256,
-                             (gdouble) b/256,
-                             (gdouble) a/256);
-// #endif
-
+        cairo_set_source_rgba (cr,
+                               (gdouble) r/256,
+                               (gdouble) g/256,
+                               (gdouble) b/256,
+                               (gdouble) a/256);
       cairo_paint (cr);
       cairo_stroke (cr);
       cairo_restore( cr );
 
-// save_cairo_context(cr, "/tmp", "debug_color", 0);
     }
 }
+
 
 cairo_t*
 create_new_context(int width, int height) {
     cairo_surface_t* surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height );
     return cairo_create(surface);
 }
+
 
 cairo_t*
 create_copy_of_context(cairo_t* current_context) {
@@ -163,6 +145,7 @@ create_copy_of_context(cairo_t* current_context) {
     }
     return NULL;
 }
+
 
 void
 draw_test_text(cairo_t* cr, gchar* text) {

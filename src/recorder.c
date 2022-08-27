@@ -43,6 +43,7 @@ static gboolean started = FALSE;
 /* is the recorder paused */
 static gboolean paused = FALSE;
 
+
 /*
  * Create a recorder process; it return the pid
  */

@@ -101,22 +101,12 @@ on_preference_ok_button_clicked (GtkButton *buton,
       GObject *bg_color_obj = gtk_builder_get_object (preference_data->preference_dialog_gtk_builder,
 						      "backgroundColorButton");
 
-      //GtkColorButton *background_color_button = GTK_COLOR_BUTTON (bg_color_obj);
       GdkRGBA *gdkcolor = g_malloc ( (gsize) sizeof (GdkRGBA));
       gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER(bg_color_obj), gdkcolor);
-// g_printf("CSS3 color format: %f %f %f %f\n",gdkcolor->red,gdkcolor->green,gdkcolor->blue,gdkcolor->alpha);
-      // rgb = gdkcolor_to_rgb (gdkcolor);
-      // a = g_strdup_printf ("%02x", gtk_color_chooser_get_use_alpha (GTK_COLOR_CHOOSER(bg_color_obj))/257);
-      // rgba = g_strdup_printf ("%s%s", rgb, a);
-
       rgba = gdkrgba_to_rgba(gdkcolor);
 
       add_background_button(rgba, BACKGROUND_MODE_COLOR, NULL, rgba);
-
-
-      // g_free (a);
-      // g_free (rgb);
-      // g_free (rgba);
+      
       g_free (gdkcolor);
 
     }

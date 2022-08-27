@@ -71,5 +71,3 @@ void start_crash_dialog (GtkWindow *parent,
 
   gtk_widget_destroy (crash_dialog);
 }
-
-

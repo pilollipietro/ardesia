@@ -251,7 +251,7 @@ main                              (int    argc,
   create_text_settings_window();
 
   // main loop for a GTK application
-  gtk_main ();
+  gtk_main();
 
   destroy_workspace(workspace);
   destroy_command_line(commandline);

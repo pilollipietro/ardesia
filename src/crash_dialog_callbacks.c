@@ -43,5 +43,3 @@ on_crash_cancel_button_clicked (GtkButton *buton,
 {
   /* Do nothing. */
 }
-
-

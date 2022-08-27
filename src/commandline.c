@@ -62,6 +62,7 @@ create_command_line() {
     return commandline;
 }
 
+
 void
 destroy_command_line(CommandLine* commandline) {
     g_printf("Destroying command line\n");
@@ -70,6 +71,7 @@ destroy_command_line(CommandLine* commandline) {
     }
     g_free( commandline );
 }
+
 
 void
 add_defaults_to_commandline( CommandLine* commandline ) {
@@ -92,6 +94,7 @@ add_defaults_to_commandline( CommandLine* commandline ) {
     commandline->clipRect->height = 200;
     commandline->is_opaque = FALSE;
 }
+
 
 /* Print the version of the tool and exit. */
 static void

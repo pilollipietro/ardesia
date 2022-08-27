@@ -27,6 +27,7 @@
 #include <broken.h>
 #include <bar_callbacks.h>
 
+
 /* Number x is roundable to y. */
 static gboolean
 is_similar (gdouble x,
@@ -60,6 +61,7 @@ static guint countPointsAlongHorizontal(GSList *list, gdouble x, gdouble pixel_t
       return cnt;
 }
 
+
 static guint countPointsAlongVertical(GSList *list, gdouble y, gdouble pixel_tollerance ) {
     guint i =0;
     guint length = g_slist_length (list);
@@ -75,6 +77,7 @@ static guint countPointsAlongVertical(GSList *list, gdouble y, gdouble pixel_tol
       }
       return cnt;
 }
+
 
 /* Take the list and found the minx miny maxx and maxy points. */
 static void found_min_and_max (GSList  *list,
@@ -150,6 +153,7 @@ is_a_rectangle (GSList *list,
   /* Postcondition: it is a rectangle. */
   return TRUE;
 }
+
 
 static gboolean
 is_a_triangle (GSList *list,
@@ -541,6 +545,7 @@ build_outbounded_rectangle (GSList *list)
 
   return ret_list;
 }
+
 
 /* try to build a triangle out of the points */
 GSList *

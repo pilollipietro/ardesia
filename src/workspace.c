@@ -25,6 +25,7 @@
 #include <utils.h>
 #include <monitor.h>
 
+
 Workspace*
 create_workspace() {
     g_printf("Creating workspace\n");
@@ -33,6 +34,7 @@ create_workspace() {
     set_defaults_for_workspace( workspace );
     return workspace;
 }
+
 
 void
 set_defaults_for_workspace(Workspace* workspace) {
@@ -54,6 +56,7 @@ set_defaults_for_workspace(Workspace* workspace) {
     // g_free (workspace_dir);
 }
 
+
 void
 print_workspace(Workspace* workspace) {
     g_printf("Project Name: %s\n", workspace->project_name);
@@ -63,6 +66,7 @@ print_workspace(Workspace* workspace) {
     g_printf("Date: %s\n", workspace->date);
     print_monitor_list(workspace->monitors);
 }
+
 
 void
 destroy_workspace(Workspace* workspace) {
@@ -153,6 +157,7 @@ configure_workspace               (Workspace* workspace)
 
 }
 
+
 void
 change_workspace_to(Workspace* workspace, gchar* filename ) {
 
@@ -197,6 +202,7 @@ change_workspace_to(Workspace* workspace, gchar* filename ) {
     workspace->project_dir = g_substr (filename, 0, init_pos-1);
 
 }
+
 
 void
 build_workspace_filesystem(Workspace * workspace)

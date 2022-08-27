@@ -98,6 +98,7 @@ remove_input_devices    (AnnotateData  *data)
     }
 }
 
+
 int deviceIndex =0;
 void
 print_device_info( GdkDevice * device ) {

@@ -57,65 +57,12 @@ is_above_virtual_keyboard    (gint  x,
 #endif
 
 
-// /* On configure event. */
-// G_MODULE_EXPORT gboolean
-// on_text_window_configure     (GtkWidget       *widget,
-//                               GdkEventExpose  *event,
-//                               gpointer         user_data)
-// {
-//     g_printf("on_text_window_configure\n");
-//     init_text_widget (widget);
-//     return TRUE;
-// }
-
-//
-// /* On screen changed. */
-// G_MODULE_EXPORT void
-// on_text_window_screen_changed     (GtkWidget  *widget,
-//                                    GdkScreen  *previous_screen,
-//                                    gpointer    user_data)
-// {
-//   GdkScreen *screen = gtk_widget_get_screen(GTK_WIDGET (widget));
-//   GdkVisual *visual = gdk_screen_get_rgba_visual(screen);
-//   if (visual == NULL)
-//     {
-//       visual = gdk_screen_get_system_visual (screen);
-//     }
-//
-//   gtk_widget_set_visual (widget, visual);
-// }
-//
-
 /* The windows has been exposed. Need Double Buffering to be activated for this to work properly*/
 G_MODULE_EXPORT gboolean
 on_text_window_expose_event  (GtkWidget  *widget,
                               cairo_t    *cr,
                               gpointer    data)
 {
-//     g_printf("on_text_window_expose_event: DRAW EVENT\n");
-//
-//   // this is the draw event and we should be doing all our drawing to the
-//   // window in this event
-//   if ( text_data->cr ) {
-//       g_printf("on_text_window_expose_event: UPDATE WINDOW\n");
-//       cairo_save( cr );
-//       cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
-//       // where we want to copy the image FROM
-//       cairo_surface_t* source_surface = cairo_get_target (text_data->cr);
-//
-//       // position the source surface over the destination
-//       cairo_set_source_surface (cr, source_surface, 0, 0);
-//       // paint the image on to the window
-//       cairo_paint(cr);
-//       cairo_restore( cr );
-//
-//       // remove and create a fresh copy of the latest window
-//       cairo_destroy( text_data->cr );
-//       text_data->cr = NULL;
-//   }
-// //  text_data->cr = create_copy_of_text_window_context( cr );
-//
-//
   return FALSE;
 }
 
@@ -130,7 +77,7 @@ gboolean
 on_text_window_button_release( GtkWidget       *win,
                             GdkEventButton* ev,
                             TextData* data ) {
-    g_printf("on_text_window_button_release BEGIN\n");
+  g_printf("on_text_window_button_release BEGIN\n");
   /* only button1 allowed */
   if (ev->button != 1)
     {
@@ -152,7 +99,7 @@ on_text_window_button_release( GtkWidget       *win,
 
   if ((text_data) && (text_data->pos))
     {
-        g_printf("on_text_window_button_release MOVE CURSOR\n");
+      g_printf("on_text_window_button_release MOVE CURSOR\n");
       save_text (); // @TODO is this required?
       g_printf("on_text_window_button_release: %f %f %f %f\n", ev->x, ev->y, ev->x_root, ev->y_root);
       text_data->pos->x = ev->x; // x_root
@@ -171,7 +118,7 @@ on_text_window_button_release( GtkWidget       *win,
       //text_data->timer = g_timeout_add (1000, blink_cursor, NULL);
       start_blink_cursor();
     }
-g_printf("on_text_window_button_release END\n");
+  g_printf("on_text_window_button_release END\n");
   return TRUE;
 }
 
@@ -202,6 +149,7 @@ make_new_character() {
     }
     return char_info;
 }
+
 
 static void
 draw_character( cairo_t* cr, CharInfo* char_info ) {
@@ -268,16 +216,19 @@ draw_character( cairo_t* cr, CharInfo* char_info ) {
     }
 }
 
+
 static gboolean
 is_delete_char(int ch) {
     return (ch == GDK_KEY_BackSpace) ||
          (ch == GDK_KEY_Delete);
 }
 
+
 static gboolean
 is_tab_char(int ch ) {
     return ch == GDK_KEY_Tab;
 }
+
 
 static gboolean
 is_return_char(int ch) {
@@ -285,6 +236,7 @@ is_return_char(int ch) {
 	    (ch == GDK_KEY_ISO_Enter) ||
 	    (ch == GDK_KEY_KP_Enter);
 }
+
 
 static void
 print_text_properties( CharInfo* char_info ) {
@@ -299,6 +251,7 @@ print_text_properties( CharInfo* char_info ) {
     g_printf("Weight: %d\n", char_info->font_weight);
     g_printf("Background Color: %s\n", char_info->background_color);
 }
+
 
 static void
 assign_text_properties( CharInfo* char_info ) {
@@ -326,6 +279,7 @@ assign_text_properties( CharInfo* char_info ) {
     }
 }
 
+
 void
 destroy_text_properties( gpointer data ) {
     CharInfo* char_info = (CharInfo*) data;
@@ -333,6 +287,7 @@ destroy_text_properties( gpointer data ) {
     g_free( char_info->font_family );
     g_free( char_info->background_color );
 }
+
 
 /* Delete the last character printed. */
 static void
@@ -372,10 +327,12 @@ delete_character        ()
     }
 }
 
+
 static void
 handle_delete_char() {
     delete_character (); // undo the last character inserted
 }
+
 
 static void
 handle_return_char() {
@@ -397,6 +354,7 @@ handle_return_char() {
     }
 }
 
+
 static void
 handle_tab_char(/* arguments */) {
     /* Simple Tab-Implementation */
@@ -408,6 +366,7 @@ handle_tab_char(/* arguments */) {
     // move cursor along by tab size
     text_data->pos->x += text_config->tabsize;
 }
+
 
 static void
 handle_printable_char(char ch) {

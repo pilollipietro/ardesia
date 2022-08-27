@@ -72,5 +72,3 @@ start_info_dialog            (GtkToolButton  *toolbutton,
       info_dialog_gtk_builder = NULL;
     }
 }
-
-

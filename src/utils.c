@@ -58,6 +58,7 @@ intersect( GdkRectangle* a, GdkRectangle* b ) {
           );
 }
 
+
 void
 draw_test_square( cairo_t* context ) {
     cairo_t* cr = context;
@@ -70,6 +71,7 @@ draw_test_square( cairo_t* context ) {
     cairo_restore(cr);
 }
 
+
 void
 draw_test_square_with_color( cairo_t* context, int r, int g, int b ) {
     cairo_t* cr = context;
@@ -81,6 +83,7 @@ draw_test_square_with_color( cairo_t* context, int r, int g, int b ) {
     cairo_stroke (cr);
     cairo_restore(cr);
 }
+
 
 /* Get the name of the current project. */
 gchar*
@@ -191,6 +194,7 @@ gdkcolor_to_rgb    (GdkRGBA *gdkcolor)
 
   return ret_str;
 }
+
 
 gchar *
 gdkrgba_to_rgba    (GdkRGBA *gdkcolor)
@@ -322,6 +326,7 @@ save_pixbuf_on_png_file      (GdkPixbuf    *pixbuf,
   return TRUE;
 }
 
+
 gboolean
 is_bar_window_over_annotation_window() {
     GtkWidget *bar= get_bar_widget ();
@@ -353,6 +358,7 @@ is_bar_window_over_annotation_window() {
     return result;
 }
 
+
 GdkPixbuf*
 take_screenshot_now() {
     GtkWidget* widget = annotation_data->annotation_window;
@@ -369,6 +375,7 @@ take_screenshot_now() {
                                      ann_height);
     return snapshot;
 }
+
 
 /* Grab the screenshoot and put it in the image buffer. */
 void
@@ -908,6 +915,7 @@ void get_surface_size (cairo_surface_t *surface,
 		*width = x2 - x1;
 		*height = y2 - y1;
 	}
+
 
 void get_context_size (cairo_t *cr,
 			       int *width, int *height)

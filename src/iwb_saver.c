@@ -32,6 +32,7 @@
 #include <gsf/gsf-outfile-zip.h>
 #include <annotation_window.h>
 
+
 /* The file pointer to the iwb file. */
 static FILE *fp = NULL;
 
@@ -261,9 +262,10 @@ create_xml_content (gchar *content_filename,
 
 
 /* Add the filename under path to the gst_outfile. */
-static void add_file_to_gst_outfile (GsfOutfile   *out_file,
-                                     gchar        *path,
-                                     const gchar  *file_name)
+static void
+add_file_to_gst_outfile (GsfOutfile   *out_file,
+                         gchar        *path,
+                         const gchar  *file_name)
 {
   GError   *err = (GError *) NULL;
   gchar *file_path = g_build_filename (path, file_name, NULL);
