@@ -3,7 +3,7 @@
 AC_PREREQ(2.54)
 
 m4_define([ardesia_version], [2.0])
-m4_define([gtk_required_version], [3.20])
+m4_define([gtk_required_version], [2.99.3])
 
 AC_INIT([ardesia], [ardesia_version],
 	https://github.com/pilollipietro/ardesia/issues,
@@ -11,7 +11,7 @@ AC_INIT([ardesia], [ardesia_version],
 
 AC_PREFIX_DEFAULT(/usr)
 AC_CONFIG_MACRO_DIR([m4macros])
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE(AC_PACKAGE_NAME, AC_PACKAGE_VERSION)
 AM_CONFIG_HEADER(config.h)
 
 # Check if we have enabled debug support.
@@ -79,6 +79,10 @@ AM_PROG_LIBTOOL
 #######
 # Gtk 3
 #######
+AM_PATH_GTK_3_0(gtk_required_version, :,
+  AC_MSG_ERROR(Test for GTK3+ failed. See the file 'INSTALL' for help.),
+  gthread)
+
 AC_MSG_CHECKING([if GTK+ is version 2.99.3 or newer])
 if $PKG_CONFIG --atleast-version=2.99.3 gtk+-3.0; then
   have_gtk3=yes
