@@ -68,7 +68,7 @@ on_bar_draw_event          (GtkWidget *widget,
                     cairo_t   *cr,
                     gpointer   user_data) {
     g_print("bar draw event\n");
-return FALSE;
+    return FALSE;
 }
 
 void
@@ -91,8 +91,7 @@ on_bar_configure_event            (GtkWidget  *widget,
                                    gpointer   func_data)
 {
     g_print("bar configure event (%d)\n", bar_data->screenshot_pending);
-
-  if ( bar_data->screenshot_pending == TRUE ) {
+    if ( bar_data->screenshot_pending == TRUE ) {
       // we tried 2 methods:
       //  1. hide causing a hide event or a configure event
       //  2. moving window off screen first and then triggering the hide event
@@ -115,9 +114,9 @@ on_bar_configure_event            (GtkWidget  *widget,
       gtk_widget_show( get_bar_widget() );
       bar_data->screenshot_callback( buffer );
       bar_data->screenshot_callback = NULL;
-  } else {
+    } else {
       set_options (bar_data);
-  }
+    }
   return TRUE;
 }
 
@@ -127,7 +126,7 @@ G_MODULE_EXPORT gboolean
 on_bar_quit                     (GtkToolButton   *toolbutton,
                                  gpointer         func_data)
 {
-    g_printf("on_bar_quit\n");
+  g_printf("on_bar_quit\n");
   BarData *bar_data = (BarData *) func_data;
 
   stop_recorder ();

@@ -190,7 +190,6 @@ build_toolbar_window() {
     gtk_window_set_keep_above (GTK_WINDOW (ardesia_bar_window), TRUE);
     gtk_widget_show (ardesia_bar_window);
 
-
 }
 
 
@@ -242,7 +241,7 @@ main                              (int    argc,
 
   replace_status_message(g_strdup_printf("Project started in %s", workspace->project_dir));
 
-  //create_text_settings_window();
+  // create_text_settings_window();
 
   // main loop for a GTK application
   gtk_main();
