@@ -123,7 +123,6 @@ static BarData *
 init_bar_data ()
 {
   BarData *bar_data = (BarData *) g_malloc ((gsize) sizeof (BarData));
-  bar_data->color = g_strdup_printf ("%s", "FFFF00FF"); // default to yellow
   bar_data->annotation_is_visible = TRUE;
   bar_data->grab = TRUE;
   bar_data->rectifier = FALSE;
@@ -133,6 +132,8 @@ init_bar_data ()
   bar_data->screenshot_callback = NULL;
   bar_data->screenshot_saved_location_x = -1;
   bar_data->screenshot_saved_location_y = -1;
+  set_color(bar_data, "FFFF00FF"); // default to yellow
+  start_tool (bar_data);
   return bar_data;
 }
 
@@ -509,8 +510,9 @@ set_color                    (BarData  *bar_data,
 {
   take_pen_tool ();
   lock (bar_data);
-  assert( strlen(selected_color) >= 6  );
-  strncpy (bar_data->color, selected_color, 6);
+  bar_data->color = g_strdup_printf ("%s", selected_color);
+  //assert( strlen(selected_color) >= 6  );
+  //strncpy (bar_data->color, selected_color, 6);
   annotate_set_color (bar_data->color);
 }
 
