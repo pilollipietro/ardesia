@@ -24,6 +24,7 @@ else
 	AC_MSG_RESULT(no)
 fi
 
+LDFLAGS=" -Wl,--allow-multiple-definition $LDFLAGS"
 # gettext i18n support
 GETTEXT_PACKAGE=ardesia
 AC_SUBST(GETTEXT_PACKAGE)
