@@ -205,7 +205,7 @@ main                              (int    argc,
   ardesia_bar_window        = (GtkWidget *)     NULL;
   background_window         = (GtkWidget *)     NULL;
   annotation_window         = (GtkWidget *)     NULL;
-  workspace                 = (Workspace*)       NULL;
+  workspace                 = (Workspace *)     NULL;
 
 
   /* Enable the localization support with gettext. */
@@ -241,12 +241,12 @@ main                              (int    argc,
   build_toolbar_window();
 
   // move tool bar to appropriate screen
-  //Monitor* toolMonitor = g_list_nth_data( monitors, commandline->toolsMonitor - 1 );
-  //gtk_window_move( GTK_WINDOW(ardesia_bar_window), toolMonitor->rect->x, 0 );
+  // Monitor* toolMonitor = g_list_nth_data( monitors, commandline->toolsMonitor - 1 );
+  gtk_window_move( GTK_WINDOW(ardesia_bar_window), toolMonitor->rect->x, 0 );
 
   replace_status_message(g_strdup_printf("Project started in %s", workspace->project_dir));
 
-  create_text_settings_window();
+  //create_text_settings_window();
 
   // main loop for a GTK application
   gtk_main();

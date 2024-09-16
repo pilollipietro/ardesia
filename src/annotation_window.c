@@ -1971,8 +1971,6 @@ annotation_window_button_release( GdkEventButton* ev, AnnotateData* data) {
 
     initialize_annotation_cairo_context (data);
 
-
-
     if (length > 2)
       {
         AnnotatePoint *first_point = (AnnotatePoint *) g_slist_nth_data (masterdata->coord_list, length-1);
