@@ -65,8 +65,10 @@ on_record_click            (GtkToggleButton   *toolbutton,
         if (is_paused ())
           {
             resume_recorder ();
+
             /* Set the stop tool-tip. */
-        //    gtk_tool_button_set_tooltip_text ( toolbutton, gettext ("Stop"));
+	    // gtk_tool_button_set_tooltip_text ( toolbutton, gettext ("Stop"));
+
             /* Put the stop icon. */
             GtkWidget* imageWidget = GTK_WIDGET( gtk_builder_get_object( annotation_data->recordingstudio_window_gtk_builder, "media-playback-stop" ) );
             gtk_button_set_image( (GtkButton*) toolbutton, imageWidget );
@@ -76,11 +78,11 @@ on_record_click            (GtkToggleButton   *toolbutton,
         else
           {
             pause_recorder ();
-            /* Set the stop tool-tip. */
-//gtk_tool_button_set_tooltip_text ( toolbutton,
-    //                                        gettext ("Record"));
 
-            /* Put the record icon. */
+            /* Set the stop tool-tip. */
+	    // gtk_tool_button_set_tooltip_text ( toolbutton, gettext ("Record"));
+
+	    /* Put the record icon. */
             GtkWidget* imageWidget = GTK_WIDGET( gtk_builder_get_object( annotation_data->recordingstudio_window_gtk_builder, "media-record" ) );
             gtk_button_set_image( (GtkButton*) toolbutton, imageWidget );
             gtk_button_set_label( (GtkButton*) toolbutton, "Record" );
@@ -187,17 +189,17 @@ void drill_window_in_cursor_area() {
     rA->y = y;
     rA->width = width;
     rA->height = height;
+    
+    const cairo_rectangle_int_t widget_rect = { x+1, y+1, width-1, height-1 };
+    cairo_region_t *widget_reg = cairo_region_create_rectangle (&widget_rect);
+    
+    // drill with input shape the pointer will go below the window.
+    gtk_widget_input_shape_combine_region ( cursor_window, widget_reg);
 
-      const cairo_rectangle_int_t widget_rect = { x+1, y+1, width-1, height-1 };
-      cairo_region_t *widget_reg = cairo_region_create_rectangle (&widget_rect);
-
-      // drill with input shape the pointer will go below the window.
-      gtk_widget_input_shape_combine_region ( cursor_window, widget_reg);
-
-      // drill with shape; the area will be transparent.
+    // drill with shape; the area will be transparent.
     //  gtk_widget_shape_combine_region (cursor_window, widget_reg);
 
-      cairo_region_destroy (widget_reg);
+    cairo_region_destroy (widget_reg);
     g_free( rA );
 }
 

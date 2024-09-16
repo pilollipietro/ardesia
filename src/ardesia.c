@@ -171,8 +171,7 @@ build_annotation_window() {
     }
 
     GdkRectangle* rect = get_drawable_area();
-    position_annotation_window(rect->x,rect->y,rect->width,rect->height); //rect->width,rect->height);
-
+    position_annotation_window(rect->x,rect->y,rect->width,rect->height);
     gtk_widget_show (annotation_window);
 }
 
@@ -184,7 +183,6 @@ build_toolbar_window() {
     if (ardesia_bar_window == NULL)
       {
         annotate_quit ();
-        //destroy_background_window ();
         g_free (commandline);
         exit (EXIT_FAILURE);
       }

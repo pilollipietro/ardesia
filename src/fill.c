@@ -35,8 +35,8 @@
  */
 static gint
 get_color             (struct FillInfo *fill_info,
-                       gint           x,
-                       gint           y)
+                       gint             x,
+                       gint             y)
 {
   guchar *pixels = fill_info->pixels;
   gint stride = fill_info->stride;

@@ -1538,18 +1538,6 @@ annotate_release_grab   ()
         }
 
       annotate_release_input_grab ();
-
-      //gtk_window_present (GTK_WINDOW (get_bar_widget ()));
-      // if ( annotation_data->background_selection_window != NULL ) {
-      //     g_printf("presenting background selection window\n");
-      //     gtk_window_present (GTK_WINDOW (annotation_data->background_selection_window));
-      // }
-      // if ( annotation_data->font_window != NULL ) {
-      //     g_printf("presenting font window\n");
-      //     gtk_window_present (GTK_WINDOW (annotation_data->font_window));
-      // }
-
-      // allows other tool types to be selected - do not comment out!
       annotation_data->is_grabbed = FALSE;
     }
 }
