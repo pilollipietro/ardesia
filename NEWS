@@ -15,7 +15,6 @@ Features:
 - Some modifications to the shape recognition to try to make it more intuitive.
 - Added a backgrounds window for selecting common backgrounds
 - Added a recording window for common recording functionality
-- Added a unit testing framework - unity
 
 ---------------
  ardesia 1.1
