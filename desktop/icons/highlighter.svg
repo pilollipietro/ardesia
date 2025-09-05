@@ -2,23 +2,23 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   xmlns:dc="http://purl.org/dc/elements/1.1/"
-   xmlns:cc="http://creativecommons.org/ns#"
-   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-   xmlns:svg="http://www.w3.org/2000/svg"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:xlink="http://www.w3.org/1999/xlink"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="16"
    height="15.912537"
    id="svg2"
    version="1.1"
-   inkscape:version="0.48.3.1 r9886"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
    sodipodi:docname="highlighter.svg"
    inkscape:export-filename="/home/giuseppe/Immagini/Ardesia/highlighter16.png"
    inkscape:export-xdpi="14.97"
-   inkscape:export-ydpi="14.97">
+   inkscape:export-ydpi="14.97"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
   <defs
      id="defs4">
     <linearGradient
@@ -127,21 +127,24 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="3.959798"
-     inkscape:cx="47.695192"
-     inkscape:cy="41.36235"
+     inkscape:zoom="11.2"
+     inkscape:cx="36.428571"
+     inkscape:cy="28.526786"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
-     inkscape:window-width="1366"
-     inkscape:window-height="722"
+     inkscape:window-width="1920"
+     inkscape:window-height="1050"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
      fit-margin-top="0"
      fit-margin-left="0"
      fit-margin-right="0"
-     fit-margin-bottom="0" />
+     fit-margin-bottom="0"
+     inkscape:showpageshadow="2"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -159,15 +162,6 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(0,-1036.4497)">
-    <rect
-       style="fill:#ffff00;fill-opacity:1;stroke:none"
-       id="rect3818"
-       width="15.967471"
-       height="2.3522308"
-       x="-5.5511151e-17"
-       y="1050.01"
-       ry="0.69113111"
-       rx="0" />
     <path
        style="fill:url(#linearGradient3816);fill-opacity:1;stroke:none"
        d="m 4.1706627,1044.5629 -0.377489,-0.1711 -0.5725809,0.7305 0.4926184,0.9688 -0.2693044,1.9838 -0.4494261,0.9727 1.5703372,1.5457 0.7436548,-0.7368 1.3230062,-0.5115 c 0,0 0.9374338,0.6439 1.0799948,0.6386 0.1425645,-0.01 0.5611412,-0.2675 0.5611412,-0.2675 l 0.3250755,-0.4746 -0.1562198,-0.3643 z"

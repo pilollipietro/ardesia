@@ -161,7 +161,8 @@ typedef struct
   GSList* background_button_data; // colour, transparent or filename
   gint background_button_last_selected; // last background item selected, -1 if not
 
-  gfloat highlighter_multipler;
+  gfloat highlighter_multiplier;
+  gfloat pen_multiplier;
   gfloat eraser_multiplier;
 
   /* The cairo context attached to the window. */

@@ -116,6 +116,14 @@ calculate_initial_position (GtkWidget *ardesia_bar_window,
 }
 
 
+/* Activate tool button by name. */
+void activate_tool_button (gchar *tool_button_name)
+{
+  GObject *obj = gtk_builder_get_object (bar_gtk_builder, tool_button_name);
+  GtkToggleToolButton *tool_button = GTK_TOGGLE_TOOL_BUTTON (obj);
+  gtk_toggle_tool_button_set_active (tool_button, TRUE); 
+}
+
 
 /* Allocate and initialize the bar data structure. */
 static BarData *
@@ -131,8 +139,8 @@ init_bar_data ()
   bar_data->screenshot_callback = NULL;
   bar_data->screenshot_saved_location_x = -1;
   bar_data->screenshot_saved_location_y = -1;
-  set_color(bar_data, "FFFF00FF"); // default to yellow
-  //start_tool (bar_data);
+  activate_tool_button ("buttonHighlighter");
+  set_color(bar_data, "FFFF0088"); // default to yellow
   return bar_data;
 }
 
@@ -165,7 +173,8 @@ get_xdg_config_file (const char *name)
   return NULL;
 }
 
-/* Create the ardesia bar window.
+/* 
+ * Create the ardesia bar window.
  * @rect    the monitor rectangle to place toolbar on
  */
 GtkWidget *
@@ -239,9 +248,6 @@ create_bar_window (CommandLine *commandline,
   /* Connect all the callback from bar_gtk_builder xml file. */
   gtk_builder_connect_signals (bar_gtk_builder, (gpointer) bar_data);
 
-  //gtk_window_set_transient_for (GTK_WINDOW (bar_window), GTK_WINDOW (parent));
-
-
   if (commandline->decorated)
     {
       gtk_window_set_decorated (GTK_WINDOW (bar_window), TRUE);
@@ -266,13 +272,6 @@ create_bar_window (CommandLine *commandline,
   /* Move the window in the desired position. */
   gtk_window_move (GTK_WINDOW (bar_window), rect->x + x, rect->y + y);
 
-
-  // select arrow tool and the color yellow
-  GtkToggleToolButton* arrowButton = GTK_TOGGLE_TOOL_BUTTON (gtk_builder_get_object (bar_gtk_builder, "buttonPointer"));
-  GtkToggleToolButton* yellowButton = GTK_TOGGLE_TOOL_BUTTON (gtk_builder_get_object (bar_gtk_builder, "buttonYellow"));
-  gtk_toggle_tool_button_set_active( yellowButton, TRUE );
-  gtk_toggle_tool_button_set_active( arrowButton, TRUE );
-
   return bar_window;
 }
 
@@ -287,7 +286,6 @@ void
 replace_status_message( gchar* message ) {
     GtkStatusbar* bar = getStatusbar();
     if ( bar != NULL ) {
-        //guint contextID = gtk_statusbar_get_context_id( bar, gettext("context description"));
         gtk_statusbar_pop( bar, 0 );
         gtk_statusbar_push( bar, 0, message );
     }
@@ -330,7 +328,6 @@ is_toggle_tool_button_active      (gchar *toggle_tool_button_name)
 
 
 /* Get GtkImage object from builder
- * 2018-08-09: TM
  */
 GtkImage* get_image_from_builder(gchar *image_name) {
     GObject *g_object = gtk_builder_get_object (bar_gtk_builder, image_name);
@@ -524,9 +521,9 @@ void set_options      (BarData *bar_data)
 
   annotate_set_rounder (bar_data->rounder);
 
-  annotate_set_thickness (bar_data->thickness);
-
   annotate_set_arrow (is_arrow_toggle_tool_button_active ());
+
+  annotate_set_thickness (bar_data->thickness);
 
   if (is_pen_toggle_tool_button_active ()         ||
       is_highlighter_toggle_tool_button_active () ||

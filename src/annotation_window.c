@@ -901,20 +901,20 @@ annotate_set_thickness  (gdouble thickness)
 gdouble
 annotate_get_thickness  ()
 {
-  if (annotation_data->cur_context->type == ANNOTATE_ERASER)
+  gfloat corrective_factor = 1.0;
+  if (is_eraser_toggle_tool_button_active ())
     {
-      /* the eraser is bigger than pen */
-      gdouble corrective_factor = annotation_data->eraser_multiplier;
-      return annotation_data->thickness * corrective_factor;
+      corrective_factor = annotation_data->eraser_multiplier;
     }
-
-    if (is_highlighter_toggle_tool_button_active ())
-      {
-          gdouble corrective_factor = annotation_data->highlighter_multipler;
-          return annotation_data->thickness * corrective_factor;
-      }
-
-  return annotation_data->thickness;
+  if (is_highlighter_toggle_tool_button_active ())
+    {
+      corrective_factor = annotation_data->highlighter_multiplier;
+    }
+  if (is_pen_toggle_tool_button_active ())
+    {
+      corrective_factor = annotation_data->pen_multiplier;
+    }
+  return annotation_data->thickness * corrective_factor;
 }
 
 
@@ -1054,7 +1054,7 @@ annotate_select_pen          ()
       disallocate_cursor ();
 
       set_pen_cursor (&annotation_data->cursor,
-                      annotation_data->thickness,
+                      annotate_get_thickness(),
                       annotation_data->color,
                       annotation_data->arrow);
 
@@ -1608,7 +1608,7 @@ annotate_clear_screen   ()
 static void
 create_annotation_data() {
     annotation_data = g_malloc ((gsize) sizeof (AnnotateData));
-    gchar* color = g_strdup ("FFFF00FF");
+    gchar* color = g_strdup ("FFFF0088");
 
     /* Initialize the data structure. */
     annotation_data->is_background_visible = FALSE;
@@ -1625,7 +1625,7 @@ create_annotation_data() {
 
     annotation_data->color = color;
     annotation_data->is_grabbed = FALSE;
-    annotation_data->arrow = TRUE;
+    annotation_data->arrow = FALSE;
     annotation_data->rectify = FALSE;
     annotation_data->roundify = FALSE;
     annotation_data->old_paint_type = ANNOTATE_POINTER;
@@ -1657,8 +1657,9 @@ create_annotation_data() {
     annotation_data->background_button_data = NULL;
     annotation_data->background_button_last_selected = BACKGROUND_NONE_SELECTED;
 
-    annotation_data->eraser_multiplier = 2.5;
-    annotation_data->highlighter_multipler = 5.0;
+    annotation_data->pen_multiplier = 1;
+    annotation_data->eraser_multiplier = 3;
+    annotation_data->highlighter_multiplier = 3;
 
     annotation_data->font_window = NULL;
     annotation_data->font = NULL;
@@ -2070,7 +2071,6 @@ void
 create_text_settings_window() {
     GtkWidget* window = NULL;
     GtkWidget* font_chooser = NULL;
-    // GtkBox* box = NULL;
 
     if ( annotation_data->font_window == NULL ) {
         window = GTK_WIDGET(gtk_window_new(GTK_WINDOW_TOPLEVEL));
@@ -2079,10 +2079,6 @@ create_text_settings_window() {
         gtk_window_set_default_size( GTK_WINDOW(window), 200, 400 );
         font_chooser = gtk_font_chooser_widget_new ();
 
-        // box = GTK_BOX(gtk_box_new( GTK_ORIENTATION_HORIZONTAL, 0 ));
-        //
-        // //actionbar = GTK_ACTION_BAR( gtk_action_bar_new() );
-        // //gtk_box_pack_start( box, GTK_WIDGET(actionbar), TRUE, TRUE, 0 );
         gtk_container_add( GTK_CONTAINER(window), GTK_WIDGET(font_chooser) );
 
         g_signal_connect( window, "leave-notify-event", (GCallback) on_font_window_leave_event, font_chooser );
