@@ -41,13 +41,11 @@ Workspace   *workspace;
 CommandLine* commandline = NULL;
 
 
-GdkRectangle* get_toolbar_area() {
-    if ( commandline != NULL ) {
-        if ( commandline->mode == DRAW_ON_MONITOR ) {
-            Monitor* monitor = g_list_nth_data( workspace->monitors, commandline->tools_monitor );
+GdkRectangle* get_toolbar_area () {
+    if (commandline != NULL) {
+        if (commandline->mode == DRAW_ON_MONITOR) {
+            Monitor* monitor = g_list_nth_data (workspace->monitors, commandline->tools_monitor);
             return monitor->rect;
-        } else {
-            //gtk_getet_display(commandline->clipRect->x, commandline->clipRect->y);
         }
     }
     return NULL;
@@ -57,19 +55,19 @@ GdkRectangle* get_toolbar_area() {
  * Get the drawable area for annotation, text and background windows
  * @return NULL if not set, GdkRectangle if it is
  */
-GdkRectangle* get_drawable_area() {
-    if ( commandline != NULL ) {
-        if ( commandline->mode == DRAW_ON_MONITOR ) {
-            if ( commandline->workspace_monitor < 0 || commandline->workspace_monitor >= g_list_length(workspace->monitors) ) {
-                g_warning("Workspace monitor was given an illegal value, moving to monitor 0.\n");
+GdkRectangle* get_drawable_area () {
+    if (commandline != NULL) {
+        if (commandline->mode == DRAW_ON_MONITOR) {
+            if (commandline->workspace_monitor < 0 || commandline->workspace_monitor >= g_list_length(workspace->monitors)) {
+                g_warning ("Workspace monitor was given an illegal value, moving to monitor 0.\n");
                 commandline->workspace_monitor = 0;
             }
-            Monitor* monitor = g_list_nth_data( workspace->monitors, commandline->workspace_monitor );
+            Monitor* monitor = g_list_nth_data (workspace->monitors, commandline->workspace_monitor);
             return monitor->rect;
-        } else if ( commandline->mode == DRAW_ON_FULLDESKTOP ) {
-            GdkWindow* rootwindow = gdk_screen_get_root_window( gdk_screen_get_default() );
-            int maxwidth = gdk_window_get_width( rootwindow );
-            int maxheight = gdk_window_get_height( rootwindow );
+        } else if (commandline->mode == DRAW_ON_FULLDESKTOP) {
+            GdkWindow* rootwindow = gdk_screen_get_root_window (gdk_screen_get_default());
+            int maxwidth = gdk_window_get_width (rootwindow);
+            int maxheight = gdk_window_get_height (rootwindow);
             commandline->clipRect->x = 0;
             commandline->clipRect->y = 0;
             commandline->clipRect->width = maxwidth;
@@ -77,7 +75,7 @@ GdkRectangle* get_drawable_area() {
             return commandline->clipRect;
         } else {
             // check clipRect bounds
-            GdkWindow* rootwindow = gdk_screen_get_root_window( gdk_screen_get_default() );
+            GdkWindow* rootwindow = gdk_screen_get_root_window (gdk_screen_get_default () );
             int maxwidth = gdk_window_get_width( rootwindow );
             int maxheight = gdk_window_get_height( rootwindow );
             g_printf("Maximum Size: %d %d\n", maxwidth, maxheight);

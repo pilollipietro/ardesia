@@ -229,13 +229,6 @@ add_pdf_page_callback( GdkPixbuf* pixbuf ) {
 
   if (pdf_data == NULL)
     {
-      if (!g_thread_supported ())
-        {
-          /* Initialize internal mutex "gdk_threads_mutex". */
-          // g_thread_init (NULL);
-          // gdk_threads_init ();
-          g_printerr ("g_thread supported\n");
-        }
       if (!init_pdf_saver ( GTK_WINDOW(parent), pixbuf))
         {
           g_object_unref (pixbuf);

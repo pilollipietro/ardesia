@@ -132,7 +132,7 @@ init_bar_data ()
   bar_data->screenshot_saved_location_x = -1;
   bar_data->screenshot_saved_location_y = -1;
   set_color(bar_data, "FFFF00FF"); // default to yellow
-  start_tool (bar_data);
+  //start_tool (bar_data);
   return bar_data;
 }
 
@@ -442,7 +442,7 @@ take_pen_tool           ()
 void
 release_lock                 (BarData *bar_data)
 {
-    g_printf("releasing lock (grab: %d)\n", bar_data->grab);
+  g_printf("releasing lock (grab: %d)\n", bar_data->grab);
   if (bar_data->grab)
     {
       /* Lock enabled. */

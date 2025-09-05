@@ -50,7 +50,7 @@ on_bar_window_state_event         (GtkWidget            *widget,
                                    GdkEventWindowState  *event,
                                    gpointer              func_data)
 {
-    g_print("DEBUG: bat state event\n");
+  g_print("DEBUG: bat state event\n");
   BarData *bar_data = (BarData *) func_data;
 
   /* Track the minimized signals */
@@ -794,7 +794,7 @@ G_MODULE_EXPORT void
 on_bar_clear_activate             (GtkToolButton   *toolbutton,
                                    gpointer         func_data)
 {
-    replace_status_message(gettext("Screen has been cleared"));
+  replace_status_message(gettext("Screen has been cleared"));
   annotate_clear_screen ();
 }
 

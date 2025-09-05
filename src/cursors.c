@@ -49,15 +49,15 @@ cairo_image_surface_create_from_svg (const gchar* file)
   cairo_surface_t *surface;
   cairo_t *cr;
   RsvgHandle* handle;
-  RsvgDimensionData  dimensions;
 
   handle = rsvg_handle_new_from_file(file, NULL);
-  rsvg_handle_get_dimensions (handle, &dimensions);
+  RsvgRectangle viewport = { 0.0, 0.0, 0.0, 0.0 };
+  rsvg_handle_get_intrinsic_size_in_pixels (handle, &viewport.width, &viewport.height);
   surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-                                        dimensions.width,
-                                        dimensions.height);
+                                        round(viewport.width),
+                                        round(viewport.height));
   cr = cairo_create(surface);
-  rsvg_handle_render_cairo(handle, cr);
+  rsvg_handle_render_document(handle, cr, &viewport, NULL);
   cairo_destroy(cr);
   return surface;
 }

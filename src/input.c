@@ -182,18 +182,14 @@ grab_pointer       (GtkWidget           *widget,
                     GdkEventMask         eventmask)
 {
   GdkGrabStatus result;
-  GdkDisplay    *display = (GdkDisplay *) NULL;
-  //GdkDevice     *pointer = (GdkDevice *) NULL;
   GdkSeat *device_manager = (GdkSeat *) NULL;
+  GdkDisplay    *display = (GdkDisplay *) NULL;
 
   display = gdk_display_get_default ();
   ungrab_pointer     (display);
-  //device_manager = gdk_display_get_device_manager (display);
-  //pointer = gdk_device_manager_get_client_pointer (device_manager);
   device_manager = gdk_display_get_default_seat (display);
-  // pointer = gdk_seat_get_pointer (device_manager);
 
-  gdk_error_trap_push ();
+  gdk_x11_display_error_trap_push (display);
 
   result = gdk_seat_grab (device_manager,
                             gtk_widget_get_window(widget),
@@ -204,17 +200,8 @@ grab_pointer       (GtkWidget           *widget,
                             NULL,
                             NULL);
 
-
-                            // pointer,
-                            // gtk_widget_get_window (widget),
-                            // GDK_OWNERSHIP_WINDOW,
-                            // TRUE,
-                            // eventmask,
-                            // NULL,
-                            // GDK_CURRENT_TIME);
-
-  gdk_flush ();
-  if (gdk_error_trap_pop ())
+  gdk_display_flush (display);
+  if (gdk_x11_display_error_trap_pop (display))
     {
       g_printerr ("Grab pointer error\n");
     }
@@ -246,21 +233,16 @@ grab_pointer       (GtkWidget           *widget,
 void
 ungrab_pointer     (GdkDisplay        *display)
 {
-  // GdkDevice     *pointer = (GdkDevice *) NULL;
-  // GdkDeviceManager *device_manager = (GdkDeviceManager *) NULL;
   GdkSeat *seat = (GdkSeat *) NULL;
 
   display = gdk_display_get_default ();
-  // device_manager = gdk_display_get_device_manager (display);
-  // pointer = gdk_device_manager_get_client_pointer (device_manager);
   seat = gdk_display_get_default_seat (display);
 
-  gdk_error_trap_push ();
+  gdk_x11_display_error_trap_push (display);
 
-  // gdk_device_ungrab (pointer, GDK_CURRENT_TIME);
-  gdk_seat_ungrab( seat );
-  gdk_flush ();
-  if (gdk_error_trap_pop ())
+  gdk_seat_ungrab (seat);
+  gdk_display_flush (display);
+  if (gdk_x11_display_error_trap_pop (display))
     {
       /* this probably means the device table is outdated,
        * e.g. this device doesn't exist anymore.
