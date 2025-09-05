@@ -45,37 +45,30 @@ typedef struct
 
   /* Options for text_window */
   gchar *fontfamily;
-  gint text_leftmargin;
-  gint text_tabsize;
+  gint   text_leftmargin;
+  gint   text_tabsize;
 
-  guint mode;
+  guint         mode;
   // either the user can select a monitor for the workspace and tools screens
-  gint tools_monitor;
-  gint workspace_monitor;
+  gint          tools_monitor;
+  gint          workspace_monitor;
   // or they can choose an area of the screen
-  GdkRectangle* clipRect;
-  gboolean is_opaque;
+  GdkRectangle *clipRect;
+  gboolean      is_opaque;
 
 } CommandLine;
 
 // Command line interface
 
-CommandLine*
-create_command_line();
+CommandLine *create_command_line ();
 
-void
-destroy_command_line();
+void destroy_command_line ();
 
-void
-add_defaults_to_commandline();
+void add_defaults_to_commandline ();
 
 /* Parse the command line in the standard getopt way. */
-void
-parse_options           ( CommandLine* commandline,
-                        gint   argc,
-                         char  *argv[]);
+void parse_options (CommandLine *commandline, gint argc, char *argv[]);
 
-void
-print_command_line(CommandLine* commandline);
+void print_command_line (CommandLine *commandline);
 
 #endif

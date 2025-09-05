@@ -21,41 +21,36 @@
  *
  */
 
-
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+#include <config.h>
 #endif
 
+#include <keyboard.h>
 #include <saver.h>
 #include <utils.h>
-#include <keyboard.h>
-
 
 /* Confirm to override file dialog. */
 gboolean
 show_override_dialog (GtkWindow *parent)
 {
   GtkWidget *msg_dialog = (GtkWidget *) NULL;
-  gint result = GTK_RESPONSE_NO;
+  gint       result     = GTK_RESPONSE_NO;
 
-  msg_dialog = gtk_message_dialog_new (GTK_WINDOW (parent),
-                                       GTK_DIALOG_MODAL,
-                                       GTK_MESSAGE_WARNING,
-                                       GTK_BUTTONS_YES_NO,
+  msg_dialog = gtk_message_dialog_new (GTK_WINDOW (parent), GTK_DIALOG_MODAL,
+                                       GTK_MESSAGE_WARNING, GTK_BUTTONS_YES_NO,
                                        gettext ("File Exists. Overwrite"));
 
-  //gtk_window_set_keep_above (GTK_WINDOW (msg_dialog), TRUE);
+  // gtk_window_set_keep_above (GTK_WINDOW (msg_dialog), TRUE);
 
   result = gtk_dialog_run (GTK_DIALOG (msg_dialog));
-    if (msg_dialog)
-      {
-        gtk_widget_destroy (msg_dialog);
-        msg_dialog = NULL;
-      }
+  if (msg_dialog)
+    {
+      gtk_widget_destroy (msg_dialog);
+      msg_dialog = NULL;
+    }
 
-   return result;
+  return result;
 }
-
 
 /* Show the could not write the file */
 void
@@ -63,22 +58,19 @@ show_could_not_write_dialog (GtkWindow *parent_window)
 {
   GtkWidget *permission_denied_dialog = (GtkWidget *) NULL;
 
-  permission_denied_dialog = gtk_message_dialog_new (parent_window,
-                                                     GTK_DIALOG_MODAL,
-                                                     GTK_MESSAGE_ERROR,
-                                                     GTK_BUTTONS_OK,
-                                                     gettext ("Couldn't open file for writing: Permission denied"));
+  permission_denied_dialog = gtk_message_dialog_new (
+      parent_window, GTK_DIALOG_MODAL, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK,
+      gettext ("Couldn't open file for writing: Permission denied"));
 
   gtk_window_set_modal (GTK_WINDOW (permission_denied_dialog), TRUE);
 
   gtk_dialog_run (GTK_DIALOG (permission_denied_dialog));
-    if (permission_denied_dialog)
-      {
-        gtk_widget_destroy (permission_denied_dialog);
-        permission_denied_dialog = NULL;
-      }
+  if (permission_denied_dialog)
+    {
+      gtk_widget_destroy (permission_denied_dialog);
+      permission_denied_dialog = NULL;
+    }
 }
-
 
 /*
  * Start the dialog that ask to the user where save the image
@@ -87,34 +79,28 @@ show_could_not_write_dialog (GtkWindow *parent_window)
 void
 start_save_image_dialog ()
 {
-    g_printf("calling start_save_image_dialog\n");
-    grab_screenshot (start_save_image_dialog_callback);
+  g_printf ("calling start_save_image_dialog\n");
+  grab_screenshot (start_save_image_dialog_callback);
 }
 
 void
 start_save_image_dialog_callback (GdkPixbuf *buffer)
 {
-    g_printf("calling start_save_image_dialog_callback\n");
-  GtkWindow* parent = GTK_WINDOW (get_bar_widget ());
-  GtkWidget *preview = NULL;
-  gint preview_width = 128;
-  gint preview_height = 128;
-  GdkPixbuf *preview_pixbuf = NULL;
-  gchar  *filename = "";
-  gchar *filename_copy = "";
-  gchar *supported_extension = ".pdf";
-  gint run_status = GTK_RESPONSE_NO;
-  gboolean screenshot = FALSE;
+  g_printf ("calling start_save_image_dialog_callback\n");
+  GtkWindow *parent              = GTK_WINDOW (get_bar_widget ());
+  GtkWidget *preview             = NULL;
+  gint       preview_width       = 128;
+  gint       preview_height      = 128;
+  GdkPixbuf *preview_pixbuf      = NULL;
+  gchar     *filename            = "";
+  gchar     *filename_copy       = "";
+  gchar     *supported_extension = ".pdf";
+  gint       run_status          = GTK_RESPONSE_NO;
+  gboolean   screenshot          = FALSE;
 
-
-  GtkWidget *chooser = gtk_file_chooser_dialog_new (gettext ("Export as pdf"),
-                                                    parent,
-                                                    GTK_FILE_CHOOSER_ACTION_SAVE,
-                                                    "_Cancel",
-                                                    GTK_RESPONSE_CANCEL,
-                                                    "Save _As",
-                                                    GTK_RESPONSE_ACCEPT,
-                                                    NULL);
+  GtkWidget *chooser = gtk_file_chooser_dialog_new (
+      gettext ("Export as pdf"), parent, GTK_FILE_CHOOSER_ACTION_SAVE,
+      "_Cancel", GTK_RESPONSE_CANCEL, "Save _As", GTK_RESPONSE_ACCEPT, NULL);
 
   gtk_window_set_modal (GTK_WINDOW (chooser), TRUE);
   gtk_window_set_keep_above (GTK_WINDOW (chooser), TRUE);
@@ -122,8 +108,9 @@ start_save_image_dialog_callback (GdkPixbuf *buffer)
   gtk_window_set_title (GTK_WINDOW (chooser), gettext ("Choose a file"));
 
   /* Save the preview in a buffer. */
-  preview = gtk_image_new ();
-  preview_pixbuf = gdk_pixbuf_scale_simple (buffer, preview_width, preview_height, GDK_INTERP_BILINEAR);
+  preview        = gtk_image_new ();
+  preview_pixbuf = gdk_pixbuf_scale_simple (buffer, preview_width,
+                                            preview_height, GDK_INTERP_BILINEAR);
   gtk_image_set_from_pixbuf (GTK_IMAGE (preview), preview_pixbuf);
 
   gtk_file_chooser_set_preview_widget (GTK_FILE_CHOOSER (chooser), preview);
@@ -144,10 +131,10 @@ start_save_image_dialog_callback (GdkPixbuf *buffer)
       filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (chooser));
       filename_copy = g_strdup_printf ("%s", filename);
 
-      screenshot = TRUE;
+      screenshot          = TRUE;
       supported_extension = ".png";
 
-      if (!g_str_has_suffix (filename, supported_extension))
+      if (! g_str_has_suffix (filename, supported_extension))
         {
           g_free (filename_copy);
           filename_copy = g_strdup_printf ("%s%s", filename, supported_extension);
@@ -159,19 +146,19 @@ start_save_image_dialog_callback (GdkPixbuf *buffer)
       if (file_exists (filename))
         {
           gint result = show_override_dialog (GTK_WINDOW (chooser));
-          if ( result == GTK_RESPONSE_NO)
+          if (result == GTK_RESPONSE_NO)
             {
               screenshot = FALSE;
             }
         }
       else
         {
-           FILE *stream = g_fopen (filename, "w");
-           if (stream == NULL)
+          FILE *stream = g_fopen (filename, "w");
+          if (stream == NULL)
             {
               show_could_not_write_dialog (GTK_WINDOW (chooser));
             }
-           else
+          else
             {
               fclose (stream);
             }

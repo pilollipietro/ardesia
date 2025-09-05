@@ -1,4 +1,4 @@
-/* 
+/*
  * Ardesia -- a program for painting on the screen
  * with this program you can play, draw, learn and teach
  * This program has been written such as a freedom sonet
@@ -10,25 +10,23 @@
  * under the terms of the GNU General Public License as published by the
  * Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Ardesia is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
-
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+#include <config.h>
 #endif
 
 #include <project_dialog.h>
 #include <utils.h>
-
 
 /*
  * Start the dialog that ask to the user
@@ -38,13 +36,13 @@ gchar *
 start_project_dialog ()
 {
   GtkWidget *project_dialog = NULL;
-  GObject *project_obj = NULL;
-  GObject *dialog_obj = NULL;
-  GtkWidget *dialog_entry = NULL;
-  gchar *ret = NULL;
-  gint  pos = -1;
-  gchar *date = get_date ();
-  ProjectData *project_data = (ProjectData *) g_malloc ( (gsize) sizeof (ProjectData));
+  GObject   *project_obj    = NULL;
+  GObject   *dialog_obj     = NULL;
+  GtkWidget *dialog_entry   = NULL;
+  gchar     *ret            = NULL;
+  gint       pos            = -1;
+  gchar     *date           = get_date ();
+  ProjectData *project_data = (ProjectData *) g_malloc ((gsize) sizeof (ProjectData));
 
   /* Initialize the main window. */
   project_data->project_dialog_gtk_builder = gtk_builder_new ();
@@ -59,19 +57,21 @@ start_project_dialog ()
   gtk_window_set_keep_above (GTK_WINDOW (project_dialog), TRUE);
 
 #ifdef _WIN32
-  /* 
+  /*
    * In Windows the parent bar go above the dialog;
    * to avoid this behaviour I put the parent keep above to false.
    */
   gtk_window_set_keep_above (GTK_WINDOW (parent), FALSE);
 #endif
 
-  dialog_obj = gtk_builder_get_object (project_data->project_dialog_gtk_builder, "projectDialogEntry");
+  dialog_obj = gtk_builder_get_object (project_data->project_dialog_gtk_builder,
+                                       "projectDialogEntry");
   dialog_entry = GTK_WIDGET (dialog_obj);
 
   project_data->project_name = g_strdup_printf ("ardesia_project_%s", date);
   g_free (date);
-  gtk_editable_insert_text (GTK_EDITABLE (dialog_entry), project_data->project_name, -1, &pos );
+  gtk_editable_insert_text (GTK_EDITABLE (dialog_entry),
+                            project_data->project_name, -1, &pos);
 
   /* Connect all signals by reflection. */
   gtk_builder_connect_signals (project_data->project_dialog_gtk_builder, (gpointer) project_data);
@@ -92,7 +92,5 @@ start_project_dialog ()
 
   gtk_widget_destroy (project_dialog);
   project_dialog = NULL;
-  return ret; 
+  return ret;
 }
-
-

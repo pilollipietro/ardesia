@@ -21,42 +21,38 @@
  *
  */
 
-
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+#include <config.h>
 #endif
 
 #include <color_selector.h>
-#include <utils.h>
 #include <keyboard.h>
-
+#include <utils.h>
 
 /* old picked color in RGBA format */
 static gchar *picked_color = NULL;
-
 
 /*
  * Start the color selector dialog
  * it return the selected color.
  */
 gchar *
-start_color_selector_dialog       (GtkToolButton  *toolbutton,
-                                   GtkWindow      *parent,
-                                   gchar          *color)
+start_color_selector_dialog (GtkToolButton *toolbutton, GtkWindow *parent, gchar *color)
 {
-  GtkToggleToolButton *button = GTK_TOGGLE_TOOL_BUTTON (toolbutton);
-  gchar *ret_color = NULL;
+  GtkToggleToolButton *button    = GTK_TOGGLE_TOOL_BUTTON (toolbutton);
+  gchar               *ret_color = NULL;
 
   start_virtual_keyboard ();
 
   if (gtk_toggle_tool_button_get_active (button))
     {
       /* Open colour widget. */
-      GtkWidget *color_widget = gtk_color_chooser_dialog_new (gettext ("Changing colour"), parent);
-      GtkColorChooserDialog *color_dialog = GTK_COLOR_CHOOSER_DIALOG(color_widget);
-      gtk_color_chooser_set_use_alpha( GTK_COLOR_CHOOSER(color_dialog), TRUE );
+      GtkWidget *color_widget = gtk_color_chooser_dialog_new (
+          gettext ("Changing colour"), parent);
+      GtkColorChooserDialog *color_dialog = GTK_COLOR_CHOOSER_DIALOG (color_widget);
+      gtk_color_chooser_set_use_alpha (GTK_COLOR_CHOOSER (color_dialog), TRUE);
 
-      gint result = -1;
+      gint     result = -1;
       /* Colour initially selected. */
       GdkRGBA *gdkcolor;
 
@@ -69,35 +65,34 @@ start_color_selector_dialog       (GtkToolButton  *toolbutton,
           gdkcolor = rgba_to_gdkcolor (color);
         }
 
-        gtk_color_chooser_set_rgba( GTK_COLOR_CHOOSER(color_dialog), gdkcolor );
+      gtk_color_chooser_set_rgba (GTK_COLOR_CHOOSER (color_dialog), gdkcolor);
 
       result = gtk_dialog_run (GTK_DIALOG (color_dialog));
 
       /* Wait for user to select OK or Cancel. */
       switch (result)
         {
-          case GTK_RESPONSE_OK:
-            gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER(color_dialog), gdkcolor);
-            ret_color = gdkrgba_to_rgba(gdkcolor);
+        case GTK_RESPONSE_OK:
+          gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER (color_dialog), gdkcolor);
+          ret_color = gdkrgba_to_rgba (gdkcolor);
 
-            // reset previously picked color
-            g_free (picked_color);
-            picked_color = gdkrgba_to_rgba(gdkcolor);
-            break;
+          // reset previously picked color
+          g_free (picked_color);
+          picked_color = gdkrgba_to_rgba (gdkcolor);
+          break;
 
-          default:
-            break;
+        default:
+          break;
         }
 
       if (color_widget)
-      {
-        gtk_widget_destroy (color_widget);
-        color_widget = NULL;
-        color_dialog = NULL;
-      }
+        {
+          gtk_widget_destroy (color_widget);
+          color_widget = NULL;
+          color_dialog = NULL;
+        }
 
       g_free (gdkcolor);
-
     }
 
   stop_virtual_keyboard ();

@@ -28,38 +28,31 @@
 
 #include <ctype.h>
 
-#include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
+#include <gtk/gtk.h>
 
 #include <cairo.h>
 
-
 #ifdef _WIN32
-#  include <cairo-win32.h>
+#include <cairo-win32.h>
 #else
-#  ifdef __APPLE__
-#    include <cairo-quartz.h>
-#  else
-#    include <cairo-xlib.h>
-#  endif
+#ifdef __APPLE__
+#include <cairo-quartz.h>
+#else
+#include <cairo-xlib.h>
+#endif
 #endif
 
 #define TEXT_CURSOR_WIDTH 4
 
-
 #ifdef _WIN32
-#  define TEXT_MOUSE_EVENTS         (GDK_POINTER_MOTION_MASK|  \
-                                     GDK_BUTTON_PRESS_MASK  |  \
-                                     GDK_BUTTON_RELEASE_MASK|  \
-                                     GDK_PROXIMITY_IN       |  \
-                                     GDK_PROXIMITY_OUT      |  \
-                                     GDK_MOTION_NOTIFY      |  \
-                                     GDK_BUTTON_PRESS          \
-                                    )
+#define TEXT_MOUSE_EVENTS                                                      \
+  (GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | \
+   GDK_PROXIMITY_IN | GDK_PROXIMITY_OUT | GDK_MOTION_NOTIFY | GDK_BUTTON_PRESS)
 
-#  define TEXT_UI_FILE "..\\share\\ardesia\\ui\\text_window.glade"
+#define TEXT_UI_FILE "..\\share\\ardesia\\ui\\text_window.glade"
 #else
-#  define TEXT_UI_FILE PACKAGE_DATA_DIR"/ardesia/ui/text_window.glade"
+#define TEXT_UI_FILE PACKAGE_DATA_DIR "/ardesia/ui/text_window.glade"
 #endif
 
 // Per character settings so we can extend the application to have
@@ -71,15 +64,15 @@ typedef struct
 
   gdouble y;
 
-  gchar* color;
+  gchar *color;
 
-  gchar* background_color;
+  gchar *background_color;
 
   gint pen_width; // width of normal text
 
-  gchar* character;
+  gchar *character;
 
-  gchar* font_family; // e.g serif
+  gchar *font_family; // e.g serif
 
   guint font_size;
 
@@ -95,12 +88,11 @@ typedef struct
 
   cairo_text_extents_t extents;
 
-  PangoFontDescription* pango_font_description;
+  PangoFontDescription *pango_font_description;
   gint baseline; // to be useful needs to be divided by PANGO_SCALE
   gint text_width;
   gint text_height;
 } CharInfo;
-
 
 typedef struct
 {
@@ -111,14 +103,13 @@ typedef struct
 
 } Pos;
 
-
 typedef struct
 {
 
   /* Gtkbuilder to build the window. */
   GtkBuilder *text_window_gtk_builder;
 
-  GtkWidget  *window;
+  GtkWidget *window;
 
   GPid virtual_keyboard_pid;
 
@@ -140,67 +131,49 @@ typedef struct
 
   gboolean blink_show;
 
-}TextData;
-
+} TextData;
 
 /* Option for text config */
 typedef struct
 {
   gchar *fontfamily;
-  gint leftmargin;
-  gint tabsize;
-  gint start_x;          // where first character will go
-}TextConfig;
+  gint   leftmargin;
+  gint   tabsize;
+  gint   start_x; // where first character will go
+} TextConfig;
 
-extern TextData *text_data;
+extern TextData   *text_data;
 extern TextConfig *text_config;
 
-TextConfig*
-create_text_config();
+TextConfig *create_text_config ();
 
-void
-make_cairo_context_for_text_window();
+void make_cairo_context_for_text_window ();
 
-cairo_t*
-create_new_text_window_context();
+cairo_t *create_new_text_window_context ();
 
-cairo_t*
-create_copy_of_text_window_context(cairo_t* current_context) ;
+cairo_t *create_copy_of_text_window_context (cairo_t *current_context);
 
 // void
 // render_draw_frame(cairo_t* source_context) ;
 
-void
-stop_timer              ();
+void stop_timer ();
 
-void
-start_blink_cursor();
+void start_blink_cursor ();
 
-void
-stop_blink_cursor();
+void stop_blink_cursor ();
 
-void
-draw_test_text(cairo_t* cr, gchar* text);
+void draw_test_text (cairo_t *cr, gchar *text);
 
-gboolean
-blink_cursor        (gpointer data);
+gboolean blink_cursor (gpointer data);
 
-void
-save_text          ();
+void save_text ();
 
-void
-init_text_widget             (GtkWidget *widget);
+void init_text_widget (GtkWidget *widget);
 
 /* Start text widget. */
-void
-start_text_widget            (GtkWidget  *parent,
-                              gchar      *color,
-                              gint        thickness);
-
+void start_text_widget (GtkWidget *parent, gchar *color, gint thickness);
 
 /* Stop text widget. */
-void
-stop_text_widget        ();
-
+void stop_text_widget ();
 
 #endif //__TEXT_WINDOW_H

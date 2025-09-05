@@ -1,4 +1,4 @@
-/* 
+/*
  * Ardesia -- a program for painting on the screen
  * with this program you can play, draw, learn and teach
  * This program has been written such as a freedom sonet
@@ -10,33 +10,26 @@
  * under the terms of the GNU General Public License as published by the
  * Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Ardesia is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
-
 #include <gtk/gtk.h>
 
-
 #ifdef _WIN32
-#  define INFO_UI_FILE "..\\share\\ardesia\\ui\\info_dialog.glade"
+#define INFO_UI_FILE "..\\share\\ardesia\\ui\\info_dialog.glade"
 #else
-#  define INFO_UI_FILE PACKAGE_DATA_DIR"/ardesia/ui/info_dialog.glade"
+#define INFO_UI_FILE PACKAGE_DATA_DIR "/ardesia/ui/info_dialog.glade"
 #endif
-
 
 /*
  * Start the dialog that give to the user the info about the tool.
  */
-void
-start_info_dialog (GtkToolButton *toolbutton,
-                   GtkWindow     *parent);
-
-
+void start_info_dialog (GtkToolButton *toolbutton, GtkWindow *parent);

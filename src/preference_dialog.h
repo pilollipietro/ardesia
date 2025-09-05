@@ -1,4 +1,4 @@
-/* 
+/*
  * Ardesia -- a program for painting on the screen
  * with this program you can play, draw, learn and teach
  * This program has been written such as a freedom sonet
@@ -10,29 +10,27 @@
  * under the terms of the GNU General Public License as published by the
  * Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Ardesia is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
-
 #include <gtk/gtk.h>
 
-
 #ifdef _WIN32
-#  define PREFERENCE_UI_FILE "..\\share\\ardesia\\ui\\preference_dialog.glade"
-#  define BACKGROUNDS_FOLDER "..\\share\\ardesia\\ui\\backgrounds"
+#define PREFERENCE_UI_FILE "..\\share\\ardesia\\ui\\preference_dialog.glade"
+#define BACKGROUNDS_FOLDER "..\\share\\ardesia\\ui\\backgrounds"
 #else
-#  define PREFERENCE_UI_FILE PACKAGE_DATA_DIR"/ardesia/ui/preference_dialog.glade"
-#  define BACKGROUNDS_FOLDER PACKAGE_DATA_DIR"/ardesia/ui/backgrounds"
+#define PREFERENCE_UI_FILE \
+  PACKAGE_DATA_DIR "/ardesia/ui/preference_dialog.glade"
+#define BACKGROUNDS_FOLDER PACKAGE_DATA_DIR "/ardesia/ui/backgrounds"
 #endif
-
 
 typedef struct
 {
@@ -43,19 +41,13 @@ typedef struct
   /* Preview of background file. */
   GtkWidget *preview;
 
-}PreferenceData;
-
+} PreferenceData;
 
 /* Show the permission denied to access to file dialog. */
-void
-show_permission_denied_dialog     (GtkWindow  *parent_window);
-
+void show_permission_denied_dialog (GtkWindow *parent_window);
 
 /*
  * Start the dialog that ask to the user
  * the background setting.
  */
-void
-start_preference_dialog           (GtkWindow  *parent);
-
-
+void start_preference_dialog (GtkWindow *parent);

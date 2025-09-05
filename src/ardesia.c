@@ -21,96 +21,111 @@
  *
  */
 
-#include <ardesia.h>
-#include <utils.h>
-#include <bar_callbacks.h>
 #include <annotation_window.h>
+#include <ardesia.h>
 #include <background_window.h>
-#include <project_dialog.h>
 #include <bar.h>
+#include <bar_callbacks.h>
 #include <commandline.h>
+#include <project_dialog.h>
 #include <text_window.h>
+#include <utils.h>
 
 /*ch* External defined structure used to configure text input. (see text_window.c) */
 #include <text_window.h>
 extern TextConfig *text_config;
-GtkWidget   *ardesia_bar_window;
-GtkWidget   *background_window;
-GtkWidget   *annotation_window;
-Workspace   *workspace;
-CommandLine* commandline = NULL;
+GtkWidget         *ardesia_bar_window;
+GtkWidget         *background_window;
+GtkWidget         *annotation_window;
+Workspace         *workspace;
+CommandLine       *commandline = NULL;
 
-
-GdkRectangle* get_toolbar_area () {
-    if (commandline != NULL) {
-        if (commandline->mode == DRAW_ON_MONITOR) {
-            Monitor* monitor = g_list_nth_data (workspace->monitors, commandline->tools_monitor);
-            return monitor->rect;
+GdkRectangle *
+get_toolbar_area ()
+{
+  if (commandline != NULL)
+    {
+      if (commandline->mode == DRAW_ON_MONITOR)
+        {
+          Monitor *monitor = g_list_nth_data (workspace->monitors, commandline->tools_monitor);
+          return monitor->rect;
         }
     }
-    return NULL;
+  return NULL;
 }
 
 /**
  * Get the drawable area for annotation, text and background windows
  * @return NULL if not set, GdkRectangle if it is
  */
-GdkRectangle* get_drawable_area () {
-    if (commandline != NULL) {
-        if (commandline->mode == DRAW_ON_MONITOR) {
-            if (commandline->workspace_monitor < 0 || commandline->workspace_monitor >= g_list_length(workspace->monitors)) {
-                g_warning ("Workspace monitor was given an illegal value, moving to monitor 0.\n");
-                commandline->workspace_monitor = 0;
+GdkRectangle *
+get_drawable_area ()
+{
+  if (commandline != NULL)
+    {
+      if (commandline->mode == DRAW_ON_MONITOR)
+        {
+          if (commandline->workspace_monitor < 0 ||
+              commandline->workspace_monitor >= g_list_length (workspace->monitors))
+            {
+              g_warning ("Workspace monitor was given an illegal value, moving "
+                         "to monitor 0.\n");
+              commandline->workspace_monitor = 0;
             }
-            Monitor* monitor = g_list_nth_data (workspace->monitors, commandline->workspace_monitor);
-            return monitor->rect;
-        } else if (commandline->mode == DRAW_ON_FULLDESKTOP) {
-            GdkWindow* rootwindow = gdk_screen_get_root_window (gdk_screen_get_default());
-            int maxwidth = gdk_window_get_width (rootwindow);
-            int maxheight = gdk_window_get_height (rootwindow);
-            commandline->clipRect->x = 0;
-            commandline->clipRect->y = 0;
-            commandline->clipRect->width = maxwidth;
-            commandline->clipRect->height = maxheight;
-            return commandline->clipRect;
-        } else {
-            // check clipRect bounds
-            GdkWindow* rootwindow = gdk_screen_get_root_window (gdk_screen_get_default () );
-            int maxwidth = gdk_window_get_width( rootwindow );
-            int maxheight = gdk_window_get_height( rootwindow );
-            g_printf("Maximum Size: %d %d\n", maxwidth, maxheight);
-            if ( commandline->clipRect->x < 0 ) {
-                commandline->clipRect->x = 0;
+          Monitor *monitor = g_list_nth_data (workspace->monitors, commandline->workspace_monitor);
+          return monitor->rect;
+        }
+      else if (commandline->mode == DRAW_ON_FULLDESKTOP)
+        {
+          GdkWindow *rootwindow = gdk_screen_get_root_window (gdk_screen_get_default ());
+          int maxwidth                  = gdk_window_get_width (rootwindow);
+          int maxheight                 = gdk_window_get_height (rootwindow);
+          commandline->clipRect->x      = 0;
+          commandline->clipRect->y      = 0;
+          commandline->clipRect->width  = maxwidth;
+          commandline->clipRect->height = maxheight;
+          return commandline->clipRect;
+        }
+      else
+        {
+          // check clipRect bounds
+          GdkWindow *rootwindow = gdk_screen_get_root_window (gdk_screen_get_default ());
+          int maxwidth  = gdk_window_get_width (rootwindow);
+          int maxheight = gdk_window_get_height (rootwindow);
+          g_printf ("Maximum Size: %d %d\n", maxwidth, maxheight);
+          if (commandline->clipRect->x < 0)
+            {
+              commandline->clipRect->x = 0;
             }
-            if ( commandline->clipRect->y < 0 ) {
-                commandline->clipRect->y = 0;
+          if (commandline->clipRect->y < 0)
+            {
+              commandline->clipRect->y = 0;
             }
-            if ( commandline->clipRect->x > maxwidth ) {
-                commandline->clipRect->x = maxwidth;
+          if (commandline->clipRect->x > maxwidth)
+            {
+              commandline->clipRect->x = maxwidth;
             }
-            if ( commandline->clipRect->x > maxheight ) {
-                commandline->clipRect->y = maxheight;
+          if (commandline->clipRect->x > maxheight)
+            {
+              commandline->clipRect->y = maxheight;
             }
-            return commandline->clipRect;
+          return commandline->clipRect;
         }
     }
-    return NULL;
+  return NULL;
 }
-
-
 
 #ifndef _WIN32
 
 /* Call the dialog that inform the user to enable a composite manager. */
 static void
-run_missing_composite_manager_dialog   ()
+run_missing_composite_manager_dialog ()
 {
   GtkWidget *msg_dialog;
-  msg_dialog = gtk_message_dialog_new (NULL,
-                                       GTK_DIALOG_MODAL,
-                                       GTK_MESSAGE_ERROR,
-                                       GTK_BUTTONS_OK,
-                                       gettext ("In order to run Ardesia you need to enable a composite manager"));
+  msg_dialog = gtk_message_dialog_new (NULL, GTK_DIALOG_MODAL, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK,
+                                       gettext ("In order to run Ardesia you "
+                                                "need to enable a composite "
+                                                "manager"));
 
   gtk_dialog_run (GTK_DIALOG (msg_dialog));
 
@@ -123,29 +138,26 @@ run_missing_composite_manager_dialog   ()
   exit (EXIT_FAILURE);
 }
 
-
 /* Check if a composite manager is active. */
 static void
-check_composite_manager      ()
+check_composite_manager ()
 {
-  GdkDisplay *display = gdk_display_get_default ();
-  GdkScreen  *screen  = gdk_display_get_default_screen (display);
-  gboolean composite = gdk_screen_is_composited (screen);
+  GdkDisplay *display   = gdk_display_get_default ();
+  GdkScreen  *screen    = gdk_display_get_default_screen (display);
+  gboolean    composite = gdk_screen_is_composited (screen);
 
-  if (!composite)
+  if (! composite)
     {
       /* start the enable composite manager dialog. */
       run_missing_composite_manager_dialog ();
     }
-
 }
 
 #endif
 
-
 /* Enable the localization support with gettext. */
 static void
-enable_localization_support       ()
+enable_localization_support ()
 {
 #ifdef ENABLE_NLS
   setlocale (LC_ALL, "");
@@ -155,55 +167,50 @@ enable_localization_support       ()
 }
 
 void
-build_annotation_window() {
-    annotate_init (workspace->iwb_filename,
-                    commandline->debug,
-                    NULL);
-    annotation_data->is_opaque = commandline->is_opaque;
-    annotation_window = create_annotation_window();
-    if (annotation_window == NULL)
+build_annotation_window ()
+{
+  annotate_init (workspace->iwb_filename, commandline->debug, NULL);
+  annotation_data->is_opaque = commandline->is_opaque;
+  annotation_window          = create_annotation_window ();
+  if (annotation_window == NULL)
     {
-        annotate_quit ();
-        g_free (commandline);
-        exit (EXIT_FAILURE);
+      annotate_quit ();
+      g_free (commandline);
+      exit (EXIT_FAILURE);
     }
 
-    GdkRectangle* rect = get_drawable_area();
-    position_annotation_window(rect->x,rect->y,rect->width,rect->height);
-    gtk_widget_show (annotation_window);
+  GdkRectangle *rect = get_drawable_area ();
+  position_annotation_window (rect->x, rect->y, rect->width, rect->height);
+  gtk_widget_show (annotation_window);
 }
 
 void
-build_toolbar_window() {
-    GdkRectangle* rect = get_toolbar_area();
-    ardesia_bar_window = create_bar_window (commandline, rect, annotation_window);
+build_toolbar_window ()
+{
+  GdkRectangle *rect = get_toolbar_area ();
+  ardesia_bar_window = create_bar_window (commandline, rect, annotation_window);
 
-    if (ardesia_bar_window == NULL)
-      {
-        annotate_quit ();
-        g_free (commandline);
-        exit (EXIT_FAILURE);
-      }
+  if (ardesia_bar_window == NULL)
+    {
+      annotate_quit ();
+      g_free (commandline);
+      exit (EXIT_FAILURE);
+    }
 
-    gtk_window_set_keep_above (GTK_WINDOW (ardesia_bar_window), TRUE);
-    gtk_widget_show (ardesia_bar_window);
-
+  gtk_window_set_keep_above (GTK_WINDOW (ardesia_bar_window), TRUE);
+  gtk_widget_show (ardesia_bar_window);
 }
-
-
 
 /* This is the starting point of the program. */
 int
-main                              (int    argc,
-                                   char  *argv[])
+main (int argc, char *argv[])
 {
   // make global variables NULL
-  commandline               = (CommandLine *)   NULL;
-  ardesia_bar_window        = (GtkWidget *)     NULL;
-  background_window         = (GtkWidget *)     NULL;
-  annotation_window         = (GtkWidget *)     NULL;
-  workspace                 = (Workspace *)     NULL;
-
+  commandline        = (CommandLine *) NULL;
+  ardesia_bar_window = (GtkWidget *) NULL;
+  background_window  = (GtkWidget *) NULL;
+  annotation_window  = (GtkWidget *) NULL;
+  workspace          = (Workspace *) NULL;
 
   /* Enable the localization support with gettext. */
   enable_localization_support ();
@@ -216,36 +223,37 @@ main                              (int    argc,
 #endif
 
   // handle command line
-  commandline = create_command_line();
-  parse_options(commandline, argc, argv);
-  print_command_line( commandline );
+  commandline = create_command_line ();
+  parse_options (commandline, argc, argv);
+  print_command_line (commandline);
 
   /* Initialize new text configuration options. */
-  text_config = create_text_config();
+  text_config             = create_text_config ();
   text_config->fontfamily = commandline->fontfamily;
   text_config->leftmargin = commandline->text_leftmargin;
-  text_config->tabsize = commandline->text_tabsize;
+  text_config->tabsize    = commandline->text_tabsize;
 
   // handle workspace
-  workspace = create_workspace();
-  if (commandline->iwb_filename) {
-      change_workspace_to( workspace, commandline->iwb_filename );
-  }
-  build_workspace_filesystem(workspace);
+  workspace = create_workspace ();
+  if (commandline->iwb_filename)
+    {
+      change_workspace_to (workspace, commandline->iwb_filename);
+    }
+  build_workspace_filesystem (workspace);
 
   // create windows, one for the drawing and one for the toolbar
-  build_annotation_window();
-  build_toolbar_window();
+  build_annotation_window ();
+  build_toolbar_window ();
 
-  replace_status_message(g_strdup_printf("Project started in %s", workspace->project_dir));
+  replace_status_message (g_strdup_printf ("Project started in %s", workspace->project_dir));
 
   // create_text_settings_window();
 
   // main loop for a GTK application
-  gtk_main();
+  gtk_main ();
 
-  destroy_workspace(workspace);
-  destroy_command_line(commandline);
+  destroy_workspace (workspace);
+  destroy_command_line (commandline);
 
   return 0;
 }

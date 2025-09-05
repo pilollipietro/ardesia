@@ -21,18 +21,14 @@
  *
  */
 
-
 #include <gtk/gtk.h>
-
-
 
 /* 2018-08-09 : Added by TM */
 #define HIDE 0
 #define SHOW 1
 
+GtkStatusbar *getStatusbar ();
 
-GtkStatusbar* getStatusbar();
-
-void replace_status_message( gchar* message );
-void setStatusbarLabel( gchar* message );
-void add_background_button(gchar* label, gint mode, gchar* filename, gchar* color);
+void replace_status_message (gchar *message);
+void setStatusbarLabel (gchar *message);
+void add_background_button (gchar *label, gint mode, gchar *filename, gchar *color);

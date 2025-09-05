@@ -21,7 +21,6 @@
  *
  */
 
-
-#include <background_window_callbacks.h>
 #include <background_window.h>
+#include <background_window_callbacks.h>
 #include <utils.h>

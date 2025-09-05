@@ -22,44 +22,37 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+#include <config.h>
 #endif
 
 #include <annotation_window.h>
-#include <pdf_saver.h>
-#include <utils.h>
-#include <saver.h>
-#include <keyboard.h>
 #include <bar.h>
-
+#include <keyboard.h>
+#include <pdf_saver.h>
+#include <saver.h>
+#include <utils.h>
 
 /* internal structure allocated once. */
 static PdfData *pdf_data;
 
-
 /* Start the dialog that ask the file name where is being exported the pdf. */
 static gboolean
-start_save_pdf_dialog (GtkWindow *parent,
-                       GdkPixbuf *pixbuf)
+start_save_pdf_dialog (GtkWindow *parent, GdkPixbuf *pixbuf)
 {
-  gboolean ret = TRUE;
-  GtkWidget *preview = NULL;
-  gint preview_width = 128;
-  gint preview_height = 128;
-  GdkPixbuf *preview_pixbuf = NULL;
-  gchar *filename = "";
-  gchar *supported_extension = ".pdf";
+  gboolean   ret                 = TRUE;
+  GtkWidget *preview             = NULL;
+  gint       preview_width       = 128;
+  gint       preview_height      = 128;
+  GdkPixbuf *preview_pixbuf      = NULL;
+  gchar     *filename            = "";
+  gchar     *supported_extension = ".pdf";
 
-  gdk_window_set_cursor (gtk_widget_get_window(get_annotation_window ()), (GdkCursor *) NULL);
+  gdk_window_set_cursor (gtk_widget_get_window (get_annotation_window ()),
+                         (GdkCursor *) NULL);
 
-  GtkWidget *chooser = gtk_file_chooser_dialog_new (gettext ("Export as pdf"),
-                                                    parent,
-                                                    GTK_FILE_CHOOSER_ACTION_SAVE,
-                                                    "_Cancel",
-                                                    GTK_RESPONSE_CANCEL,
-                                                    "Save _As",
-                                                    GTK_RESPONSE_ACCEPT,
-                                                    NULL);
+  GtkWidget *chooser = gtk_file_chooser_dialog_new (
+      gettext ("Export as pdf"), parent, GTK_FILE_CHOOSER_ACTION_SAVE,
+      "_Cancel", GTK_RESPONSE_CANCEL, "Save _As", GTK_RESPONSE_ACCEPT, NULL);
 
   gtk_window_set_modal (GTK_WINDOW (chooser), TRUE);
   gtk_window_set_keep_above (GTK_WINDOW (chooser), TRUE);
@@ -67,8 +60,9 @@ start_save_pdf_dialog (GtkWindow *parent,
   gtk_window_set_title (GTK_WINDOW (chooser), gettext ("Choose a file"));
 
   /* Save the preview in a image buffer. */
-  preview = gtk_image_new ();
-  preview_pixbuf = gdk_pixbuf_scale_simple (pixbuf, preview_width, preview_height, GDK_INTERP_BILINEAR);
+  preview        = gtk_image_new ();
+  preview_pixbuf = gdk_pixbuf_scale_simple (pixbuf, preview_width,
+                                            preview_height, GDK_INTERP_BILINEAR);
   gtk_image_set_from_pixbuf (GTK_IMAGE (preview), preview_pixbuf);
 
   gtk_file_chooser_set_preview_widget (GTK_FILE_CHOOSER (chooser), preview);
@@ -87,13 +81,13 @@ start_save_pdf_dialog (GtkWindow *parent,
       g_free (filename);
       filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (chooser));
 
-      if (!g_str_has_suffix (filename, supported_extension))
+      if (! g_str_has_suffix (filename, supported_extension))
         {
-          pdf_data->filename = g_strdup_printf ("%s%s",filename,supported_extension);
+          pdf_data->filename = g_strdup_printf ("%s%s", filename, supported_extension);
         }
       else
         {
-          pdf_data->filename = g_strdup_printf ("%s",filename);
+          pdf_data->filename = g_strdup_printf ("%s", filename);
         }
 
       g_free (filename);
@@ -101,7 +95,7 @@ start_save_pdf_dialog (GtkWindow *parent,
       if (file_exists (pdf_data->filename))
         {
           gint result = show_override_dialog (GTK_WINDOW (chooser));
-          if ( result == GTK_RESPONSE_NO)
+          if (result == GTK_RESPONSE_NO)
             {
               ret = FALSE;
             }
@@ -118,23 +112,21 @@ start_save_pdf_dialog (GtkWindow *parent,
   return ret;
 }
 
-
 /* Initialize the pdf saver. */
 static gboolean
-init_pdf_saver (GtkWindow *parent,
-                GdkPixbuf *pixbuf)
+init_pdf_saver (GtkWindow *parent, GdkPixbuf *pixbuf)
 {
   gboolean ret = FALSE;
 
-  pdf_data = (PdfData *) g_malloc ( (gsize) sizeof (PdfData));
-  pdf_data->thread = NULL;
+  pdf_data                 = (PdfData *) g_malloc ((gsize) sizeof (PdfData));
+  pdf_data->thread         = NULL;
   pdf_data->input_filelist = NULL;
-  pdf_data->filename = NULL;
+  pdf_data->filename       = NULL;
 
   /* Start the widget to ask the file name where save the pdf. */
   ret = start_save_pdf_dialog (parent, pixbuf);
 
-  if (!ret)
+  if (! ret)
     {
       return FALSE;
     }
@@ -145,13 +137,12 @@ init_pdf_saver (GtkWindow *parent,
   return TRUE;
 }
 
-
 /* Save the surfaces in the pdf file. */
 static void
 pdf_save ()
 {
-    int width = gtk_widget_get_allocated_width( annotation_data->annotation_window );
-    int height = gtk_widget_get_allocated_height( annotation_data->annotation_window );
+  int width = gtk_widget_get_allocated_width (annotation_data->annotation_window);
+  int height = gtk_widget_get_allocated_height (annotation_data->annotation_window);
 
   /* create the cairo surface for pdf */
   cairo_surface_t *pdf_surface = cairo_pdf_surface_create (pdf_data->filename, width, height);
@@ -161,7 +152,7 @@ pdf_save ()
 
   gint i;
 
-  for (i=lenght-1; i>=0; i--)
+  for (i = lenght - 1; i >= 0; i--)
     {
       gchar *current_filename = (gchar *) g_slist_nth_data (pdf_data->input_filelist, i);
       /* load the file name content */
@@ -178,10 +169,9 @@ pdf_save ()
   cairo_destroy (pdf_cr);
 }
 
-
 /* Wait if there is a pending thread. */
-static
-void wait_for_pdf_save_pending_thread ()
+static void
+wait_for_pdf_save_pending_thread ()
 {
   if (pdf_data->thread)
     {
@@ -190,7 +180,6 @@ void wait_for_pdf_save_pending_thread ()
     }
 }
 
-
 /* Add the screenshot to pdf. */
 void
 add_pdf_page (GtkWindow *parent)
@@ -198,23 +187,22 @@ add_pdf_page (GtkWindow *parent)
   grab_screenshot (add_pdf_page_callback);
 }
 
-
 void
-add_pdf_page_callback( GdkPixbuf* pixbuf ) {
-  GtkWidget* parent = get_bar_widget();
+add_pdf_page_callback (GdkPixbuf *pixbuf)
+{
+  GtkWidget *parent = get_bar_widget ();
 
-  int width = gtk_widget_get_allocated_width( annotation_data->annotation_window );
-  int height = gtk_widget_get_allocated_height( annotation_data->annotation_window );
+  int width = gtk_widget_get_allocated_width (annotation_data->annotation_window);
+  int height = gtk_widget_get_allocated_height (annotation_data->annotation_window);
   cairo_surface_t *saved_surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-                                                               width,
-                                                               height);
+                                                               width, height);
 
-  cairo_t *cr = cairo_create (saved_surface);
-  const gchar *tmp_dir = g_get_tmp_dir ();
-  gchar *default_filename = get_default_filename ();
+  cairo_t     *cr               = cairo_create (saved_surface);
+  const gchar *tmp_dir          = g_get_tmp_dir ();
+  gchar       *default_filename = get_default_filename ();
   gchar *screenshoot_name = g_strdup_printf ("%s_screenshoot.png", default_filename);
-  gchar *filename  = g_build_filename (tmp_dir, screenshoot_name, (gchar *) 0);
-  GError *err = NULL ;
+  gchar  *filename = g_build_filename (tmp_dir, screenshoot_name, (gchar *) 0);
+  GError *err      = NULL;
 
   g_free (screenshoot_name);
 
@@ -229,7 +217,7 @@ add_pdf_page_callback( GdkPixbuf* pixbuf ) {
 
   if (pdf_data == NULL)
     {
-      if (!init_pdf_saver ( GTK_WINDOW(parent), pixbuf))
+      if (! init_pdf_saver (GTK_WINDOW (parent), pixbuf))
         {
           g_object_unref (pixbuf);
           return;
@@ -242,14 +230,13 @@ add_pdf_page_callback( GdkPixbuf* pixbuf ) {
   wait_for_pdf_save_pending_thread ();
 
   /* Start save thread. */
-  if ( (pdf_data->thread = g_thread_try_new ( "pdf_thread", (GThreadFunc) pdf_save, (void *) NULL, &err)) == NULL)
+  if ((pdf_data->thread = g_thread_try_new ("pdf_thread", (GThreadFunc) pdf_save,
+                                            (void *) NULL, &err)) == NULL)
     {
-      g_printerr ("Thread create failed: %s!!\n", err->message );
-      g_error_free (err) ;
+      g_printerr ("Thread create failed: %s!!\n", err->message);
+      g_error_free (err);
     }
-
 }
-
 
 /* Quit the pdf saver. */
 void

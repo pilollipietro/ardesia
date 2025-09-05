@@ -21,29 +21,25 @@
  *
  */
 
-
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+#include <config.h>
 #endif
 
-#include <utils.h>
-#include <preference_dialog.h>
-#include <background_window.h>
 #include <annotation_window.h>
+#include <background_window.h>
 #include <keyboard.h>
-
+#include <preference_dialog.h>
+#include <utils.h>
 
 /* Show the permission denied to access to file dialog. */
 void
-show_permission_denied_dialog     (GtkWindow *parent)
+show_permission_denied_dialog (GtkWindow *parent)
 {
   GtkWidget *permission_denied_dialog = (GtkWidget *) NULL;
 
-  permission_denied_dialog = gtk_message_dialog_new (parent,
-                                                     GTK_DIALOG_MODAL,
-                                                     GTK_MESSAGE_ERROR,
-                                                     GTK_BUTTONS_OK,
-                                                     gettext ("Fail to open the file: Permission denied"));
+  permission_denied_dialog = gtk_message_dialog_new (
+      parent, GTK_DIALOG_MODAL, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK,
+      gettext ("Fail to open the file: Permission denied"));
 
   gtk_window_set_keep_above (GTK_WINDOW (permission_denied_dialog), TRUE);
 
@@ -56,20 +52,19 @@ show_permission_denied_dialog     (GtkWindow *parent)
     }
 }
 
-
 /*
  * Start the dialog that ask to the user
  * the background setting.
  */
 void
-start_preference_dialog      (GtkWindow *parent)
+start_preference_dialog (GtkWindow *parent)
 {
-  GObject *preference_obj = (GObject *) NULL;
-  GtkWidget *preference_dialog = (GtkWidget *) NULL;
-  GObject *img_obj = (GObject *) NULL;
-  GtkFileChooser *chooser = NULL;
-  GtkFileFilter *filter = (GtkFileFilter *) NULL;
-  GObject *bg_color_obj = (GObject *) NULL;
+  GObject        *preference_obj    = (GObject *) NULL;
+  GtkWidget      *preference_dialog = (GtkWidget *) NULL;
+  GObject        *img_obj           = (GObject *) NULL;
+  GtkFileChooser *chooser           = NULL;
+  GtkFileFilter  *filter            = (GtkFileFilter *) NULL;
+  GObject        *bg_color_obj      = (GObject *) NULL;
   // GtkWidget *color_button = (GtkWidget *) NULL;
 
   PreferenceData *preference_data = (PreferenceData *) NULL;
@@ -83,8 +78,7 @@ start_preference_dialog      (GtkWindow *parent)
 
   /* Load the gtk builder file created with glade. */
   gtk_builder_add_from_file (preference_data->preference_dialog_gtk_builder,
-                             PREFERENCE_UI_FILE,
-                             NULL);
+                             PREFERENCE_UI_FILE, NULL);
 
   /* Take the preference object. */
   preference_obj = gtk_builder_get_object (preference_data->preference_dialog_gtk_builder,
@@ -116,7 +110,7 @@ start_preference_dialog      (GtkWindow *parent)
                                          "backgroundColorButton");
 
   // color_button = GTK_WIDGET (bg_color_obj);
-  gtk_color_chooser_set_use_alpha (GTK_COLOR_CHOOSER(bg_color_obj), TRUE);
+  gtk_color_chooser_set_use_alpha (GTK_COLOR_CHOOSER (bg_color_obj), TRUE);
 
   /* Connect all signals by reflection. */
   gtk_builder_connect_signals (preference_data->preference_dialog_gtk_builder,
@@ -145,11 +139,11 @@ start_preference_dialog      (GtkWindow *parent)
   if (rgba)
     {
       GdkRGBA *gdkcolor = rgba_to_gdkcolor (rgba);
-      //guint16 alpha = strtol(&rgba[6], NULL, 16) * 257;
-      gtk_color_chooser_set_use_alpha (GTK_COLOR_CHOOSER(bg_color_obj), TRUE);
-      //gtk_color_button_set_alpha (GTK_COLOR_BUTTON (color_button), alpha);
-      gtk_color_chooser_get_rgba(GTK_COLOR_CHOOSER(bg_color_obj), gdkcolor);
-      //gtk_color_button_set_color (GTK_COLOR_BUTTON (color_button), gdkcolor);
+      // guint16 alpha = strtol(&rgba[6], NULL, 16) * 257;
+      gtk_color_chooser_set_use_alpha (GTK_COLOR_CHOOSER (bg_color_obj), TRUE);
+      // gtk_color_button_set_alpha (GTK_COLOR_BUTTON (color_button), alpha);
+      gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER (bg_color_obj), gdkcolor);
+      // gtk_color_button_set_color (GTK_COLOR_BUTTON (color_button), gdkcolor);
     }
 
   gchar *filename = background_data->image;
@@ -173,7 +167,7 @@ start_preference_dialog      (GtkWindow *parent)
 
   stop_virtual_keyboard ();
 
-  #ifdef _WIN32
+#ifdef _WIN32
   /*
    * In Windows the parent bar go above the dialog;
    * to avoid this behaviour I have put the parent keep above to false,

@@ -1,4 +1,4 @@
-/* 
+/*
  * Ardesia -- a program for painting on the screen
  * with this program you can play, draw, learn and teach
  * This program has been written such as a freedom sonet
@@ -10,43 +10,41 @@
  * under the terms of the GNU General Public License as published by the
  * Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Ardesia is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
-
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+#include <config.h>
 #endif
 
-#include <utils.h>
 #include <keyboard.h>
 #include <stdlib.h>
-
+#include <utils.h>
 
 /* Start the virtual keyboard. */
 void
-start_virtual_keyboard       ()
+start_virtual_keyboard ()
 {
   int result = -1;
-  result = system("gsettings set org.florence.behaviour auto-hide false");
+  result     = system ("gsettings set org.florence.behaviour auto-hide false");
   if (result != 0)
     {
-      g_printerr ("Fail to show virtual keyboard: Florence and gsettings packages are required\n");
+      g_printerr ("Fail to show virtual keyboard: Florence and gsettings "
+                  "packages are required\n");
     }
 }
 
-
 /* Stop the virtual keyboard. */
 void
-stop_virtual_keyboard        ()
+stop_virtual_keyboard ()
 {
 #ifdef _WIN32
   if (virtual_keyboard_pid > 0)
@@ -61,12 +59,11 @@ stop_virtual_keyboard        ()
     }
 #else
   int result = -1;
-  result = system("gsettings set org.florence.behaviour auto-hide true");
+  result     = system ("gsettings set org.florence.behaviour auto-hide true");
   if (result != 0)
     {
-      g_printerr ("Fail to hide virtual keyboard: Florence and gsettings packages are required\n");
+      g_printerr ("Fail to hide virtual keyboard: Florence and gsettings "
+                  "packages are required\n");
     }
 #endif
 }
-
-

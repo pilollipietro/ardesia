@@ -1,4 +1,4 @@
-/* 
+/*
  * Ardesia -- a program for painting on the screen
  * with this program you can play, draw, learn and teach
  * This program has been written such as a freedom sonet
@@ -10,31 +10,25 @@
  * under the terms of the GNU General Public License as published by the
  * Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * Ardesia is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
 
-
 #ifdef _WIN32
-#  define VIRTUALKEYBOARD_NAME "C:\\Program Files\\Common Files\\Microsoft Shared\\ink\\TabTip.exe"
-#  define VIRTUALKEYBOARD_WINDOW_NAME "IPTip_Main_Window"
+#define VIRTUALKEYBOARD_NAME \
+  "C:\\Program Files\\Common Files\\Microsoft Shared\\ink\\TabTip.exe"
+#define VIRTUALKEYBOARD_WINDOW_NAME "IPTip_Main_Window"
 #endif
 
-
 /* Start the virtual keyboard. */
-void
-start_virtual_keyboard       ();
-
+void start_virtual_keyboard ();
 
 /* Stop the virtual keyboard. */
-void
-stop_virtual_keyboard        ();
-
-
+void stop_virtual_keyboard ();

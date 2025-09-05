@@ -25,33 +25,31 @@
 #define __ARDESIA_H
 
 #include <config.h>
-#include <locale.h>
 #include <glib.h>
 #include <glib/gprintf.h>
+#include <locale.h>
 
 #include <getopt.h>
 
+#include <commandline.h>
 #include <gdk/gdk.h>
 #include <gtk/gtk.h>
-#include <commandline.h>
 #include <monitor.h>
 #include <workspace.h>
 
 /* The position used to localize the bar. */
-#define EAST 1
-#define WEST 2
+#define EAST  1
+#define WEST  2
 #define NORTH 3
 #define SOUTH 4
 
-extern GtkWidget   *ardesia_bar_window;
-extern GtkWidget   *background_window;
-extern GtkWidget   *annotation_window;
-extern Workspace   *workspace;
-
-
+extern GtkWidget *ardesia_bar_window;
+extern GtkWidget *background_window;
+extern GtkWidget *annotation_window;
+extern Workspace *workspace;
 
 // get drawable area for annotation, background and text windows
-GdkRectangle* get_drawable_area();
-void build_background_window();
+GdkRectangle *get_drawable_area ();
+void          build_background_window ();
 
 #endif

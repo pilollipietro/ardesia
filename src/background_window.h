@@ -34,13 +34,12 @@
 // #  define BACKGROUND_UI_FILE PACKAGE_DATA_DIR"/ardesia/ui/background_window.glade"
 // #endif
 
-
 /* Structure that contains the info passed to the callbacks. */
 typedef struct
 {
 
   /* Gtkbuilder for background window. */
-//  GtkBuilder *background_window_gtk_builder;
+  //  GtkBuilder *background_window_gtk_builder;
 
   /* 0 no background, 1 color, 1 image*/
   gint type;
@@ -52,23 +51,20 @@ typedef struct
   gchar *image;
 
   /* The background widget that represent the full window. */
-//  GtkWidget *background_window;
+  //  GtkWidget *background_window;
 
   /* cairo context to draw on the background window. */
   cairo_t *cr;
 
-}BackgroundData;
+} BackgroundData;
 
-extern BackgroundData* background_data;
+extern BackgroundData *background_data;
 
-BackgroundData*
-create_background_data          ();
+BackgroundData *create_background_data ();
 
-void
-destroy_background_data();
+void destroy_background_data ();
 
-void clear_background_context();
-
+void clear_background_context ();
 
 /* Use GDK and GTK calls to position background window appropriately */
 // void
@@ -94,8 +90,7 @@ void clear_background_context();
 //
 //
 /* Update the background image. */
-void
-update_background_image (gchar *name);
+void update_background_image (gchar *name);
 //
 //
 // /* Get the background image */
@@ -109,8 +104,7 @@ update_background_image (gchar *name);
 //
 //
 /* Update the background colour. */
-void
-update_background_color (gchar* rgba);
+void update_background_color (gchar *rgba);
 //
 //
 // /* Get the background colour */
@@ -122,11 +116,9 @@ update_background_color (gchar* rgba);
 // void
 // clear_background_window ();
 
-
 // /* Destroy background window. */
 // void
 // destroy_background_window    ();
-
 
 // /* Get the background window. */
 // GtkWidget *
@@ -136,7 +128,5 @@ update_background_color (gchar* rgba);
 // /* Set the background window. */
 // void
 // set_background_window   (GtkWidget *widget);
-
-
 
 #endif

@@ -28,34 +28,28 @@
 #include <gtk/gtk.h>
 #include <monitor.h>
 
-typedef struct {
-    gchar* date;
-    gchar* workspace_dir;
-    gchar* project_name;
-    gchar* project_dir;
-    gchar* iwb_filename;
-    GList* monitors;
+typedef struct
+{
+  gchar *date;
+  gchar *workspace_dir;
+  gchar *project_name;
+  gchar *project_dir;
+  gchar *iwb_filename;
+  GList *monitors;
 } Workspace;
 
-Workspace*
-create_workspace();
+Workspace *create_workspace ();
 
-void
-set_defaults_for_workspace(Workspace* workspace);
+void set_defaults_for_workspace (Workspace *workspace);
 
-void
-configure_workspace               (Workspace* workspace);
+void configure_workspace (Workspace *workspace);
 
-void
-change_workspace_to( Workspace* workspace, gchar* filename );
+void change_workspace_to (Workspace *workspace, gchar *filename);
 
-void
-build_workspace_filesystem( Workspace* workspace );
+void build_workspace_filesystem (Workspace *workspace);
 
-void
-destroy_workspace(Workspace* workspace);
+void destroy_workspace (Workspace *workspace);
 
-void
-print_workspace(Workspace* workspace) ;
+void print_workspace (Workspace *workspace);
 
 #endif

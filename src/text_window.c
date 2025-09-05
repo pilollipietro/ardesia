@@ -23,23 +23,21 @@
 
 /* Widget for text insertion */
 
-
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+#include <config.h>
 #endif
 
-#include <utils.h>
 #include <annotation_window.h>
-#include <text_window.h>
-#include <keyboard.h>
 #include <bar_callbacks.h>
-#include <text_window_callbacks.h>
 #include <cairo_functions.h>
+#include <keyboard.h>
+#include <text_window.h>
+#include <text_window_callbacks.h>
+#include <utils.h>
 
 #ifdef _WIN32
-#  include <windows_utils.h>
+#include <windows_utils.h>
 #endif
-
 
 /* The structure used to store the status. */
 TextData *text_data = (TextData *) NULL;
@@ -48,265 +46,250 @@ TextData *text_data = (TextData *) NULL;
 TextConfig *text_config = (TextConfig *) NULL;
 
 /** Setup text configuration, used from ardesia.c */
-TextConfig*
-create_text_config() {
-    TextConfig* text_config = g_malloc ((gsize) sizeof (TextConfig));
-    text_config->fontfamily = "monospace";
-    text_config->leftmargin = 0;
-    text_config->tabsize = 80;
-    text_config->start_x = 0;
-    return text_config;
+TextConfig *
+create_text_config ()
+{
+  TextConfig *text_config = g_malloc ((gsize) sizeof (TextConfig));
+  text_config->fontfamily = "monospace";
+  text_config->leftmargin = 0;
+  text_config->tabsize    = 80;
+  text_config->start_x    = 0;
+  return text_config;
 }
-
 
 /* Stop the timer to handle the blocking cursor. */
 void
-stop_timer              ()
+stop_timer ()
 {
-  if (text_data->timer>0)
+  if (text_data->timer > 0)
     {
       g_source_remove (text_data->timer);
       text_data->timer = -1;
     }
 }
 
-
 void
-start_blink_cursor() {
-    // start blink cursor every second
-    text_data->blink_show=TRUE;
-    blink_cursor (NULL);
-    text_data->timer = g_timeout_add (750, blink_cursor, NULL);
+start_blink_cursor ()
+{
+  // start blink cursor every second
+  text_data->blink_show = TRUE;
+  blink_cursor (NULL);
+  text_data->timer = g_timeout_add (750, blink_cursor, NULL);
 }
 
-
 void
-stop_blink_cursor() {
-    stop_timer ();
-    text_data->blink_show=FALSE;
-    blink_cursor (NULL);
+stop_blink_cursor ()
+{
+  stop_timer ();
+  text_data->blink_show = FALSE;
+  blink_cursor (NULL);
 }
-
 
 /* Blink cursor. */
-gboolean blink_cursor        (gpointer data)
+gboolean
+blink_cursor (gpointer data)
 {
 
-  if ( (text_data->pos) &&
-        (text_data->cr)
-    ) {
-
-    gint height = text_data->max_font_height;
-    cairo_t* cr = text_data->cr;
-
-    cairo_save( cr );
-    cairo_set_line_cap (cr, CAIRO_LINE_CAP_ROUND);
-    cairo_set_line_join (cr, CAIRO_LINE_JOIN_ROUND);
-
-
-    if (text_data->blink_show)
+  if ((text_data->pos) && (text_data->cr))
     {
-        cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
-        cairo_set_line_width (cr, text_data->pen_width);
-        cairo_set_source_color_from_string (cr, text_data->color);
-        cairo_rectangle (cr, text_data->pos->x, text_data->pos->y - height, TEXT_CURSOR_WIDTH, height);
-        text_data->blink_show = FALSE;
-    }
-    else
-    {
-        cairo_set_operator (cr, CAIRO_OPERATOR_CLEAR);
-        cairo_rectangle (cr, text_data->pos->x, text_data->pos->y - height, TEXT_CURSOR_WIDTH, height);
 
-        cairo_rectangle (cr,
-                       text_data->pos->x-1,
-                       text_data->pos->y - height - 1,
-                       TEXT_CURSOR_WIDTH  + 2,
-                       height + 2);
-        text_data->blink_show=TRUE;
-    }
+      gint     height = text_data->max_font_height;
+      cairo_t *cr     = text_data->cr;
 
-    cairo_fill (cr);
-    cairo_stroke (cr);
-    cairo_restore( cr );
-    gtk_widget_queue_draw(annotation_data->annotation_window);
-  }
+      cairo_save (cr);
+      cairo_set_line_cap (cr, CAIRO_LINE_CAP_ROUND);
+      cairo_set_line_join (cr, CAIRO_LINE_JOIN_ROUND);
+
+      if (text_data->blink_show)
+        {
+          cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+          cairo_set_line_width (cr, text_data->pen_width);
+          cairo_set_source_color_from_string (cr, text_data->color);
+          cairo_rectangle (cr, text_data->pos->x, text_data->pos->y - height,
+                           TEXT_CURSOR_WIDTH, height);
+          text_data->blink_show = FALSE;
+        }
+      else
+        {
+          cairo_set_operator (cr, CAIRO_OPERATOR_CLEAR);
+          cairo_rectangle (cr, text_data->pos->x, text_data->pos->y - height,
+                           TEXT_CURSOR_WIDTH, height);
+
+          cairo_rectangle (cr, text_data->pos->x - 1, text_data->pos->y - height - 1,
+                           TEXT_CURSOR_WIDTH + 2, height + 2);
+          text_data->blink_show = TRUE;
+        }
+
+      cairo_fill (cr);
+      cairo_stroke (cr);
+      cairo_restore (cr);
+      gtk_widget_queue_draw (annotation_data->annotation_window);
+    }
 
   return TRUE;
 }
 
-
-
 /* Set the text cursor. */
 static gboolean
-assign_text_cursor_to_window              (GtkWidget  *window)
+assign_text_cursor_to_window (GtkWidget *window)
 {
 
   gdouble decoration_height = 4;
-  gint height = text_data->max_font_height + decoration_height * 2;
-  gint width = TEXT_CURSOR_WIDTH * 3;
-  g_printf("assign new cursor to window %d %d %s\n", width,height, text_data->color);
-  cairo_surface_t *text_surface_t = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);
-  cairo_t *text_pointer_cr = cairo_create (text_surface_t);
-  GdkRGBA *foreground_color_p = rgba_to_gdkcolor (text_data->color);
-  GdkCursor *cursor = (GdkCursor *) NULL;
-  GdkPixbuf *pixbuf = (GdkPixbuf *) NULL;
+  gint    height = text_data->max_font_height + decoration_height * 2;
+  gint    width  = TEXT_CURSOR_WIDTH * 3;
+  g_printf ("assign new cursor to window %d %d %s\n", width, height, text_data->color);
+  cairo_surface_t *text_surface_t = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+                                                                width, height);
+  cairo_t   *text_pointer_cr    = cairo_create (text_surface_t);
+  GdkRGBA   *foreground_color_p = rgba_to_gdkcolor (text_data->color);
+  GdkCursor *cursor             = (GdkCursor *) NULL;
+  GdkPixbuf *pixbuf             = (GdkPixbuf *) NULL;
 
   if (text_pointer_cr)
     {
-        clear_cairo_context (text_pointer_cr);
-        cairo_save(text_pointer_cr);
-        cairo_set_source_color_from_string (text_pointer_cr, text_data->color);
-        cairo_set_operator (text_pointer_cr, CAIRO_OPERATOR_SOURCE);
-        cairo_set_line_width (text_pointer_cr, 2);
+      clear_cairo_context (text_pointer_cr);
+      cairo_save (text_pointer_cr);
+      cairo_set_source_color_from_string (text_pointer_cr, text_data->color);
+      cairo_set_operator (text_pointer_cr, CAIRO_OPERATOR_SOURCE);
+      cairo_set_line_width (text_pointer_cr, 2);
 
-        cairo_line_to (text_pointer_cr, 1, 1);
-        cairo_line_to (text_pointer_cr, width-1, 1);
-        cairo_line_to (text_pointer_cr, width-1, decoration_height);
-        cairo_line_to (text_pointer_cr, 2*width/3+1, decoration_height);
-        cairo_line_to (text_pointer_cr, 2*width/3+1, height-decoration_height);
-        cairo_line_to (text_pointer_cr, width-1, height-decoration_height);
-        cairo_line_to (text_pointer_cr, width-1, height-1);
-        cairo_line_to (text_pointer_cr, 1, height-1);
-        cairo_line_to (text_pointer_cr, 1, height-decoration_height);
-        cairo_line_to (text_pointer_cr, width/3-1, height-decoration_height);
-        cairo_line_to (text_pointer_cr, width/3-1, decoration_height);
-        cairo_line_to (text_pointer_cr, 1, decoration_height);
-        cairo_close_path (text_pointer_cr);
+      cairo_line_to (text_pointer_cr, 1, 1);
+      cairo_line_to (text_pointer_cr, width - 1, 1);
+      cairo_line_to (text_pointer_cr, width - 1, decoration_height);
+      cairo_line_to (text_pointer_cr, 2 * width / 3 + 1, decoration_height);
+      cairo_line_to (text_pointer_cr, 2 * width / 3 + 1, height - decoration_height);
+      cairo_line_to (text_pointer_cr, width - 1, height - decoration_height);
+      cairo_line_to (text_pointer_cr, width - 1, height - 1);
+      cairo_line_to (text_pointer_cr, 1, height - 1);
+      cairo_line_to (text_pointer_cr, 1, height - decoration_height);
+      cairo_line_to (text_pointer_cr, width / 3 - 1, height - decoration_height);
+      cairo_line_to (text_pointer_cr, width / 3 - 1, decoration_height);
+      cairo_line_to (text_pointer_cr, 1, decoration_height);
+      cairo_close_path (text_pointer_cr);
 
-        cairo_stroke (text_pointer_cr);
-        cairo_restore(text_pointer_cr);
+      cairo_stroke (text_pointer_cr);
+      cairo_restore (text_pointer_cr);
 
-        cairo_destroy (text_pointer_cr);
-        pixbuf = gdk_pixbuf_get_from_surface (text_surface_t,
-                                            0,
-                                            0,
-                                            width,
-                                            height);
+      cairo_destroy (text_pointer_cr);
+      pixbuf = gdk_pixbuf_get_from_surface (text_surface_t, 0, 0, width, height);
 
+      cursor = gdk_cursor_new_from_pixbuf (
+          gdk_window_get_display (gtk_widget_get_window (window)), pixbuf,
+          width / 2 - decoration_height, height - decoration_height);
 
-        cursor = gdk_cursor_new_from_pixbuf(gdk_window_get_display (gtk_widget_get_window(window)),
-                                            pixbuf,
-                                            width/2-decoration_height,
-                                            height-decoration_height);
-
-        gdk_window_set_cursor (gtk_widget_get_window(window), cursor);
-        gtk_widget_queue_draw(window);
+      gdk_window_set_cursor (gtk_widget_get_window (window), cursor);
+      gtk_widget_queue_draw (window);
     }
-
 
   g_object_unref (cursor);
   g_object_unref (pixbuf);
   cairo_surface_destroy (text_surface_t);
   g_free (foreground_color_p);
 
-
   return TRUE;
 }
 
-
 /* Add a save-point with the text. Called from stop_text_widget*/
 void
-save_text()
+save_text ()
 {
-  if ( text_data != NULL )
+  if (text_data != NULL)
     {
-      stop_blink_cursor();
-      if ( text_data->cr ) {
+      stop_blink_cursor ();
+      if (text_data->cr)
+        {
           if (text_data->letterlist)
             {
               annotate_push_context (text_data->cr);
-              g_slist_free_full(text_data->letterlist,
-                               (GDestroyNotify) destroy_text_properties);
+              g_slist_free_full (text_data->letterlist, (GDestroyNotify) destroy_text_properties);
               text_data->letterlist = NULL;
             }
         }
     }
 }
 
-
 static void
-clear_if_empty() {
-    if (!text_data->letterlist) {
-        if ( text_data->cr != NULL ) {
-            g_printf("cleaning text window\n");
-            clear_cairo_context (text_data->cr);
+clear_if_empty ()
+{
+  if (! text_data->letterlist)
+    {
+      if (text_data->cr != NULL)
+        {
+          g_printf ("cleaning text window\n");
+          clear_cairo_context (text_data->cr);
         }
     }
 }
 
-
 static void
-set_cursor_height(GtkWidget* widget) {
+set_cursor_height (GtkWidget *widget)
+{
 
-    int width = gtk_widget_get_allocated_width(widget);
-    int height = gtk_widget_get_allocated_width(widget);
+  int width  = gtk_widget_get_allocated_width (widget);
+  int height = gtk_widget_get_allocated_width (widget);
 
-    // this is to find out what size we should make the cursor
-    // we don't need the window cairo context for this
-    // so we just create a blank surface
-    cairo_surface_t* surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height );
-    cairo_t* cr = cairo_create(surface);
-    cairo_save(cr);
-    cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
-    cairo_set_line_width (cr, text_data->pen_width);
-    cairo_set_source_color_from_string (cr, text_data->color);
-    cairo_set_font_size (cr, text_data->pen_width * 5);
+  // this is to find out what size we should make the cursor
+  // we don't need the window cairo context for this
+  // so we just create a blank surface
+  cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);
+  cairo_t *cr = cairo_create (surface);
+  cairo_save (cr);
+  cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+  cairo_set_line_width (cr, text_data->pen_width);
+  cairo_set_source_color_from_string (cr, text_data->color);
+  cairo_set_font_size (cr, text_data->pen_width * 5);
 
-    /* Select the font */
-    cairo_select_font_face (cr, text_config->fontfamily,
-                            CAIRO_FONT_SLANT_NORMAL,
-                            CAIRO_FONT_WEIGHT_NORMAL);
+  /* Select the font */
+  cairo_select_font_face (cr, text_config->fontfamily, CAIRO_FONT_SLANT_NORMAL,
+                          CAIRO_FONT_WEIGHT_NORMAL);
 
-    /* This is a trick; we must found the maximum height of the font. */
-    cairo_text_extents (cr, "|" , &text_data->extents);
-    text_data->max_font_height = text_data->extents.height;
-    cairo_restore(cr);
+  /* This is a trick; we must found the maximum height of the font. */
+  cairo_text_extents (cr, "|", &text_data->extents);
+  text_data->max_font_height = text_data->extents.height;
+  cairo_restore (cr);
 
-    cairo_surface_destroy( surface );
-    cairo_destroy( cr );
-
-
+  cairo_surface_destroy (surface);
+  cairo_destroy (cr);
 }
 
 /* Initialization routine. Called on text expose*/
 void
-init_text_widget             (GtkWidget *widget)
+init_text_widget (GtkWidget *widget)
 {
- // embed_tools_window(widget);
+  // embed_tools_window(widget);
 
-  set_cursor_height(widget);
+  set_cursor_height (widget);
   assign_text_cursor_to_window (widget);
 
 #ifdef _WIN32
   grab_pointer (text_data->window, TEXT_MOUSE_EVENTS);
 #endif
 
-  clear_if_empty();
-
+  clear_if_empty ();
 }
-
 
 static void
-create_text_data() {
-    g_print("create_text_data\n");
-    if ( text_data == NULL ) {
-        g_print("createing new text_data and adding defaults\n");
-        text_data = g_malloc ((gsize) sizeof (TextData));
+create_text_data ()
+{
+  g_print ("create_text_data\n");
+  if (text_data == NULL)
+    {
+      g_print ("createing new text_data and adding defaults\n");
+      text_data = g_malloc ((gsize) sizeof (TextData));
 
-        // set defaults back
-        text_data->cr = NULL;
-        text_data->pos = g_malloc ( (gsize) sizeof (Pos));
-        text_data->pos->x = 0.0;
-        text_data->pos->y = 0.0;
-        text_data->letterlist = NULL;
-        text_data->virtual_keyboard_pid = (GPid) 0;
-        text_data->timer = -1;
-        text_data->blink_show = TRUE;
-        text_data->color =  "FF0000FF";
-        text_data->pen_width = 1;
+      // set defaults back
+      text_data->cr                   = NULL;
+      text_data->pos                  = g_malloc ((gsize) sizeof (Pos));
+      text_data->pos->x               = 0.0;
+      text_data->pos->y               = 0.0;
+      text_data->letterlist           = NULL;
+      text_data->virtual_keyboard_pid = (GPid) 0;
+      text_data->timer                = -1;
+      text_data->blink_show           = TRUE;
+      text_data->color                = "FF0000FF";
+      text_data->pen_width            = 1;
     }
 }
-
 
 /* Start the widget for the text insertion.
  * Triggered by the leaving of the mouse of the tool bar.
@@ -314,30 +297,28 @@ create_text_data() {
  * @param color         user selected color for text
  * @param thickness     user selected thickness for text
  */
-void start_text_widget      (GtkWidget  *widget,
-                             gchar      *color,
-                             gint        thickness)
+void
+start_text_widget (GtkWidget *widget, gchar *color, gint thickness)
 {
-  g_printf("start_text_widget (%s)\n", color);
-  create_text_data();
-  text_data->color =  color;
+  g_printf ("start_text_widget (%s)\n", color);
+  create_text_data ();
+  text_data->color     = color;
   text_data->pen_width = thickness;
-  text_data->cr = create_new_context( gtk_widget_get_allocated_width(widget),
-                                        gtk_widget_get_allocated_width(widget) );
-  init_text_widget(widget);
+  text_data->cr = create_new_context (gtk_widget_get_allocated_width (widget),
+                                      gtk_widget_get_allocated_width (widget));
+  init_text_widget (widget);
   annotation_data->is_text_editor_visible = TRUE;
 }
 
-
 /* Stop the text insertion widget. Triggered when mouse enters the bar again */
 void
-stop_text_widget             ()
+stop_text_widget ()
 {
-    annotation_data->is_text_editor_visible = FALSE;
-    g_printf("stop_text_widget\n");
+  annotation_data->is_text_editor_visible = FALSE;
+  g_printf ("stop_text_widget\n");
   if (text_data)
     {
-      stop_blink_cursor();
+      stop_blink_cursor ();
       stop_virtual_keyboard ();
 
       save_text (); // destroys letter list and passes CR to annotation window

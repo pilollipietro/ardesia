@@ -24,79 +24,84 @@
 #include <cairo_functions.h>
 #include <utils.h>
 
-
 /**
  * Paint from one context to another
  * @param source the context on which we want to paint
  * @param dest   the context which has our pattern on it
  */
 void
-draw_cairo_context (cairo_t* dest, cairo_t* source, gboolean use_paint ) {
-    if ( source && dest ) {
-        cairo_save( dest );
-        cairo_set_operator(dest, CAIRO_OPERATOR_OVER);
-        // where we want to copy the image FROM
-        cairo_surface_t* pattern = cairo_get_target (source);
+draw_cairo_context (cairo_t *dest, cairo_t *source, gboolean use_paint)
+{
+  if (source && dest)
+    {
+      cairo_save (dest);
+      cairo_set_operator (dest, CAIRO_OPERATOR_OVER);
+      // where we want to copy the image FROM
+      cairo_surface_t *pattern = cairo_get_target (source);
 
-        // position the source surface over the destination
-        cairo_set_source_surface (dest, pattern, 0, 0);
-        // paint the image on to the window
-        if ( use_paint ) {
-            cairo_paint(dest);
-        } else {
-            cairo_fill_preserve(dest);
+      // position the source surface over the destination
+      cairo_set_source_surface (dest, pattern, 0, 0);
+      // paint the image on to the window
+      if (use_paint)
+        {
+          cairo_paint (dest);
+        }
+      else
+        {
+          cairo_fill_preserve (dest);
         }
 
-        cairo_restore( dest );
+      cairo_restore (dest);
     }
 }
 
-
-cairo_surface_t*
-scale_image( gchar* image, gint new_width, gint new_height ) {
-    cairo_surface_t *surface = cairo_image_surface_create_from_png (image);
-    cairo_t *cr = cairo_create (surface);
-    cairo_surface_t *scaled_surface = scale_surface (surface, new_width, new_height );
-    cairo_surface_destroy (surface);
-    cairo_destroy (cr);
-    return scaled_surface;
+cairo_surface_t *
+scale_image (gchar *image, gint new_width, gint new_height)
+{
+  cairo_surface_t *surface = cairo_image_surface_create_from_png (image);
+  cairo_t         *cr      = cairo_create (surface);
+  cairo_surface_t *scaled_surface = scale_surface (surface, new_width, new_height);
+  cairo_surface_destroy (surface);
+  cairo_destroy (cr);
+  return scaled_surface;
 }
-
 
 /* Load a file image in the window. */
 void
-load_file_onto_context(gchar* image_filename, cairo_t* cr)
+load_file_onto_context (gchar *image_filename, cairo_t *cr)
 {
-    g_printf("attempting to load file\n");
-    if (cr) {
-        gint new_height = 0;
-        gint new_width = 0;
-        get_context_size (cr, &new_width, &new_height);
-        cairo_surface_t* scaled_surface = scale_image( image_filename, new_width, new_height);
-        cairo_set_source_surface (cr, scaled_surface, 0.0, 0.0);
+  g_printf ("attempting to load file\n");
+  if (cr)
+    {
+      gint new_height = 0;
+      gint new_width  = 0;
+      get_context_size (cr, &new_width, &new_height);
+      cairo_surface_t *scaled_surface = scale_image (image_filename, new_width, new_height);
+      cairo_set_source_surface (cr, scaled_surface, 0.0, 0.0);
 
-        cairo_save( cr );
-        cairo_paint (cr);
-        cairo_stroke (cr);
-        cairo_surface_flush( cairo_get_target(cr) );
-        cairo_surface_destroy (scaled_surface);
-        cairo_restore( cr );
-    } else {
-        g_printf("no background_window cairo context found\n");
+      cairo_save (cr);
+      cairo_paint (cr);
+      cairo_stroke (cr);
+      cairo_surface_flush (cairo_get_target (cr));
+      cairo_surface_destroy (scaled_surface);
+      cairo_restore (cr);
+    }
+  else
+    {
+      g_printf ("no background_window cairo context found\n");
     }
 }
 
-
 /* The windows has been exposed after the show_all request to change the background color. */
 void
-load_color_onto_context(gchar* hex_color, cairo_t* cr)
+load_color_onto_context (gchar *hex_color, cairo_t *cr)
 {
-    g_printf("%s\n", hex_color);
-    assert(hex_color);
-    assert(cr);
-    assert(strlen(hex_color) == 8 );
+  g_printf ("%s\n", hex_color);
+  assert (hex_color);
+  assert (cr);
+  assert (strlen (hex_color) == 8);
 
-    g_printf("load_color\n");
+  g_printf ("load_color\n");
   gint r = 0;
   gint g = 0;
   gint b = 0;
@@ -104,64 +109,61 @@ load_color_onto_context(gchar* hex_color, cairo_t* cr)
 
   if (cr)
     {
-        sscanf (hex_color, "%02X%02X%02X%02X", &r, &g, &b, &a);
-        cairo_save( cr );
-        cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+      sscanf (hex_color, "%02X%02X%02X%02X", &r, &g, &b, &a);
+      cairo_save (cr);
+      cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
 
-
-        cairo_set_source_rgba (cr,
-                               (gdouble) r/256,
-                               (gdouble) g/256,
-                               (gdouble) b/256,
-                               (gdouble) a/256);
+      cairo_set_source_rgba (cr, (gdouble) r / 256, (gdouble) g / 256,
+                             (gdouble) b / 256, (gdouble) a / 256);
       cairo_paint (cr);
       cairo_stroke (cr);
-      cairo_restore( cr );
-
+      cairo_restore (cr);
     }
 }
 
-
-cairo_t*
-create_new_context(int width, int height) {
-    cairo_surface_t* surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height );
-    return cairo_create(surface);
+cairo_t *
+create_new_context (int width, int height)
+{
+  cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);
+  return cairo_create (surface);
 }
 
-
-cairo_t*
-create_copy_of_context(cairo_t* current_context) {
-    if ( current_context == NULL ) {
-        int width = 0;
-        int height = 0;
-        get_context_size( current_context, &width, &height );
-        cairo_surface_t* dest_surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height );
-        cairo_surface_t* source_surface = cairo_get_target (current_context);
-        cairo_t* dest_cr = cairo_create (dest_surface);
-        cairo_set_operator (dest_cr, CAIRO_OPERATOR_SOURCE);
-        cairo_set_source_surface (dest_cr, source_surface, 0, 0);
-        cairo_paint (dest_cr);
-        return dest_cr;
+cairo_t *
+create_copy_of_context (cairo_t *current_context)
+{
+  if (current_context == NULL)
+    {
+      int width  = 0;
+      int height = 0;
+      get_context_size (current_context, &width, &height);
+      cairo_surface_t *dest_surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+                                                                  width, height);
+      cairo_surface_t *source_surface = cairo_get_target (current_context);
+      cairo_t         *dest_cr        = cairo_create (dest_surface);
+      cairo_set_operator (dest_cr, CAIRO_OPERATOR_SOURCE);
+      cairo_set_source_surface (dest_cr, source_surface, 0, 0);
+      cairo_paint (dest_cr);
+      return dest_cr;
     }
-    return NULL;
+  return NULL;
 }
-
 
 void
-draw_test_text(cairo_t* cr, gchar* text) {
-    // test text
-    cairo_save(cr);
-    // paint context white
-    //
+draw_test_text (cairo_t *cr, gchar *text)
+{
+  // test text
+  cairo_save (cr);
+  // paint context white
+  //
 
-    cairo_set_source_rgb(cr, 1, 1, 1);
-    cairo_paint(cr);
+  cairo_set_source_rgb (cr, 1, 1, 1);
+  cairo_paint (cr);
 
-    // write near black text
-    cairo_select_font_face (cr, "monospace", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
-    cairo_set_font_size (cr, 32.0);
-    cairo_set_source_rgb (cr, 0.1, 0.1, 0.1);
-    cairo_move_to (cr, 10.0, 50.0);
-    cairo_show_text (cr, text);
-    cairo_restore(cr);
+  // write near black text
+  cairo_select_font_face (cr, "monospace", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+  cairo_set_font_size (cr, 32.0);
+  cairo_set_source_rgb (cr, 0.1, 0.1, 0.1);
+  cairo_move_to (cr, 10.0, 50.0);
+  cairo_show_text (cr, text);
+  cairo_restore (cr);
 }
