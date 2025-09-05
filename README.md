@@ -281,6 +281,3 @@ filename:	  		The interactive Whiteboard Common File (iwb)
 
 
 Have fun!
-
-
-

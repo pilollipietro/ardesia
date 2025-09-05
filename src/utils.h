@@ -59,7 +59,7 @@
 
 
 /* The gtk builder object of the bar window */
-GtkBuilder *bar_gtk_builder;
+extern GtkBuilder *bar_gtk_builder;
 
 
 #define PROGRAM_NAME "Ardesia"

@@ -49,6 +49,9 @@
 /* The list of the artefacts created in the current session. */
 static GSList *artifacts = (GSList *) NULL;
 
+GtkBuilder* bar_gtk_builder = NULL;
+
+
 gboolean
 intersect( GdkRectangle* a, GdkRectangle* b ) {
     return !( a->x + a->width < b->x ||

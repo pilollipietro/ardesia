@@ -24,9 +24,9 @@
 #include <monitor.h>
 
 
-guint DRAW_ON_MONITOR = 0;
-guint DRAW_ON_CLIPAREA = 1;
-guint DRAW_ON_FULLDESKTOP = 2;
+const guint DRAW_ON_MONITOR = 0;
+const guint DRAW_ON_CLIPAREA = 1;
+const guint DRAW_ON_FULLDESKTOP = 2;
 
 
 /**

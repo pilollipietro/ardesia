@@ -152,8 +152,8 @@ typedef struct
   gint start_x;          // where first character will go
 }TextConfig;
 
-TextData *text_data;
-TextConfig *text_config;
+extern TextData *text_data;
+extern TextConfig *text_config;
 
 TextConfig*
 create_text_config();

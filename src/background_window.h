@@ -59,7 +59,7 @@ typedef struct
 
 }BackgroundData;
 
-BackgroundData* background_data;
+extern BackgroundData* background_data;
 
 BackgroundData*
 create_background_data          ();

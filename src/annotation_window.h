@@ -238,7 +238,7 @@ typedef struct
   Monitor* monitor;
 } AnnotateData;
 
-AnnotateData* annotation_data;
+extern AnnotateData* annotation_data;
 
 /* Initialize the annotation cairo context */
 void

@@ -34,7 +34,6 @@
 static gint timer = -1;
 
 
-
 BarData *bar_data = NULL;
 
 /*

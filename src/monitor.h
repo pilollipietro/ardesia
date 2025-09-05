@@ -29,9 +29,9 @@
 #include <glib.h>
 #include <glib/gprintf.h>
 
-guint DRAW_ON_MONITOR;
-guint DRAW_ON_CLIPAREA;
-guint DRAW_ON_FULLDESKTOP;
+extern const guint DRAW_ON_MONITOR;
+extern const guint DRAW_ON_CLIPAREA;
+extern const guint DRAW_ON_FULLDESKTOP;
 
 typedef struct
 {

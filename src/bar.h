@@ -92,7 +92,7 @@ typedef struct
   gint screenshot_saved_location_y;
 }BarData;
 
-BarData* bar_data;
+extern BarData* bar_data;
 
 /* Create the ardesia bar window. */
 GtkWidget *
