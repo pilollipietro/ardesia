@@ -395,11 +395,11 @@ add_alpha               (BarData *bar_data)
   assert(strlen(bar_data->color) == 8 );
   if (is_highlighter_toggle_tool_button_active ())
     {
-      strncpy (&bar_data->color[6], SEMI_OPAQUE_ALPHA, 2);
+      memcpy(&bar_data->color[6], SEMI_OPAQUE_ALPHA, 2);
     }
   else
     {
-      strncpy (&bar_data->color[6], OPAQUE_ALPHA, 2);
+      memcpy(&bar_data->color[6], OPAQUE_ALPHA, 2);
     }
 }
 

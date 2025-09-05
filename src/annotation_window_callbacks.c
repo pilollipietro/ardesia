@@ -74,6 +74,7 @@ on_configure       (GtkWidget      *widget,
     if ( data->is_text_editor_visible == TRUE ) {
         annotation_window_change(width, height);
     }
+  return TRUE;
 }
 
 G_MODULE_EXPORT gboolean

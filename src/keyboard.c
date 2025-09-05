@@ -30,9 +30,6 @@
 #include <keyboard.h>
 #include <stdlib.h>
 
-/* The pid of the virtual keyboard process. */
-static GPid virtual_keyboard_pid;
-
 
 /* Start the virtual keyboard. */
 void

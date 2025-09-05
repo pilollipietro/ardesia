@@ -24,7 +24,6 @@
 #include <cursors.h>
 #include <utils.h>
 #include <librsvg/rsvg.h>
-#include <librsvg/rsvg-cairo.h>
 
 
 /* The image surface that will contain the pen icon. */
