@@ -382,5 +382,6 @@ gboolean annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data);
 gboolean annotation_window_button_release (GdkEventButton *ev, AnnotateData *data);
 
 void create_text_settings_window ();
+void show_text_settings_window ();
 
 #endif

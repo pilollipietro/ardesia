@@ -744,7 +744,7 @@ void create_background_window (/* arguments */)
 G_MODULE_EXPORT void
 on_bar_fonts_clicked (GtkToolButton *toolbutton, gpointer func_data)
 {
-  create_text_settings_window ();
+  show_text_settings_window ();
 }
 
 /* Push preference button. */

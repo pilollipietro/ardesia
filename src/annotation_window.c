@@ -414,10 +414,6 @@ create_annotation_window (Workspace *workspace, CommandLine *commandline)
       return NULL;
     }
 
-  if (workspace->iwb_filename)
-    {
-      annotation_data->savepoint_list = load_iwb (workspace->iwb_filename);
-    }
   /* Connect all the callback from gtkbuilder xml file. */
   gtk_builder_connect_signals (annotation_data->annotation_window_gtk_builder,
                                (gpointer) annotation_data);
@@ -429,6 +425,10 @@ create_annotation_window (Workspace *workspace, CommandLine *commandline)
   g_signal_connect (seat, "device-added", G_CALLBACK (on_device_added), annotation_data);
   g_signal_connect (seat, "device-removed", G_CALLBACK (on_device_removed), annotation_data);
 
+  if (workspace->iwb_filename)
+    {
+      annotation_data->savepoint_list = load_iwb (workspace->iwb_filename);
+    }
   return widget;
 }
 
@@ -679,7 +679,6 @@ annotate_add_savepoint ()
 void
 initialize_annotation_cairo_context (AnnotateData *data)
 {
-  g_debug ("initialize_annotation_cairo_context\n");
   if (annotation_data->annotation_cairo_context == NULL)
     {
       g_debug ("initializing annotation cairo context\n");
@@ -1349,7 +1348,7 @@ annotate_quit ()
     }
 }
 
-/* Release input grab;the input event will be passed below the window. */
+/* Release input grab; the input event will be passed below the window. */
 void
 annotate_release_input_grab ()
 {
@@ -1873,7 +1872,8 @@ gboolean
 on_font_window_leave_event (GtkWidget *widget, GdkEvent *event, gpointer user_data)
 {
   annotation_data->font = gtk_font_chooser_get_font_desc (GTK_FONT_CHOOSER (user_data));
-  g_printf ("selecting new font\n");
+  g_debug ("selecting new font\n");
+  annotate_acquire_input_grab();
   return FALSE;
 }
 
@@ -1894,8 +1894,7 @@ on_font_window_configure (GtkWidget *widget, GdkEvent *event, gpointer user_data
   return FALSE;
 }
 
-void
-create_text_settings_window ()
+void create_text_settings_window ()
 {
   GtkWidget *window       = NULL;
   GtkWidget *font_chooser = NULL;
@@ -1926,6 +1925,10 @@ create_text_settings_window ()
 
       annotation_data->font_window = window;
     }
+}
 
-  gtk_widget_show_all (window);
+void show_text_settings_window()
+{
+  annotate_release_input_grab();
+  gtk_widget_show_all (annotation_data->font_window);
 }
