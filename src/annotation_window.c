@@ -907,48 +907,49 @@ annotate_coord_dev_list_free (AnnotateDeviceData *devdata)
 }
 
 /* Modify colour according to the pressure. */
-void
-annotate_modify_color (AnnotateDeviceData *devdata, AnnotateData *data, gdouble pressure)
+void annotate_modify_color (AnnotateDeviceData *devdata, AnnotateData *data, gdouble pressure)
 {
-  /* Pressure value is from 0 to 1;this value modify the RGBA gradient. */
-  guint   r, g, b, a;
-  gdouble old_pressure = pressure;
+    /* Pressure value is from 0 to 1; this value modify the RGBA gradient. */
+    guint r, g, b, a;
+    gdouble old_pressure = pressure;
+    gdouble new_alpha;
+    gdouble contrast = 1.5; 
 
-  /* If you put an higher value you will have more contrast
-   * between the lighter and darker colour depending on pressure.
-   */
-  gdouble contrast   = 96;
-  gdouble corrective = 0;
-
-  /* The pressure is greater than 0. */
-  if ((! annotation_data->annotation_cairo_context) || (! annotation_data->color))
-    {
-      return;
+    if ((! annotation_data->annotation_cairo_context) || (! annotation_data->color)) {
+        return;
+    }
+    if (pressure >= 1) {
+        cairo_set_source_color_from_string(annotation_data->annotation_cairo_context,
+                                           annotation_data->color);
+        return;
     }
 
-  if (pressure >= 1)
-    {
-      cairo_set_source_color_from_string (annotation_data->annotation_cairo_context,
-                                          annotation_data->color);
-    }
-  else if (pressure <= 0.1)
-    {
-      pressure = 0.1;
+    assert(strlen(annotation_data->color) == 8);
+    sscanf(annotation_data->color, "%02X%02X%02X%02X", &r, &g, &b, &a);
+
+    if (devdata->coord_list != NULL) {
+        AnnotatePoint *last_point = (AnnotatePoint *) g_slist_nth_data(devdata->coord_list, 0);
+        old_pressure = last_point->pressure;
     }
 
-  assert (strlen (annotation_data->color) == 8);
-  sscanf (annotation_data->color, "%02X%02X%02X%02X", &r, &g, &b, &a);
+    /* Use a squareroot function to give an exponential curve. This amplifies
+     * low pressure values, making the stroke more visible at the start and end.
+     */
+    gdouble smoothed_pressure = (3 * pressure + old_pressure) / 4;
+    gdouble curved_pressure = sqrt(smoothed_pressure);
 
-  if (devdata->coord_list != NULL)
-    {
-      AnnotatePoint *last_point = (AnnotatePoint *) g_slist_nth_data (devdata->coord_list, 0);
-      old_pressure = last_point->pressure;
+    /* Calculate the final alpha value by combining the curved pressure and contrast factor. */
+    new_alpha = curved_pressure * contrast;
+
+    /* Ensure the alpha value does not exceed the maximum of 1.0 */
+    if (new_alpha > 1.0) {
+        new_alpha = 1.0;
     }
 
-  corrective = (1 - (3 * pressure + old_pressure) / 4) * contrast;
-  cairo_set_source_rgba (annotation_data->annotation_cairo_context,
-                         (r + corrective) / 255, (g + corrective) / 255,
-                         (b + corrective) / 255, (gdouble) a / 255);
+    printf("pressure %f, new_alpha %f", pressure, new_alpha);
+    cairo_set_source_rgba(annotation_data->annotation_cairo_context,
+                          (gdouble)r / 255.0, (gdouble)g / 255.0,
+                          (gdouble)b / 255.0, new_alpha * (gdouble)a / 255.0);
 }
 
 /* Paint the context over the annotation window. */
