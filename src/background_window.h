@@ -28,18 +28,9 @@
 
 #define BACKGROUND_OPACITY 0.01
 
-// #ifdef _WIN32
-// #  define BACKGROUND_UI_FILE "..\\share\\ardesia\\ui\\background_window.glade"
-// #else
-// #  define BACKGROUND_UI_FILE PACKAGE_DATA_DIR"/ardesia/ui/background_window.glade"
-// #endif
-
 /* Structure that contains the info passed to the callbacks. */
 typedef struct
 {
-
-  /* Gtkbuilder for background window. */
-  //  GtkBuilder *background_window_gtk_builder;
 
   /* 0 no background, 1 color, 1 image*/
   gint type;
@@ -66,67 +57,10 @@ void destroy_background_data ();
 
 void clear_background_context ();
 
-/* Use GDK and GTK calls to position background window appropriately */
-// void
-// position_background_window(int x, int y, int width, int height);
-
-// /* Create the background window. */
-// GtkWidget *
-// create_background_window     ();
-
-// /* Set the background type. */
-// void
-// set_background_type     (gint type);
-//
-//
-// /* Get the background type */
-// gint
-// get_background_type     ();
-//
-//
-// /* Set the background image. */
-// void
-// set_background_image    (gchar *background_image);
-//
-//
 /* Update the background image. */
 void update_background_image (gchar *name);
-//
-//
-// /* Get the background image */
-// gchar *
-// get_background_image    ();
-//
-//
-// /* Set the background colour. */
-// void
-// set_background_color    (gchar *rgba);
-//
-//
+
 /* Update the background colour. */
 void update_background_color (gchar *rgba);
-//
-//
-// /* Get the background colour */
-// gchar *
-// get_background_color    ();
-//
-//
-// /* Clear the background. */
-// void
-// clear_background_window ();
-
-// /* Destroy background window. */
-// void
-// destroy_background_window    ();
-
-// /* Get the background window. */
-// GtkWidget *
-// get_background_window   ();
-//
-//
-// /* Set the background window. */
-// void
-// set_background_window   (GtkWidget *widget);
 
 #endif

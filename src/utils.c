@@ -37,14 +37,6 @@
 #include "bar.h"
 #include "workspace.h"
 
-// /* The name of the current project. */
-// static gchar *project_name = (gchar *) NULL;
-//
-// /* The name of the current project. */
-// static gchar *project_dir = (gchar *) NULL;
-//
-// /* The name of the current project. */
-// static gchar *iwb_filename = (gchar *) NULL;
 
 /* The list of the artefacts created in the current session. */
 static GSList *artifacts = (GSList *) NULL;
@@ -512,31 +504,14 @@ get_date ()
 {
   struct tm *t;
   time_t     now;
-  // gchar *time_sep = ":";
   gchar     *date = "";
 
   time (&now);
   t = localtime (&now);
 
-  // #ifdef _WIN32
-  //   /* The ":" character on windows is avoided in file name and then
-  //    * I use the "." character instead.
-  //    */
-  //   time_sep = ".";
-  // #endif
-
   char buffer[1024];
   strftime (buffer, sizeof (buffer), "%Y-%m-%d_%H%M%S", t);
 
-  // date = g_strdup_printf ("%d-%d-%d_%d%s%d%s%d",
-  //                         t->tm_year+1900,
-  //                         t->tm_mday,
-  //                         t->tm_mon+1 < 10 ? t->tm_mon+1 : ,
-  //                         t->tm_hour,
-  //                         time_sep,
-  //                         t->tm_min,
-  //                         time_sep,
-  //                         t->tm_sec);
   date = g_strdup_printf ("%s", buffer);
 
   return date;

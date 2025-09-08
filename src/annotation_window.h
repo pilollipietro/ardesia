@@ -42,8 +42,8 @@
 #endif
 #endif
 
-#include "recordingstudio.h"
 #include "ardesia.h"
+#include "recordingstudio.h"
 
 #ifdef _WIN32
 #define ANNOTATION_UI_FOLDER "..\\share\\ardesia\\ui"

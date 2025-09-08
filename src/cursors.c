@@ -377,7 +377,6 @@ allocate_invisible_cursor (GdkCursor **cursor)
 {
   GdkDisplay *display = gdk_display_get_default ();
   *cursor             = gdk_cursor_new_for_display (display, GDK_BLANK_CURSOR);
-  //*cursor = gdk_cursor_new (GDK_BLANK_CURSOR);
 }
 
 /* Set the pen cursor. */

@@ -65,7 +65,6 @@ start_preference_dialog (GtkWindow *parent)
   GtkFileChooser *chooser           = NULL;
   GtkFileFilter  *filter            = (GtkFileFilter *) NULL;
   GObject        *bg_color_obj      = (GObject *) NULL;
-  // GtkWidget *color_button = (GtkWidget *) NULL;
 
   PreferenceData *preference_data = (PreferenceData *) NULL;
 
@@ -109,7 +108,6 @@ start_preference_dialog (GtkWindow *parent)
   bg_color_obj = gtk_builder_get_object (preference_data->preference_dialog_gtk_builder,
                                          "backgroundColorButton");
 
-  // color_button = GTK_WIDGET (bg_color_obj);
   gtk_color_chooser_set_use_alpha (GTK_COLOR_CHOOSER (bg_color_obj), TRUE);
 
   /* Connect all signals by reflection. */
@@ -139,11 +137,8 @@ start_preference_dialog (GtkWindow *parent)
   if (rgba)
     {
       GdkRGBA *gdkcolor = rgba_to_gdkcolor (rgba);
-      // guint16 alpha = strtol(&rgba[6], NULL, 16) * 257;
       gtk_color_chooser_set_use_alpha (GTK_COLOR_CHOOSER (bg_color_obj), TRUE);
-      // gtk_color_button_set_alpha (GTK_COLOR_BUTTON (color_button), alpha);
       gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER (bg_color_obj), gdkcolor);
-      // gtk_color_button_set_color (GTK_COLOR_BUTTON (color_button), gdkcolor);
     }
 
   gchar *filename = background_data->image;

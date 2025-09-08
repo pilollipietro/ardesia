@@ -107,10 +107,6 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
           gtk_button_set_image ((GtkButton *) toolbutton, imageWidget);
           gtk_button_set_label ((GtkButton *) toolbutton, "Unavailable");
 
-          /* Visualize a dialog that informs the user about the missing recorder tool. */
-          // GObject *recorder_obj = gtk_builder_get_object (bar_gtk_builder,
-          //                                                 "media-recorder-unavailable");
-
           gdk_window_set_cursor (gtk_widget_get_window (get_annotation_window ()),
                                  (GdkCursor *) NULL);
 
@@ -210,9 +206,6 @@ drill_window_in_cursor_area ()
 
   // drill with input shape the pointer will go below the window.
   gtk_widget_input_shape_combine_region (cursor_window, widget_reg);
-
-  // drill with shape; the area will be transparent.
-  //  gtk_widget_shape_combine_region (cursor_window, widget_reg);
 
   cairo_region_destroy (widget_reg);
   g_free (rA);

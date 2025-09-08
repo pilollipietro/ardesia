@@ -153,8 +153,6 @@ draw_test_text (cairo_t *cr, gchar *text)
 {
   // test text
   cairo_save (cr);
-  // paint context white
-  //
 
   cairo_set_source_rgb (cr, 1, 1, 1);
   cairo_paint (cr);

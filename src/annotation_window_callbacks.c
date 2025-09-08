@@ -57,10 +57,6 @@ on_configure (GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
       annotation_window_change (width, height);
       gtk_widget_set_opacity (data->annotation_window, 1.0);
     }
-  else
-    {
-      // gtk_widget_set_opacity (data->annotation_window, 0.0);
-    }
   if (data->is_annotation_visible == TRUE)
     {
       annotation_window_change (width, height);

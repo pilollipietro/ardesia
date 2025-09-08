@@ -153,9 +153,6 @@ cairo_t *create_new_text_window_context ();
 
 cairo_t *create_copy_of_text_window_context (cairo_t *current_context);
 
-// void
-// render_draw_frame(cairo_t* source_context) ;
-
 void stop_timer ();
 
 void start_blink_cursor ();

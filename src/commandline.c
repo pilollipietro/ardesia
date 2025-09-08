@@ -21,13 +21,14 @@
  *
  */
 
+#include <glib.h>
+#include <glib/gprintf.h>
+#include <stdlib.h>
+
 #include "ardesia.h"
 #include "commandline.h"
 #include "monitor.h"
 #include "config.h"
-#include <glib.h>
-#include <glib/gprintf.h>
-#include <stdlib.h>
 
 static struct option long_options[] = {
   /* These options set a flag. */
