@@ -69,8 +69,8 @@ call_recorder (gchar *filename, gchar *option)
   argv[6] = g_strdup_printf (
       "%d", gtk_widget_get_allocated_height (annotation_data->annotation_window));
 
-  g_printf ("call_recorder: %s %s %s %s %s %s %s\n", logfilename, argv[3],
-            argv[4], argv[5], argv[6], argv[7], argv[8]);
+  g_debug ("call_recorder: %s %s %s %s %s %s %s\n", logfilename, argv[3],
+           argv[4], argv[5], argv[6], argv[7], argv[8]);
 
   if (g_spawn_async (NULL /*working_directory*/, argv, NULL /*envp*/,
                      G_SPAWN_SEARCH_PATH, NULL /*child_setup*/,
@@ -108,7 +108,7 @@ call_recorder (gchar *filename, gchar *option)
     {
       pid = -1;
     }
-  g_printf ("PID: %d\n", pid);
+  g_debug ("Recorder PID: %d\n", pid);
   return pid;
 }
 

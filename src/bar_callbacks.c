@@ -47,7 +47,7 @@
 G_MODULE_EXPORT gboolean
 on_bar_window_state_event (GtkWidget *widget, GdkEventWindowState *event, gpointer func_data)
 {
-  g_print ("DEBUG: bat state event\n");
+  g_debug ("on bar state event\n");
   BarData *bar_data = (BarData *) func_data;
 
   /* Track the minimized signals */
@@ -62,14 +62,14 @@ on_bar_window_state_event (GtkWidget *widget, GdkEventWindowState *event, gpoint
 G_MODULE_EXPORT gboolean
 on_bar_draw_event (GtkWidget *widget, cairo_t *cr, gpointer user_data)
 {
-  g_print ("bar draw event\n");
+  g_debug ("bar draw event\n");
   return FALSE;
 }
 
 void
 on_bar_hide_event (GtkWidget *widget, gpointer user_data)
 {
-  g_print ("bar hide event\n");
+  g_debug ("bar hide event\n");
 
   if (bar_data->screenshot_pending == TRUE)
     {
@@ -82,7 +82,7 @@ on_bar_hide_event (GtkWidget *widget, gpointer user_data)
 G_MODULE_EXPORT gboolean
 on_bar_configure_event (GtkWidget *widget, GdkEvent *event, gpointer func_data)
 {
-  g_print ("bar configure event (%d)\n", bar_data->screenshot_pending);
+  g_debug ("bar configure event (%d)\n", bar_data->screenshot_pending);
   if (bar_data->screenshot_pending == TRUE)
     {
       // we tried 2 methods:
@@ -95,7 +95,7 @@ on_bar_configure_event (GtkWidget *widget, GdkEvent *event, gpointer func_data)
       // otherwise the window will still be visible in our snapshot
       // 2 seconds appears to work, 1 second sometimes works.
       sleep (2);
-      g_printf ("found a screenshot pending\n");
+      g_debug ("found a screenshot pending\n");
 
       GdkPixbuf *buffer            = take_screenshot_now ();
       bar_data->screenshot_pending = FALSE;
@@ -119,7 +119,7 @@ on_bar_configure_event (GtkWidget *widget, GdkEvent *event, gpointer func_data)
 G_MODULE_EXPORT gboolean
 on_bar_quit (GtkToolButton *toolbutton, gpointer func_data)
 {
-  g_printf ("on_bar_quit\n");
+  g_debug ("on_bar_quit\n");
   BarData *bar_data = (BarData *) func_data;
 
   stop_recorder ();
@@ -173,7 +173,7 @@ on_bar_leave_notify_event (GtkWidget *widget, GdkEvent *event, gpointer func_dat
 G_MODULE_EXPORT gboolean
 on_bar_enter_notify_event (GtkWidget *widget, GdkEvent *event, gpointer func_data)
 {
-  g_printf ("bar enter notify event\n");
+  g_debug ("bar enter notify event\n");
   if (is_text_toggle_tool_button_active ())
     {
       stop_text_widget ();
@@ -430,7 +430,7 @@ on_bar_recorder_activate (GtkToolButton *toolbutton, gpointer func_data)
   // we want to show the recording studio window at this point
   if (annotation_data->recordingstudio_window == NULL)
     {
-      g_printf ("Showing recording menu");
+      g_debug ("Showing recording menu");
       if (annotation_data->recordingstudio_options == NULL)
         {
           annotation_data->recordingstudio_options = g_malloc ((gsize) sizeof (RecordingStudioData));
@@ -443,7 +443,7 @@ on_bar_recorder_activate (GtkToolButton *toolbutton, gpointer func_data)
 
       if (error)
         {
-          g_warning ("Failed to load builder file: %s", error->message);
+          g_debug ("Failed to load builder file: %s", error->message);
           g_error_free (error);
           return;
         }
@@ -454,7 +454,7 @@ on_bar_recorder_activate (GtkToolButton *toolbutton, gpointer func_data)
 
       if (annotation_data->recordingstudio_window == NULL)
         {
-          g_warning ("Failed to create the recording studio window");
+          g_debug ("Failed to create the recording studio window");
           return;
         }
       gtk_builder_connect_signals (annotation_data->recordingstudio_window_gtk_builder,
@@ -474,11 +474,9 @@ on_remove_background_button (GtkMenuItem *menuitem, gpointer user_data)
 {
   GtkWidget *widget = GTK_WIDGET (user_data);
   gint       width  = gtk_widget_get_allocated_width (widget);
-  g_printf ("button width: %d\n", width);
   gtk_widget_destroy (widget);
   gint cwidth = gtk_widget_get_allocated_width (annotation_data->background_selection_window);
   gint cheight = gtk_widget_get_allocated_height (annotation_data->background_selection_window);
-  g_printf ("window size: %d %d\n", cwidth, cheight);
   gtk_window_resize (GTK_WINDOW (annotation_data->background_selection_window),
                      cwidth - width, cheight);
   return TRUE;
@@ -488,8 +486,6 @@ void
 background_selection_on_toggled (GtkToggleToolButton *toggle_tool_button, gpointer userdata)
 {
   BackgroundButtonData *button_data = (BackgroundButtonData *) userdata;
-  // left click
-  g_printf ("left click\n");
   annotation_data->background_button_last_selected = button_data->index;
   BackgroundButtonData *data =
       (BackgroundButtonData *) (g_slist_nth (annotation_data->background_button_data,
@@ -522,7 +518,6 @@ background_selection_on_button_press (GtkWidget *widget, GdkEvent *event, gpoint
         {
           if (event_button->button == GDK_BUTTON_SECONDARY)
             {
-              g_printf ("background_window_on_context_menu\n");
               // create a popup for delete
               GtkWidget *menu, *menuitem;
               menu     = gtk_menu_new ();
@@ -580,17 +575,17 @@ resize_image_to_button (BackgroundButtonData *data, gint size)
   gdk_pixbuf_save (pixbuf, output, "png", &error, NULL);
   if (error != NULL)
     {
-      g_printf ("error: %s\n", error->message);
+      g_printerr ("%s\n", error->message);
     }
 
   if (image == NULL)
     {
-      g_printf ("create new image\n");
+      g_debug ("create new image\n");
       image = GTK_IMAGE (gtk_image_new_from_pixbuf (pixbuf));
     }
   else
     {
-      g_printf ("setting image\n");
+      g_debug ("setting image\n");
       gtk_image_set_from_pixbuf (image, pixbuf);
     }
   data->size = size;
@@ -622,7 +617,7 @@ on_background_selection_window_configure_event (GtkWidget *widget, GdkEvent *eve
               gtk_tool_button_get_icon_widget (GTK_TOOL_BUTTON (data->button)));
           if (image == NULL || data->size != m)
             {
-              g_printf ("redrawing image (%d)\n", m);
+              g_debug ("redrawing image (%d)\n", m);
               resize_image_to_button (data, m);
             }
         }

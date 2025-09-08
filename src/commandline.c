@@ -280,12 +280,12 @@ parse_options (CommandLine *commandline, gint argc, char *argv[])
 void
 print_command_line (CommandLine *commandline)
 {
-  g_printf ("Coverage: %s\n",
+  g_debug ("Coverage: %s\n",
             (commandline->mode == DRAW_ON_MONITOR ? "Monitor" : "Area"));
-  g_printf ("Tools Monitor: %d\n", commandline->tools_monitor);
-  g_printf ("Workspace Monitor: %d\n", commandline->workspace_monitor);
-  g_printf ("Rectangle: %d %d %d %d\n", commandline->clipRect->x,
+  g_debug ("Tools Monitor: %d\n", commandline->tools_monitor);
+  g_debug ("Workspace Monitor: %d\n", commandline->workspace_monitor);
+  g_debug ("Rectangle: %d %d %d %d\n", commandline->clipRect->x,
             commandline->clipRect->y, commandline->clipRect->width,
             commandline->clipRect->height);
-  g_printf ("Is Opaque: %d\n", commandline->is_opaque);
+  g_debug ("Is Opaque: %d\n", commandline->is_opaque);
 }

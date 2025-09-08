@@ -70,7 +70,7 @@ scale_image (gchar *image, gint new_width, gint new_height)
 void
 load_file_onto_context (gchar *image_filename, cairo_t *cr)
 {
-  g_printf ("attempting to load file\n");
+  g_debug ("attempting to load file\n");
   if (cr)
     {
       gint new_height = 0;
@@ -88,7 +88,7 @@ load_file_onto_context (gchar *image_filename, cairo_t *cr)
     }
   else
     {
-      g_printf ("no background_window cairo context found\n");
+      g_printerr ("no background_window cairo context found\n");
     }
 }
 
@@ -96,12 +96,11 @@ load_file_onto_context (gchar *image_filename, cairo_t *cr)
 void
 load_color_onto_context (gchar *hex_color, cairo_t *cr)
 {
-  g_printf ("%s\n", hex_color);
+  g_debug ("Load color %s onto context\n", hex_color);
   assert (hex_color);
   assert (cr);
   assert (strlen (hex_color) == 8);
 
-  g_printf ("load_color\n");
   gint r = 0;
   gint g = 0;
   gint b = 0;

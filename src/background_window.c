@@ -36,7 +36,7 @@ BackgroundData *background_data;
 BackgroundData *
 create_background_data ()
 {
-  g_printf ("Creating background data object\n");
+  g_debug ("Creating background data object\n");
   BackgroundData *background_data = g_malloc ((gsize) sizeof (BackgroundData));
   background_data->color          = (gchar *) NULL;
   background_data->image          = (gchar *) NULL;
@@ -76,7 +76,7 @@ destroy_background_data ()
 void
 clear_background_context ()
 {
-  g_printf ("clear background window, destroying cairo context\n");
+  g_debug ("clear background window, destroying cairo context\n");
   background_data->type = 0;
 
   clear_cairo_context (background_data->cr);
@@ -88,7 +88,7 @@ clear_background_context ()
 void
 update_background_image (gchar *name)
 {
-  g_printf ("Updating background image: %s\n", name);
+  g_debug ("Updating background image: %s\n", name);
   background_data->type  = 2;
   background_data->image = name;
   load_file_onto_context (background_data->image, background_data->cr);
@@ -100,7 +100,7 @@ update_background_image (gchar *name)
 void
 update_background_color (gchar *rgba)
 {
-  g_printf ("Updating background color\n");
+  g_debug ("Updating background color\n");
   background_data->type  = 1;
   background_data->color = g_strdup_printf ("%s", rgba);
   load_color_onto_context (background_data->color, background_data->cr);

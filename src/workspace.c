@@ -28,7 +28,7 @@
 Workspace *
 create_workspace ()
 {
-  g_printf ("Creating workspace\n");
+  g_debug ("Creating workspace\n");
   Workspace *workspace = g_malloc ((gsize) sizeof (Workspace));
   workspace->monitors  = NULL;
   set_defaults_for_workspace (workspace);
@@ -38,7 +38,7 @@ create_workspace ()
 void
 set_defaults_for_workspace (Workspace *workspace)
 {
-  g_printf ("Setting workspace defaults\n");
+  g_debug ("Setting workspace defaults\n");
   // gchar *workspace_dir = (gchar *) NULL;
   if (workspace->monitors == NULL)
     {
@@ -60,18 +60,18 @@ set_defaults_for_workspace (Workspace *workspace)
 void
 print_workspace (Workspace *workspace)
 {
-  g_printf ("Project Name: %s\n", workspace->project_name);
-  g_printf ("Project Directory: %s\n", workspace->project_dir);
-  g_printf ("Workspace Directory: %s\n", workspace->workspace_dir);
-  g_printf ("iwb filename: %s\n", workspace->iwb_filename);
-  g_printf ("Date: %s\n", workspace->date);
+  g_debug ("Project Name: %s\n", workspace->project_name);
+  g_debug ("Project Directory: %s\n", workspace->project_dir);
+  g_debug ("Workspace Directory: %s\n", workspace->workspace_dir);
+  g_debug ("iwb filename: %s\n", workspace->iwb_filename);
+  g_debug ("Date: %s\n", workspace->date);
   print_monitor_list (workspace->monitors);
 }
 
 void
 destroy_workspace (Workspace *workspace)
 {
-  g_printf ("Destroying workspace\n");
+  g_debug ("Destroying workspace\n");
   if (workspace->project_dir != NULL)
     {
       remove_dir_if_empty (workspace->project_dir);
@@ -91,7 +91,7 @@ gchar *workspace_dir
 static void
 create_workspace_shortcut (Workspace *workspace)
 {
-  g_printf ("Creating workspace shortcut\n");
+  g_debug ("Creating workspace shortcut\n");
   gchar *desktop_entry_filename = g_strdup_printf (
       "%s%s%s_workspace", get_desktop_dir (), G_DIR_SEPARATOR_S, PACKAGE_NAME);
 
@@ -112,7 +112,7 @@ gchar  *project_name
 static void
 create_default_project_dir (Workspace *workspace)
 {
-  g_printf ("Creating project directory\n");
+  g_debug ("Creating project directory\n");
   if (workspace->project_dir != NULL)
     {
       g_free (workspace->project_dir);
@@ -135,7 +135,7 @@ gchar *project_name)
 void
 configure_workspace (Workspace *workspace)
 {
-  g_printf ("Configuring workspace\n");
+  g_debug ("Configuring workspace\n");
   if (workspace->workspace_dir != NULL)
     {
       g_free (workspace->workspace_dir);
@@ -168,7 +168,7 @@ change_workspace_to (Workspace *workspace, gchar *filename)
 
   if (! file_exists (filename))
     {
-      printf ("No such file %s\n", filename);
+      g_error ("No such file %s\n", filename);
       exit (EXIT_FAILURE);
     }
 

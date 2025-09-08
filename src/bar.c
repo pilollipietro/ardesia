@@ -210,11 +210,11 @@ create_bar_window (CommandLine *commandline, GdkRectangle *rect, GtkWidget *pare
     }
 
   /* Load the bar_gtk_builder file with the definition of the ardesia bar gui. */
-  g_printf ("File: %s\n", file);
+  g_debug ("Bar ui file: %s\n", file);
   gtk_builder_add_from_file (bar_gtk_builder, file, &error);
   if (error)
     {
-      g_warning ("Failed to load builder file: %s", error->message);
+      g_printerr ("Failed to load builder file: %s", error->message);
       g_error_free (error);
       g_object_unref (bar_gtk_builder);
       bar_gtk_builder = NULL;
@@ -419,7 +419,7 @@ take_pen_tool ()
 void
 release_lock (BarData *bar_data)
 {
-  g_printf ("releasing lock (grab: %d)\n", bar_data->grab);
+  g_debug ("releasing lock (grab: %d)\n", bar_data->grab);
   if (bar_data->grab)
     {
       /* Lock enabled. */
@@ -483,8 +483,6 @@ set_color (BarData *bar_data, gchar *selected_color)
   take_pen_tool ();
   lock (bar_data);
   bar_data->color = g_strdup_printf ("%s", selected_color);
-  // assert( strlen(selected_color) >= 6  );
-  // strncpy (bar_data->color, selected_color, 6);
   annotate_set_color (bar_data->color);
 }
 
@@ -530,7 +528,7 @@ start_tool (BarData *bar_data)
         }
       else
         {
-          g_print ("DEBUG: start_tool (non-text tool selected)\n");
+          g_debug ("start_tool (non-text tool selected)\n");
           // this call is required as the leave event for the bar occurs
           // when we enter the toolbar object
           stop_text_widget ();
@@ -543,7 +541,7 @@ start_tool (BarData *bar_data)
 gboolean
 end_clapperboad_countdown (gpointer user_data)
 {
-  g_print ("END on_clapperboard_click");
+  g_debug ("END on_clapperboard_click");
   gboolean grab_value = bar_data->grab;
   bar_data->grab      = FALSE;
   annotate_release_grab ();

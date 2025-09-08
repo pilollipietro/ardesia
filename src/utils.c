@@ -332,7 +332,7 @@ take_screenshot_now ()
 void
 grab_screenshot (void (*screenshot_callback) (GdkPixbuf *))
 {
-  g_printf ("grab_snapshot\n");
+  g_debug ("grab screenshot\n");
   // check if tool bar and annotation bar intersect
   if (is_bar_window_over_annotation_window ())
     {
@@ -343,7 +343,6 @@ grab_screenshot (void (*screenshot_callback) (GdkPixbuf *))
       gdk_window_get_root_origin (gtk_widget_get_window (get_bar_widget ()), &x, &y);
       bar_data->screenshot_saved_location_x = x;
       bar_data->screenshot_saved_location_y = y;
-      g_printf ("hiding bar\n");
       int width = gtk_widget_get_allocated_width (get_bar_widget ());
       gdk_window_move (gtk_widget_get_window (get_bar_widget ()), -width - 500, 0);
       gtk_widget_hide (get_bar_widget ());
@@ -432,7 +431,7 @@ drill_window_in_bar_area (GtkWidget *layer, GtkWidget *window)
       // we also want to drill down other windows if they too are visible
       if (annotation_data->background_selection_window != NULL)
         {
-          g_printf ("drilling hole for background selection window\n");
+          g_debug ("drilling hole for background selection window\n");
           gtk_window_get_position (GTK_WINDOW (annotation_data->background_selection_window),
                                    &x, &y);
           gtk_window_get_size (GTK_WINDOW (annotation_data->background_selection_window),
@@ -444,8 +443,8 @@ drill_window_in_bar_area (GtkWidget *layer, GtkWidget *window)
           rB->height = height;
           if (intersect (rA, rB) == TRUE)
             {
-              g_printf ("drilling hole for background selection window - "
-                        "intersect was true\n");
+              g_debug ("drilling hole for background selection window - "
+                       "intersect was true\n");
               cairo_rectangle_int_t widget_rect2 = { x + 1, y + 1, width - 1, height - 1 };
               widget_reg = cairo_region_create_rectangle (&widget_rect2);
               cairo_region_subtract (ann_reg, widget_reg);
@@ -456,7 +455,7 @@ drill_window_in_bar_area (GtkWidget *layer, GtkWidget *window)
         }
       if (annotation_data->font_window != NULL)
         {
-          g_printf ("drilling hole for font window\n");
+          g_debug ("drilling hole for font window\n");
           gtk_window_get_position (GTK_WINDOW (annotation_data->font_window), &x, &y);
           gtk_window_get_size (GTK_WINDOW (annotation_data->font_window), &width, &height);
           rB         = g_new (GdkRectangle, 1);
@@ -466,8 +465,8 @@ drill_window_in_bar_area (GtkWidget *layer, GtkWidget *window)
           rB->height = height;
           if (intersect (rA, rB) == TRUE)
             {
-              g_printf ("drilling hole for background selection window - "
-                        "intersect was true\n");
+              g_debug ("drilling hole for background selection window - "
+                       "intersect was true\n");
               cairo_rectangle_int_t widget_rect3 = { x + 1, y + 1, width - 1, height - 1 };
               widget_reg = cairo_region_create_rectangle (&widget_rect3);
               cairo_region_subtract (ann_reg, widget_reg);
@@ -858,6 +857,6 @@ save_cairo_context (cairo_t *cr, gchar *savedir, gchar *category, int index)
   cairo_surface_write_to_png (saved_surface, filename);
   cairo_surface_destroy (saved_surface);
   cairo_destroy (dest_cr);
-  g_printf ("Saving cairo context image to %s\n", filename);
+  g_debug ("Saving cairo context image to %s\n", filename);
   g_free (filename);
 }

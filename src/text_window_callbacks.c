@@ -69,7 +69,7 @@ on_text_window_expose_event (GtkWidget *widget, cairo_t *cr, gpointer data)
 gboolean
 on_text_window_button_release (GtkWidget *win, GdkEventButton *ev, TextData *data)
 {
-  g_printf ("on_text_window_button_release BEGIN\n");
+  g_debug ("on_text_window_button_release BEGIN\n");
   /* only button1 allowed */
   if (ev->button != 1)
     {
@@ -91,10 +91,10 @@ on_text_window_button_release (GtkWidget *win, GdkEventButton *ev, TextData *dat
 
   if ((text_data) && (text_data->pos))
     {
-      g_printf ("on_text_window_button_release MOVE CURSOR\n");
+      g_debug ("on_text_window_button_release MOVE CURSOR\n");
       save_text (); // @TODO is this required?
-      g_printf ("on_text_window_button_release: %f %f %f %f\n", ev->x, ev->y,
-                ev->x_root, ev->y_root);
+      g_debug ("on_text_window_button_release: %f %f %f %f\n", ev->x, ev->y,
+               ev->x_root, ev->y_root);
       text_data->pos->x    = ev->x; // x_root
       text_data->pos->y    = ev->y; // y_root
       text_config->start_x = ev->x;
@@ -113,7 +113,7 @@ on_text_window_button_release (GtkWidget *win, GdkEventButton *ev, TextData *dat
       // text_data->timer = g_timeout_add (1000, blink_cursor, NULL);
       start_blink_cursor ();
     }
-  g_printf ("on_text_window_button_release END\n");
+  g_debug ("on_text_window_button_release END\n");
   return TRUE;
 }
 
@@ -168,7 +168,7 @@ draw_character (cairo_t *cr, CharInfo *char_info)
         }
 
       cairo_save (cr);
-      g_printf ("[DRAW] Drawing character at %f %f %s %s\n", char_info->x,
+      g_debug ("[DRAW] Drawing character at %f %f %s %s\n", char_info->x,
                 char_info->y, char_info->color, char_info->font_family);
 
       cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
@@ -234,18 +234,18 @@ is_return_char (int ch)
 static void
 print_text_properties (CharInfo *char_info)
 {
-  g_printf ("Character: %s\n", char_info->character);
-  g_printf ("Position: %f, %f\n", char_info->x, char_info->y);
-  g_printf ("Bearing: %f, %f\n", char_info->extents.x_bearing,
-            char_info->extents.y_bearing);
-  g_printf ("Advance: %f, %f\n", char_info->extents.x_advance,
-            char_info->extents.y_advance);
-  g_printf ("Pen Width: %d\n", char_info->pen_width);
-  g_printf ("Color: %s\n", char_info->color);
-  g_printf ("Font Family: %s\n", char_info->font_family);
-  g_printf ("Italics: %d\n", char_info->italics);
-  g_printf ("Weight: %d\n", char_info->font_weight);
-  g_printf ("Background Color: %s\n", char_info->background_color);
+  g_debug ("Character: %s\n", char_info->character);
+  g_debug ("Position: %f, %f\n", char_info->x, char_info->y);
+  g_debug ("Bearing: %f, %f\n", char_info->extents.x_bearing,
+           char_info->extents.y_bearing);
+  g_debug ("Advance: %f, %f\n", char_info->extents.x_advance,
+           char_info->extents.y_advance);
+  g_debug ("Pen Width: %d\n", char_info->pen_width);
+  g_debug ("Color: %s\n", char_info->color);
+  g_debug ("Font Family: %s\n", char_info->font_family);
+  g_debug ("Italics: %d\n", char_info->italics);
+  g_debug ("Weight: %d\n", char_info->font_weight);
+  g_debug ("Background Color: %s\n", char_info->background_color);
 }
 
 static void
@@ -403,10 +403,10 @@ G_MODULE_EXPORT gboolean
 on_text_window_key_press_event (GtkWidget *widget, GdkEvent *event, gpointer user_data)
 {
   GdkEventKey *keyEvent = (GdkEventKey *) event;
-  g_printf ("on key press event for text window %d\n", keyEvent->keyval);
+  g_debug ("on key press event for text window %d\n", keyEvent->keyval);
   if (annotation_data->font != NULL)
     {
-      g_printf ("PANGO FONT SELECTED\n");
+      g_debug ("PANGO FONT SELECTED\n");
     }
   if (event->type != GDK_KEY_PRESS)
     {

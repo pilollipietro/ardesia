@@ -302,7 +302,7 @@ load_iwb (gchar *iwbfile)
 
   if (doc == NULL)
     {
-      printf ("Failed to parse %s\n", content_filepath);
+      g_printerr ("Failed to parse %s\n", content_filepath);
       exit (EXIT_FAILURE);
     }
 
@@ -311,7 +311,7 @@ load_iwb (gchar *iwbfile)
   if (context == NULL)
     {
       xmlFreeDoc (doc);
-      printf ("Error: unable to create new XPath context\n");
+      g_printerr ("Unable to create new XPath context\n");
       exit (EXIT_FAILURE);
     }
 

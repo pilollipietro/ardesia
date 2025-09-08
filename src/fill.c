@@ -186,8 +186,8 @@ flood_fill (cairo_t *annotation_cairo_context, cairo_surface_t *surface,
 
   if (filled_colorint == fill_info.orig_color)
     {
-      g_printf ("not filling as underlying pixel is the same colour as current "
-                "pen selection\n");
+      g_debug ("not filling as underlying pixel is the same colour as current "
+               "pen selection\n");
       return;
     }
 

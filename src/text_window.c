@@ -137,7 +137,7 @@ assign_text_cursor_to_window (GtkWidget *window)
   gdouble decoration_height = 4;
   gint    height = text_data->max_font_height + decoration_height * 2;
   gint    width  = TEXT_CURSOR_WIDTH * 3;
-  g_printf ("assign new cursor to window %d %d %s\n", width, height, text_data->color);
+  g_debug ("assign new cursor to window %d %d %s\n", width, height, text_data->color);
   cairo_surface_t *text_surface_t = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
                                                                 width, height);
   cairo_t   *text_pointer_cr    = cairo_create (text_surface_t);
@@ -215,7 +215,7 @@ clear_if_empty ()
     {
       if (text_data->cr != NULL)
         {
-          g_printf ("cleaning text window\n");
+          g_debug ("cleaning text window\n");
           clear_cairo_context (text_data->cr);
         }
     }
@@ -271,10 +271,10 @@ init_text_widget (GtkWidget *widget)
 static void
 create_text_data ()
 {
-  g_print ("create_text_data\n");
+  g_debug ("create_text_data\n");
   if (text_data == NULL)
     {
-      g_print ("createing new text_data and adding defaults\n");
+      g_debug ("createing new text_data and adding defaults\n");
       text_data = g_malloc ((gsize) sizeof (TextData));
 
       // set defaults back
@@ -300,7 +300,7 @@ create_text_data ()
 void
 start_text_widget (GtkWidget *widget, gchar *color, gint thickness)
 {
-  g_printf ("start_text_widget (%s)\n", color);
+  g_debug ("start_text_widget (%s)\n", color);
   create_text_data ();
   text_data->color     = color;
   text_data->pen_width = thickness;
@@ -315,7 +315,7 @@ void
 stop_text_widget ()
 {
   annotation_data->is_text_editor_visible = FALSE;
-  g_printf ("stop_text_widget\n");
+  g_debug ("stop_text_widget\n");
   if (text_data)
     {
       stop_blink_cursor ();

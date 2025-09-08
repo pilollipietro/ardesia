@@ -43,9 +43,9 @@ add_input_mode_device (AnnotateData *data, GdkDevice *device, GdkInputMode mode)
                  gdk_device_get_name (device), mode);
     }
 
-  g_printerr ("Enabled Device in mode %s. Device: %p: \"%s\" (Type: %d)\n",
-              mode == GDK_MODE_SCREEN ? "SCREEN" : "WINDOW", device,
-              gdk_device_get_name (device), gdk_device_get_source (device));
+  g_debug ("Enabled Device in mode %s. Device: %p: \"%s\" (Type: %d)\n",
+           mode == GDK_MODE_SCREEN ? "SCREEN" : "WINDOW", device,
+           gdk_device_get_name (device), gdk_device_get_source (device));
 }
 
 /* Set-up input device list. */
@@ -64,13 +64,13 @@ select_input_device_mode (GdkDevice *device)
       gdk_device_get_n_axes (device) >= 2)
     {
       /* Choose screen mode. */
-      g_printf ("Selecting GDK_MODE_SCREEN (%d)\n", GDK_MODE_SCREEN);
+      g_debug ("Selecting GDK_MODE_SCREEN (%d)\n", GDK_MODE_SCREEN);
       return GDK_MODE_SCREEN;
     }
   else
     {
       /* Choose window mode. */
-      g_printf ("Selecting GDK_MODE_WINDOW (%d)\n", GDK_MODE_WINDOW);
+      g_debug ("Selecting GDK_MODE_WINDOW (%d)\n", GDK_MODE_WINDOW);
       return GDK_MODE_WINDOW;
     }
 }
@@ -92,30 +92,30 @@ int deviceIndex = 0;
 void
 print_device_info (GdkDevice *device)
 {
-  g_printf ("Device %d: Name : %s\n", deviceIndex, gdk_device_get_name (device));
+  g_debug ("Device %d: Name : %s\n", deviceIndex, gdk_device_get_name (device));
   if (gdk_device_get_device_type (device) != GDK_DEVICE_TYPE_MASTER)
     {
-      g_printf ("Device %d: Vendor ID : %s\n", deviceIndex,
-                gdk_device_get_vendor_id (device));
-      g_printf ("Device %d: Product ID : %s\n", deviceIndex,
-                gdk_device_get_product_id (device));
+      g_debug ("Device %d: Vendor ID : %s\n", deviceIndex,
+               gdk_device_get_vendor_id (device));
+      g_debug ("Device %d: Product ID : %s\n", deviceIndex,
+               gdk_device_get_product_id (device));
     }
   if (gdk_device_get_source (device) != GDK_SOURCE_KEYBOARD)
     {
-      g_printf ("Device %d: Number of Axes : %d\n", deviceIndex,
-                gdk_device_get_n_axes (device));
+      g_debug ("Device %d: Number of Axes : %d\n", deviceIndex,
+               gdk_device_get_n_axes (device));
     }
-  g_printf ("Device %d: Source : %d\n", deviceIndex, gdk_device_get_source (device));
+  g_debug ("Device %d: Source : %d\n", deviceIndex, gdk_device_get_source (device));
   switch (gdk_device_get_source (device))
     {
     case 0:
-      g_printf ("Device %d: Source Type : %s\n", deviceIndex, "Mouse");
+      g_debug ("Device %d: Source Type : %s\n", deviceIndex, "Mouse");
       break;
     case 4:
-      g_printf ("Device %d: Source Type : %s\n", deviceIndex, "Keyboard");
+      g_debug ("Device %d: Source Type : %s\n", deviceIndex, "Keyboard");
       break;
     default:
-      g_printf ("Device %d: Source Type : %s\n", deviceIndex, "Unknown");
+      g_debug ("Device %d: Source Type : %s\n", deviceIndex, "Unknown");
       break;
     }
 

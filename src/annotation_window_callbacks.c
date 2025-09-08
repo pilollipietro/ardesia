@@ -42,9 +42,9 @@ on_configure (GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
   AnnotateData  *data  = (AnnotateData *) user_data;
   GdkWindowState state = gdk_window_get_state (gtk_widget_get_window (widget));
 
-  g_printf ("DEBUG: Annotation window get configure event (%d,%d,%d,%d)\n",
-            gtk_widget_get_allocated_width (widget),
-            gtk_widget_get_allocated_height (widget), state, gtk_widget_is_focus (widget));
+  g_debug ("Annotation window get configure event (%d,%d,%d,%d)\n",
+           gtk_widget_get_allocated_width (widget),
+           gtk_widget_get_allocated_height (widget), state, gtk_widget_is_focus (widget));
   if (! data->is_grabbed)
     {
       return FALSE;
@@ -75,7 +75,7 @@ on_keypress (GtkWidget *widget, GdkEvent *event, gpointer user_data)
   GdkEventKey  *ev     = (GdkEventKey *) event;
   gboolean      retval = FALSE;
 
-  g_printf ("DEBUG: Annotation on_keypress event (%d, %d)\n", ev->type, ev->keyval);
+  g_debug ("Annotation on_keypress event (%d, %d)\n", ev->type, ev->keyval);
 
   if (data->is_text_editor_visible == TRUE)
     {
@@ -91,7 +91,7 @@ on_keyrelease (GtkWidget *widget, GdkEvent *event, gpointer user_data)
 {
 
   GdkEventKey *ev = (GdkEventKey *) event;
-  g_printf ("DEBUG: Annotation on_keyrelease event (%d, %d)\n", ev->type, ev->keyval);
+  g_debug ("Annotation on_keyrelease event (%d, %d)\n", ev->type, ev->keyval);
   return FALSE;
 }
 
@@ -108,11 +108,7 @@ on_window_state_event (GtkWidget *widget, GdkEvent *event, gpointer user_data)
 G_MODULE_EXPORT void
 on_screen_changed (GtkWidget *widget, GdkScreen *previous_screen, gpointer user_data)
 {
-  AnnotateData *data = (AnnotateData *) user_data;
-  if (data->debug)
-    {
-      g_printerr ("DEBUG: Annotation window get screen-changed event\n");
-    }
+  g_debug ("Annotation window get screen-changed event\n");
 
   GdkScreen *screen = gtk_widget_get_screen (GTK_WIDGET (widget));
   GdkVisual *visual = gdk_screen_get_rgba_visual (screen);
@@ -165,8 +161,8 @@ cut_out_window_holes (cairo_t *cr)
         {
           cairo_new_sub_path (cr);
           cairo_rectangle (cr, x + 1 - ann_x, y + 1 - ann_y, width - 1, height - 1);
-          g_printf ("making hole for bar - intersect was true\n");
-          g_printf ("%d %d %d %d\n", x - ann_x, y - ann_y, width, height);
+          g_debug ("making hole for bar - intersect was true\n");
+          g_debug ("%d %d %d %d\n", x - ann_x, y - ann_y, width, height);
         }
       g_free (rB);
       rB = NULL;
@@ -186,9 +182,9 @@ cut_out_window_holes (cairo_t *cr)
       rB->height = height;
       if (intersect (rA, rB) == TRUE)
         {
-          g_printf ("making hole for background selection window - intersect "
-                    "was true\n");
-          g_printf ("%d %d %d %d\n", x - ann_x, y - ann_y, width, height);
+          g_debug ("making hole for background selection window - intersect "
+                   "was true\n");
+          g_debug ("%d %d %d %d\n", x - ann_x, y - ann_y, width, height);
           cairo_new_sub_path (cr);
           cairo_rectangle (cr, x - ann_x, y - ann_y, width, height);
         }
@@ -207,9 +203,9 @@ cut_out_window_holes (cairo_t *cr)
       rB->height = height;
       if (intersect (rA, rB) == TRUE)
         {
-          g_printf ("making hole for font selection window - intersect was "
-                    "true\n");
-          g_printf ("%d %d %d %d\n", x - ann_x, y - ann_y, width, height);
+          g_debug ("making hole for font selection window - intersect was "
+                   "true\n");
+          g_debug ("%d %d %d %d\n", x - ann_x, y - ann_y, width, height);
           cairo_new_sub_path (cr);
           cairo_rectangle (cr, x - ann_x, y - ann_y, width, height);
         }
@@ -242,7 +238,7 @@ on_expose (GtkWidget *widget, cairo_t *cr, gpointer user_data)
 {
   AnnotateData *annotation_data = (AnnotateData *) user_data;
 
-  g_print ("DEBUG: Annotation window get draw event (grab: %d)\n", bar_data->grab);
+  g_debug ("Annotation window get draw event (grab: %d)\n", bar_data->grab);
   gboolean use_paint = TRUE;
   clear_cairo_context (cr); // blank the current window for repainting
 
@@ -260,12 +256,12 @@ on_expose (GtkWidget *widget, cairo_t *cr, gpointer user_data)
       gtk_window_present (GTK_WINDOW (get_bar_widget ()));
       if (annotation_data->background_selection_window != NULL)
         {
-          g_printf ("presenting background selection window\n");
+          g_debug ("presenting background selection window\n");
           gtk_window_present (GTK_WINDOW (annotation_data->background_selection_window));
         }
       if (annotation_data->font_window != NULL)
         {
-          g_printf ("presenting font window\n");
+          g_debug ("presenting font window\n");
           gtk_window_present (GTK_WINDOW (annotation_data->font_window));
         }
 
@@ -297,7 +293,7 @@ on_expose (GtkWidget *widget, cairo_t *cr, gpointer user_data)
 
   if (annotation_data->is_annotation_visible == TRUE)
     {
-      g_printf ("316: annotation_window_callbacks\n");
+      g_debug ("annotation_window_callbacks\n");
       // draw annotation layer on context cr
       initialize_annotation_cairo_context (annotation_data);
       draw_cairo_context (cr, annotation_data->annotation_cairo_context, use_paint);
@@ -332,7 +328,7 @@ on_expose (GtkWidget *widget, cairo_t *cr, gpointer user_data)
 G_MODULE_EXPORT gboolean
 on_button_press (GtkWidget *win, GdkEventButton *ev, gpointer user_data)
 {
-  g_printf ("annotation_window:: on_button_press\n");
+  g_debug ("annotation_window:: on_button_press\n");
   AnnotateData *data   = (AnnotateData *) user_data;
   gboolean      retval = FALSE;
 
@@ -362,7 +358,7 @@ on_motion_notify (GtkWidget *win, GdkEventMotion *ev, gpointer user_data)
 G_MODULE_EXPORT gboolean
 on_button_release (GtkWidget *win, GdkEventButton *ev, gpointer user_data)
 {
-  g_printf ("annotation_window::on_button_release\n");
+  g_debug ("annotation_window::on_button_release\n");
   AnnotateData *data   = (AnnotateData *) user_data;
   gboolean      retval = FALSE;
   if (data->is_text_editor_visible == TRUE)
@@ -381,12 +377,7 @@ void
 on_device_removed (GdkDeviceManager *device_manager, GdkDevice *device, gpointer user_data)
 {
   AnnotateData *data = (AnnotateData *) user_data;
-
-  if (data->debug)
-    {
-      g_printerr ("DEBUG: device '%s' removed\n", gdk_device_get_name (device));
-    }
-
+  g_debug ("device '%s' removed\n", gdk_device_get_name (device));
   remove_input_device (device, data);
 }
 
@@ -395,11 +386,6 @@ void
 on_device_added (GdkDeviceManager *device_manager, GdkDevice *device, gpointer user_data)
 {
   AnnotateData *data = (AnnotateData *) user_data;
-
-  if (data->debug)
-    {
-      g_printerr ("DEBUG: device '%s' added\n", gdk_device_get_name (device));
-    }
-
+  g_debug ("device '%s' added\n", gdk_device_get_name (device));
   add_input_device (device, data);
 }

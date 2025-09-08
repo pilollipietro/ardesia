@@ -27,7 +27,7 @@ static gboolean on_stop_recording_called = FALSE;
 G_MODULE_EXPORT void
 on_stop_recording_click (GtkButton *toolbutton, gpointer func_data)
 {
-  g_print ("on_stop_recording_click\n");
+  g_debug ("on_stop_recording_click\n");
   on_stop_recording_called = TRUE;
   gboolean grab_value      = bar_data->grab;
   annotate_release_grab ();
@@ -53,7 +53,7 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
 {
   if (on_stop_recording_called)
     return;
-  g_print ("on_recording_click\n");
+  g_debug ("on_recording_click\n");
   gboolean grab_value = bar_data->grab;
 
   /* Release grab. */
@@ -168,7 +168,6 @@ move_cursor_window (gpointer data)
     }
   else
     {
-      // g_printf("Moving cursor");
       gint        x, y;
       GdkScreen  *screen  = gdk_screen_get_default ();
       GdkWindow  *desktop = gdk_screen_get_root_window (screen);
@@ -250,7 +249,7 @@ setup_transparency (GtkWidget *win)
 GtkWidget *
 create_cursor_window ()
 {
-  g_printf ("Creating cursor\n");
+  g_debug ("Creating cursor\n");
   gint       size   = 64;
   GtkWidget *window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_window_set_decorated (GTK_WINDOW (window), FALSE); // remove titlebar, resize controls etc
@@ -389,14 +388,13 @@ draw_video_cursor (cairo_t *cr, GtkWidget *widget)
 G_MODULE_EXPORT void
 on_cursor_click (GtkToggleButton *toolbutton, gpointer func_data)
 {
-  g_print ("on_cursor_click\n");
+  g_debug ("on_cursor_click\n");
   // vlc --screen-mouse-pointer does not work on linux so
   // instead what we want to do is show an image just under where
   // the mouse pointer is going to be
   if (annotation_data->is_cursor_visible == TRUE)
     {
       // hide cursor window
-      // g_printf("Hiding cursor window\n");
       annotation_data->is_cursor_visible = FALSE;
       gtk_widget_hide (annotation_data->cursor_window);
       gtk_window_set_keep_above (GTK_WINDOW (annotation_data->cursor_window), FALSE);
@@ -407,13 +405,12 @@ on_cursor_click (GtkToggleButton *toolbutton, gpointer func_data)
       if (annotation_data->cursor_window_gtk_builder == NULL)
         {
           // build cursor window
-          g_printf ("Building cursor window\n");
+          g_debug ("Building cursor window\n");
           annotation_data->cursor_window = create_cursor_window ();
           gtk_widget_input_shape_combine_region (annotation_data->cursor_window, NULL);
           drill_window_in_cursor_area ();
         }
 
-      // g_printf("Showing cursor window\n");
       annotation_data->is_cursor_visible = TRUE;
       gtk_window_present (GTK_WINDOW (annotation_data->cursor_window));
       gtk_widget_show_all (annotation_data->cursor_window);
@@ -430,7 +427,7 @@ on_cursor_click (GtkToggleButton *toolbutton, gpointer func_data)
 G_MODULE_EXPORT void
 on_clapperboard_click (GtkToolButton *toolbutton, gpointer func_data)
 {
-  g_print ("on_clapperboard_click");
+  g_debug ("on_clapperboard_click");
   gboolean grab_value = bar_data->grab;
   bar_data->grab      = FALSE;
   annotate_release_grab ();
@@ -454,7 +451,7 @@ on_clapperboard_click (GtkToolButton *toolbutton, gpointer func_data)
 G_MODULE_EXPORT void
 on_new_click (GtkToolButton *toolbutton, gpointer func_data)
 {
-  g_print ("on_new_click");
+  g_debug ("on_new_click");
 
   // restart video
   stop_recorder ();
@@ -467,7 +464,7 @@ G_MODULE_EXPORT void
 on_recordingstudio_window_destroy_event (GtkWidget *widget, GdkEvent *event, gpointer data)
 {
 
-  g_print ("recording studio window being destroyed\n");
+  g_debug ("recording studio window being destroyed\n");
 }
 
 G_MODULE_EXPORT gboolean

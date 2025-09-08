@@ -79,14 +79,14 @@ show_could_not_write_dialog (GtkWindow *parent_window)
 void
 start_save_image_dialog ()
 {
-  g_printf ("calling start_save_image_dialog\n");
+  g_debug ("calling start_save_image_dialog\n");
   grab_screenshot (start_save_image_dialog_callback);
 }
 
 void
 start_save_image_dialog_callback (GdkPixbuf *buffer)
 {
-  g_printf ("calling start_save_image_dialog_callback\n");
+  g_debug ("calling start_save_image_dialog_callback\n");
   GtkWindow *parent              = GTK_WINDOW (get_bar_widget ());
   GtkWidget *preview             = NULL;
   gint       preview_width       = 128;

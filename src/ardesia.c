@@ -92,7 +92,7 @@ get_drawable_area ()
           GdkWindow *rootwindow = gdk_screen_get_root_window (gdk_screen_get_default ());
           int maxwidth  = gdk_window_get_width (rootwindow);
           int maxheight = gdk_window_get_height (rootwindow);
-          g_printf ("Maximum Size: %d %d\n", maxwidth, maxheight);
+          g_debug ("Maximum Size: %d %d\n", maxwidth, maxheight);
           if (commandline->clipRect->x < 0)
             {
               commandline->clipRect->x = 0;
@@ -225,7 +225,11 @@ main (int argc, char *argv[])
   // handle command line
   commandline = create_command_line ();
   parse_options (commandline, argc, argv);
-  print_command_line (commandline);
+  if (commandline->debug) 
+    {
+      g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
+      print_command_line (commandline);
+    }
 
   /* Initialize new text configuration options. */
   text_config             = create_text_config ();

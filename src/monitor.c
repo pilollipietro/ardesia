@@ -38,7 +38,7 @@ create_monitor_list ()
   // lets get some information about the displays first
   GdkDisplay *display      = gdk_display_get_default ();
   int         monitorCount = gdk_display_get_n_monitors (display);
-  g_printf ("Number of monitors: %d\n", monitorCount);
+  g_debug ("Number of monitors: %d\n", monitorCount);
 
   GList *monitors = NULL;
   for (int ii = 0; ii < monitorCount; ii++)
@@ -48,14 +48,14 @@ create_monitor_list ()
       gboolean      primary = gdk_monitor_is_primary (monitor);
       if (primary)
         {
-          g_printf ("Monitor %d is primary\n", ii);
+          g_debug ("Monitor %d is primary\n", ii);
         }
       else
         {
-          g_printf ("Monitor %d is not primary\n", ii);
+          g_debug ("Monitor %d is not primary\n", ii);
         }
       gdk_monitor_get_geometry (monitor, rect);
-      g_printf ("Monitor %d Geometry: %d %d %d %d\n", ii, rect->x, rect->y,
+      g_debug ("Monitor %d Geometry: %d %d %d %d\n", ii, rect->x, rect->y,
                 rect->width, rect->height);
 
       Monitor *m       = g_new (Monitor, 1);
@@ -75,7 +75,7 @@ print_monitor_list (GList *monitors)
 {
   if (monitors != NULL)
     {
-      g_printf ("Monitor objects created:\n");
+      g_debug ("Monitor objects created:\n");
       g_list_foreach (monitors, (GFunc) print_monitor_struct, NULL);
     }
 }
@@ -115,7 +115,7 @@ void
 print_monitor_struct (gpointer data, gpointer userdata)
 {
   Monitor *m = (Monitor *) data;
-  g_printf ("Monitor %d: %d %d %d %d\n", m->monitor_index, m->rect->x,
+  g_debug ("Monitor %d: %d %d %d %d\n", m->monitor_index, m->rect->x,
             m->rect->y, m->rect->width, m->rect->height);
 }
 
