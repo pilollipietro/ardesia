@@ -21,9 +21,9 @@
  *
  */
 
-#include <annotation_window.h>
-#include <bezier_spline.h>
-#include <utils.h>
+#include "annotation_window.h"
+#include "bezier_spline.h"
+#include "utils.h"
 
 /* Spline the lines with a bezier curves. */
 GSList *

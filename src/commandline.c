@@ -21,10 +21,10 @@
  *
  */
 
+#include "ardesia.h"
 #include "commandline.h"
 #include "monitor.h"
-#include <ardesia.h>
-#include <config.h>
+#include "config.h"
 #include <glib.h>
 #include <glib/gprintf.h>
 #include <stdlib.h>

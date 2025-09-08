@@ -21,20 +21,21 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <gdk/gdk.h>
 #include <glib.h>
-#include <utils.h>
-#ifdef _WIN32
-#include <windows_utils.h>
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
 #endif
-#include <annotation_window.h>
-#include <ardesia.h>
-#include <bar.h>
-#include <workspace.h>
+
+#include "utils.h"
+#ifdef _WIN32
+#include "windows_utils.h"
+#endif
+#include "annotation_window.h"
+#include "ardesia.h"
+#include "bar.h"
+#include "workspace.h"
 
 // /* The name of the current project. */
 // static gchar *project_name = (gchar *) NULL;

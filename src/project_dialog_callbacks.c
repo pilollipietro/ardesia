@@ -21,9 +21,9 @@
  *
  */
 
-#include <keyboard.h>
-#include <project_dialog.h>
-#include <utils.h>
+#include "keyboard.h"
+#include "project_dialog.h"
+#include "utils.h"
 
 /* This shot when the text entry is in focus. */
 G_MODULE_EXPORT gboolean

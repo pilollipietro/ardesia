@@ -21,9 +21,9 @@
  *
  */
 
-#include <monitor.h>
-#include <utils.h>
-#include <workspace.h>
+#include "monitor.h"
+#include "utils.h"
+#include "workspace.h"
 
 Workspace *
 create_workspace ()

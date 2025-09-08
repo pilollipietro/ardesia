@@ -22,14 +22,14 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include "config.h"
 #endif
 
-#include <annotation_window.h>
-#include <background_window.h>
-#include <keyboard.h>
-#include <preference_dialog.h>
-#include <utils.h>
+#include "annotation_window.h"
+#include "background_window.h"
+#include "keyboard.h"
+#include "preference_dialog.h"
+#include "utils.h"
 
 /* Show the permission denied to access to file dialog. */
 void

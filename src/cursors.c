@@ -21,9 +21,10 @@
  *
  */
 
-#include <cursors.h>
 #include <librsvg/rsvg.h>
-#include <utils.h>
+
+#include "cursors.h"
+#include "utils.h"
 
 /* The image surface that will contain the pen icon. */
 static cairo_surface_t *pen_image_surface = (cairo_surface_t *) NULL;

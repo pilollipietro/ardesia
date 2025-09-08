@@ -22,11 +22,11 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include "config.h"
 #endif
 
-#include <info_dialog.h>
-#include <utils.h>
+#include "info_dialog.h"
+#include "utils.h"
 
 /*
  * Start the info dialog.

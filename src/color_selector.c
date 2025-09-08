@@ -22,12 +22,12 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include "config.h"
 #endif
 
-#include <color_selector.h>
-#include <keyboard.h>
-#include <utils.h>
+#include "color_selector.h"
+#include "keyboard.h"
+#include "utils.h"
 
 /* old picked color in RGBA format */
 static gchar *picked_color = NULL;

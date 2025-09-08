@@ -22,11 +22,11 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include "config.h"
 #endif
 
-#include <share_confirmation_dialog.h>
-#include <utils.h>
+#include "share_confirmation_dialog.h"
+#include "utils.h"
 
 /*
  * Start the dialog that ask to the user

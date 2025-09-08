@@ -21,7 +21,7 @@
  *
  */
 
-#include <input.h>
+#include "input.h"
 
 /* Add input device. */
 static void

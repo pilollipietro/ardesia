@@ -21,13 +21,14 @@
  *
  */
 
+#include <stdlib.h>
+
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include "config.h"
 #endif
 
-#include <keyboard.h>
-#include <stdlib.h>
-#include <utils.h>
+#include "keyboard.h"
+#include "utils.h"
 
 /* Start the virtual keyboard. */
 void

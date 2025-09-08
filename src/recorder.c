@@ -21,17 +21,18 @@
  *
  */
 
+#include <unistd.h>
+
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include "config.h"
 #endif
 
-#include <annotation_window.h>
-#include <ardesia.h>
-#include <keyboard.h>
-#include <recorder.h>
-#include <saver.h>
-#include <unistd.h>
-#include <utils.h>
+#include "annotation_window.h"
+#include "ardesia.h"
+#include "keyboard.h"
+#include "recorder.h"
+#include "saver.h"
+#include "utils.h"
 
 /* pid of the recording process. */
 static GPid recorder_pid;

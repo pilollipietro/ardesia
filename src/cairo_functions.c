@@ -21,8 +21,8 @@
  *
  */
 
-#include <cairo_functions.h>
-#include <utils.h>
+#include "cairo_functions.h"
+#include "utils.h"
 
 /**
  * Paint from one context to another

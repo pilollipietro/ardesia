@@ -21,11 +21,11 @@
  *
  */
 
-#include <annotation_window.h>
-#include <background_window.h>
-#include <bar_callbacks.h>
-#include <preference_dialog.h>
-#include <utils.h>
+#include "annotation_window.h"
+#include "background_window.h"
+#include "bar_callbacks.h"
+#include "preference_dialog.h"
+#include "utils.h"
 
 /* Update the preview image. */
 G_MODULE_EXPORT void

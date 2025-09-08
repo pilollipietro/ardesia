@@ -25,9 +25,9 @@
 #include "annotation_window.h"
 #include "background_window.h"
 #include "text_window.h"
-#include <bar.h>
-#include <commandline.h>
-#include <utils.h>
+#include "bar.h"
+#include "commandline.h"
+#include "utils.h"
 
 /* Timer used to up-rise the window. */
 static gint timer = -1;

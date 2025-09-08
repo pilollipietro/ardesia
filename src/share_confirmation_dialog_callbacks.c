@@ -21,8 +21,8 @@
  *
  */
 
-#include <share_confirmation_dialog.h>
-#include <utils.h>
+#include "share_confirmation_dialog.h"
+#include "utils.h"
 
 /* Shot when the ok button in share dialog is pushed. */
 G_MODULE_EXPORT void

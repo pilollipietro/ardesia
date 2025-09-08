@@ -25,11 +25,11 @@
 #include <config.h>
 #endif
 
-#include <annotation_window.h>
-#include <background_window.h>
-#include <background_window_callbacks.h>
-#include <cairo_functions.h>
-#include <utils.h>
+#include "annotation_window.h"
+#include "background_window.h"
+#include "background_window_callbacks.h"
+#include "cairo_functions.h"
+#include "utils.h"
 
 BackgroundData *background_data;
 

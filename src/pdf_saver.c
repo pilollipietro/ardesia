@@ -22,15 +22,15 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include "config.h"
 #endif
 
-#include <annotation_window.h>
-#include <bar.h>
-#include <keyboard.h>
-#include <pdf_saver.h>
-#include <saver.h>
-#include <utils.h>
+#include "annotation_window.h"
+#include "bar.h"
+#include "keyboard.h"
+#include "pdf_saver.h"
+#include "saver.h"
+#include "utils.h"
 
 /* internal structure allocated once. */
 static PdfData *pdf_data;

@@ -22,11 +22,11 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include "config.h"
 #endif
 
-#include <project_dialog.h>
-#include <utils.h>
+#include "project_dialog.h"
+#include "utils.h"
 
 /*
  * Start the dialog that ask to the user

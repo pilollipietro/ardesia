@@ -22,11 +22,11 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include "config.h"
 #endif
 
-#include <fill.h>
-#include <utils.h>
+#include "fill.h"
+#include "utils.h"
 
 /*
  * Get color of the surface at point with coordinates (x,y).

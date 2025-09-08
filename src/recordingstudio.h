@@ -20,13 +20,15 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 #ifndef RECORDINGSTUDIO_H
 #define RECORDINGSTUDIO_H
 
-#include <config.h>
 #include <gdk/gdk.h>
 #include <glib.h>
 #include <gtk/gtk.h>
+
+#include "config.h"
 
 /* Structure that contains the info passed to the callbacks. */
 typedef struct

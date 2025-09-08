@@ -24,18 +24,17 @@
 #ifndef __ARDESIA_H
 #define __ARDESIA_H
 
-#include <config.h>
 #include <glib.h>
 #include <glib/gprintf.h>
 #include <locale.h>
-
 #include <getopt.h>
-
-#include <commandline.h>
 #include <gdk/gdk.h>
 #include <gtk/gtk.h>
-#include <monitor.h>
-#include <workspace.h>
+
+#include "commandline.h"
+#include "config.h"
+#include "monitor.h"
+#include "workspace.h"
 
 /* The position used to localize the bar. */
 #define EAST  1

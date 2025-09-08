@@ -25,15 +25,15 @@
  * Functions for handling various (GTK+)-Events.
  */
 
-#include <annotation_window.h>
-#include <annotation_window_callbacks.h>
-#include <background_window.h>
-#include <bar.h>
-#include <cairo_functions.h>
-#include <input.h>
-#include <text_window.h>
-#include <text_window_callbacks.h>
-#include <utils.h>
+#include "annotation_window.h"
+#include "annotation_window_callbacks.h"
+#include "background_window.h"
+#include "bar.h"
+#include "cairo_functions.h"
+#include "input.h"
+#include "text_window.h"
+#include "text_window_callbacks.h"
+#include "utils.h"
 
 /* On configure event. */
 G_MODULE_EXPORT gboolean

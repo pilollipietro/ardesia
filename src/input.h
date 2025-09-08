@@ -21,7 +21,6 @@
  *
  */
 
-#include <annotation_window.h>
 #include <glib.h>
 
 #include <gdk/gdkx.h>
@@ -40,6 +39,8 @@
 #include <cairo-xlib.h>
 #endif
 #endif
+
+#include "annotation_window.h"
 
 /* Un-grab pointer. */
 void ungrab_pointer (GdkDisplay *display);

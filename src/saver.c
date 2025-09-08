@@ -22,12 +22,12 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include "config.h"
 #endif
 
-#include <keyboard.h>
-#include <saver.h>
-#include <utils.h>
+#include "keyboard.h"
+#include "saver.h"
+#include "utils.h"
 
 /* Confirm to override file dialog. */
 gboolean

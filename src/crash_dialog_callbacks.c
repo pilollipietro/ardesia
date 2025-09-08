@@ -21,8 +21,8 @@
  *
  */
 
-#include <crash_dialog.h>
-#include <utils.h>
+#include "crash_dialog.h"
+#include "utils.h"
 
 /* Shot when the ok button in crash dialog is pushed. */
 G_MODULE_EXPORT void

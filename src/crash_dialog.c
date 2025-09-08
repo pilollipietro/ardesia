@@ -22,11 +22,11 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include "config.h"
 #endif
 
-#include <crash_dialog.h>
-#include <utils.h>
+#include "crash_dialog.h"
+#include "utils.h"
 
 /* Create a new crash data variable. */
 static CrashData *

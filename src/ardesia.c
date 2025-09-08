@@ -21,18 +21,18 @@
  *
  */
 
-#include <annotation_window.h>
-#include <ardesia.h>
-#include <background_window.h>
-#include <bar.h>
-#include <bar_callbacks.h>
-#include <commandline.h>
-#include <project_dialog.h>
-#include <text_window.h>
-#include <utils.h>
+#include "annotation_window.h"
+#include "ardesia.h"
+#include "background_window.h"
+#include "bar.h"
+#include "bar_callbacks.h"
+#include "commandline.h"
+#include "project_dialog.h"
+#include "text_window.h"
+#include "utils.h"
 
 /*ch* External defined structure used to configure text input. (see text_window.c) */
-#include <text_window.h>
+#include "text_window.h"
 extern TextConfig *text_config;
 GtkWidget         *ardesia_bar_window;
 GtkWidget         *background_window;

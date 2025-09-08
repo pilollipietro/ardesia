@@ -1,6 +1,7 @@
+#include <gdk/gdk.h>
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include "config.h"
 #endif
 
 #include "annotation_window.h"
@@ -11,7 +12,6 @@
 #include "recorder.h"
 #include "recordingstudio.h"
 #include "utils.h"
-#include <gdk/gdk.h>
 
 // As the toggle button fires the event when we reset the button during
 // on_stop_recording_click, we set this global to be picked up by

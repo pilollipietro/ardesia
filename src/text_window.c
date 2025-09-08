@@ -24,19 +24,19 @@
 /* Widget for text insertion */
 
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include "config.h"
 #endif
 
-#include <annotation_window.h>
-#include <bar_callbacks.h>
-#include <cairo_functions.h>
-#include <keyboard.h>
-#include <text_window.h>
-#include <text_window_callbacks.h>
-#include <utils.h>
+#include "annotation_window.h"
+#include "bar_callbacks.h"
+#include "cairo_functions.h"
+#include "keyboard.h"
+#include "text_window.h"
+#include "text_window_callbacks.h"
+#include "utils.h"
 
 #ifdef _WIN32
-#include <windows_utils.h>
+#include "windows_utils.h"
 #endif
 
 /* The structure used to store the status. */

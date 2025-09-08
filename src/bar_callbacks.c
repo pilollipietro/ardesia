@@ -21,26 +21,27 @@
  *
  */
 
+#include <gdk/gdk.h>
+
 #ifdef HAVE_CONFIG_H
-#include <config.h>
+#include "config.h"
 #endif
 
-#include <annotation_window.h>
-#include <background_window.h>
-#include <bar.h>
-#include <bar_callbacks.h>
-#include <cairo_functions.h>
-#include <color_selector.h>
-#include <gdk/gdk.h>
-#include <info_dialog.h>
-#include <iwb_saver.h>
-#include <pdf_saver.h>
-#include <preference_dialog.h>
-#include <recorder.h>
-#include <saver.h>
-#include <share_confirmation_dialog.h>
-#include <text_window.h>
-#include <utils.h>
+#include "annotation_window.h"
+#include "background_window.h"
+#include "bar.h"
+#include "bar_callbacks.h"
+#include "cairo_functions.h"
+#include "color_selector.h"
+#include "info_dialog.h"
+#include "iwb_saver.h"
+#include "pdf_saver.h"
+#include "preference_dialog.h"
+#include "recorder.h"
+#include "saver.h"
+#include "share_confirmation_dialog.h"
+#include "text_window.h"
+#include "utils.h"
 
 /* Windows state event: this occurs when the windows state changes. */
 G_MODULE_EXPORT gboolean

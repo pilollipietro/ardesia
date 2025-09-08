@@ -21,12 +21,12 @@
  *
  */
 
-#include <annotation_window.h>
-#include <bar_callbacks.h>
-#include <keyboard.h>
-#include <text_window.h>
-#include <text_window_callbacks.h>
-#include <utils.h>
+#include "annotation_window.h"
+#include "bar_callbacks.h"
+#include "keyboard.h"
+#include "text_window.h"
+#include "text_window_callbacks.h"
+#include "utils.h"
 
 static void print_text_properties (CharInfo *char_info);
 

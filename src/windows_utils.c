@@ -24,7 +24,7 @@
 /* All this file will be build only on windows */
 #ifdef _WIN32
 
-#include <windows_utils.h>
+#include "windows_utils.h"
 
 BOOL (WINAPI *setLayeredWindowAttributesProc)
 (HWND hwnd, COLORREF cr_key, BYTE b_alpha, DWORD dw_flags) = NULL;

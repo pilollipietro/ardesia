@@ -21,23 +21,23 @@
 #include <config.h>
 #endif
 
-#include <annotation_window.h>
-#include <annotation_window_callbacks.h>
-#include <background_window.h>
-#include <bar.h>
-#include <bar_callbacks.h>
-#include <bezier_spline.h>
-#include <broken.h>
-#include <cairo_functions.h>
-#include <cursors.h>
-#include <fill.h>
-#include <input.h>
-#include <iwb_loader.h>
-#include <text_window.h>
-#include <utils.h>
+#include "annotation_window.h"
+#include "annotation_window_callbacks.h"
+#include "background_window.h"
+#include "bar.h"
+#include "bar_callbacks.h"
+#include "bezier_spline.h"
+#include "broken.h"
+#include "cairo_functions.h"
+#include "cursors.h"
+#include "fill.h"
+#include "input.h"
+#include "iwb_loader.h"
+#include "text_window.h"
+#include "utils.h"
 
 #ifdef _WIN32
-#include <windows_utils.h>
+#include "windows_utils.h"
 #endif
 
 /* Internal data for the annotation window. */

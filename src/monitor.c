@@ -21,7 +21,7 @@
  *
  */
 
-#include <monitor.h>
+#include "monitor.h"
 
 const guint DRAW_ON_MONITOR     = 0;
 const guint DRAW_ON_CLIPAREA    = 1;

@@ -17,15 +17,16 @@
  *
  */
 
-#include <annotation_window.h>
-#include <background_window.h>
 #include <gsf/gsf-infile-zip.h>
 #include <gsf/gsf-infile.h>
 #include <gsf/gsf-input-stdio.h>
 #include <gsf/gsf-output-stdio.h>
 #include <gsf/gsf-utils.h>
-#include <iwb_loader.h>
-#include <utils.h>
+
+#include "annotation_window.h"
+#include "background_window.h"
+#include "iwb_loader.h"
+#include "utils.h"
 
 /* Add the background image reference. */
 static void

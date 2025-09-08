@@ -21,15 +21,16 @@
  *
  */
 
-#include <annotation_window.h>
-#include <background_window.h>
 #include <gsf/gsf-input-stdio.h>
 #include <gsf/gsf-outfile-zip.h>
 #include <gsf/gsf-outfile.h>
 #include <gsf/gsf-output-stdio.h>
 #include <gsf/gsf-utils.h>
-#include <iwb_saver.h>
-#include <utils.h>
+
+#include "annotation_window.h"
+#include "background_window.h"
+#include "iwb_saver.h"
+#include "utils.h"
 
 /* The file pointer to the iwb file. */
 static FILE *fp = NULL;

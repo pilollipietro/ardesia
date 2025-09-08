@@ -21,10 +21,10 @@
  *
  */
 
-#include <annotation_window.h>
-#include <bar_callbacks.h>
-#include <broken.h>
-#include <utils.h>
+#include "annotation_window.h"
+#include "bar_callbacks.h"
+#include "broken.h"
+#include "utils.h"
 
 /* Number x is roundable to y. */
 static gboolean

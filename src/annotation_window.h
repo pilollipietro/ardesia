@@ -28,8 +28,6 @@
 
 #include <gtk/gtk.h>
 
-#include "recordingstudio.h"
-#include <ardesia.h>
 #include <cairo.h>
 
 #ifdef _WIN32
@@ -43,6 +41,9 @@
 #include <cairo-xlib.h>
 #endif
 #endif
+
+#include "recordingstudio.h"
+#include "ardesia.h"
 
 #ifdef _WIN32
 #define ANNOTATION_UI_FOLDER "..\\share\\ardesia\\ui"
