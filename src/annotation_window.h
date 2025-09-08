@@ -226,9 +226,6 @@ typedef struct
   /* Is the cursor hidden. */
   gboolean is_cursor_hidden;
 
-  /* Is the debug enabled. */
-  gboolean debug;
-
   /* Pen color. */
   gchar *color;
 
@@ -244,12 +241,12 @@ extern AnnotateData *annotation_data;
 /* Initialize the annotation cairo context */
 void initialize_annotation_cairo_context (AnnotateData *data);
 
-GtkWidget *create_annotation_window ();
+GtkWidget *create_annotation_window (Workspace *workspace, CommandLine *commandline);
 
 void position_annotation_window ();
 
 /* Initialize the annotation window. */
-void annotate_init (gchar *iwb_filename, gboolean debug, Monitor *monitor);
+void annotate_init (Monitor *monitor);
 
 void annotation_window_change (int width, int height);
 

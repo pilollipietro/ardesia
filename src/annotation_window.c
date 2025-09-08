@@ -381,13 +381,17 @@ roundify (AnnotateDeviceData *devdata, gboolean closed_path)
 
 /* Create the annotation window. */
 GtkWidget *
-create_annotation_window ()
+create_annotation_window (Workspace *workspace, CommandLine *commandline)
 {
   GtkWidget *widget = (GtkWidget *) NULL;
   GError    *error  = (GError *) NULL;
 
+  annotate_init(NULL);
+
   /* Initialize the main window. */
   annotation_data->annotation_window_gtk_builder = gtk_builder_new ();
+  annotation_data->is_opaque = commandline->is_opaque;
+  
 
   /* Load the gtk builder file created with glade. */
   gtk_builder_add_from_file (annotation_data->annotation_window_gtk_builder,
@@ -410,6 +414,10 @@ create_annotation_window ()
       return NULL;
     }
 
+  if (workspace->iwb_filename)
+    {
+      annotation_data->savepoint_list = load_iwb (workspace->iwb_filename);
+    }
   /* Connect all the callback from gtkbuilder xml file. */
   gtk_builder_connect_signals (annotation_data->annotation_window_gtk_builder,
                                (gpointer) annotation_data);
@@ -706,8 +714,14 @@ initialize_annotation_cairo_context (AnnotateData *data)
 
       if (annotation_data->savepoint_list == NULL)
         {
+          g_debug("It has not savepoint; clear the screen");
           /* Clear the screen and create the first empty savepoint. */
           annotate_clear_screen ();
+        }
+      else
+	{
+          g_debug("It has savepoint; restore surface");
+	  annotate_restore_surface();
         }
 
 #ifndef _WIN32
@@ -1469,7 +1483,6 @@ create_annotation_data ()
 
   annotation_data->is_cursor_hidden = TRUE;
 
-  annotation_data->debug       = FALSE;
   annotation_data->default_pen = annotate_paint_context_new (ANNOTATE_PEN);
   annotation_data->default_eraser = annotate_paint_context_new (ANNOTATE_ERASER);
   annotation_data->default_filler = annotate_paint_context_new (ANNOTATE_FILLER);
@@ -1508,7 +1521,7 @@ create_annotation_data ()
 
 /* Initialize the annotation. */
 void
-annotate_init (gchar *iwb_file, gboolean debug, Monitor *monitor)
+annotate_init (Monitor *monitor)
 {
   cursors_main ();
 
@@ -1516,18 +1529,12 @@ annotate_init (gchar *iwb_file, gboolean debug, Monitor *monitor)
   create_annotation_data ();
 
   /* Initialize the pen context. */
-  annotation_data->debug   = debug;
   annotation_data->monitor = monitor;
 
   setup_input_devices (annotation_data);
   allocate_invisible_cursor (&annotation_data->invisible_cursor);
 
   create_savepoint_dir ();
-
-  if (iwb_file)
-    {
-      annotation_data->savepoint_list = load_iwb (iwb_file);
-    }
 }
 
 gboolean

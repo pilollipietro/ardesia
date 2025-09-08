@@ -169,9 +169,7 @@ enable_localization_support ()
 void
 build_annotation_window ()
 {
-  annotate_init (workspace->iwb_filename, commandline->debug, NULL);
-  annotation_data->is_opaque = commandline->is_opaque;
-  annotation_window          = create_annotation_window ();
+  annotation_window          = create_annotation_window (workspace, commandline);
   if (annotation_window == NULL)
     {
       annotate_quit ();

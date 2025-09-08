@@ -97,17 +97,16 @@ void
 load_color_onto_context (gchar *hex_color, cairo_t *cr)
 {
   g_debug ("Load color %s onto context\n", hex_color);
-  assert (hex_color);
-  assert (cr);
-  assert (strlen (hex_color) == 8);
-
-  gint r = 0;
-  gint g = 0;
-  gint b = 0;
-  gint a = 0;
 
   if (cr)
     {
+      assert (hex_color);
+      assert (strlen (hex_color) == 8);
+
+      gint r = 0;
+      gint g = 0;
+      gint b = 0;
+      gint a = 0;
       sscanf (hex_color, "%02X%02X%02X%02X", &r, &g, &b, &a);
       cairo_save (cr);
       cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
