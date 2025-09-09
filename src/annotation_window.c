@@ -1,6 +1,10 @@
 /*
- * Ardesia-- a program for painting on the screen
- * Copyright (C) 2009 Pilolli Pietro <pilolli.pietro@gmail.com>
+ * Ardesia -- a program for painting on the screen
+ * with this program you can play, draw, learn and teach
+ * This program has been written such as a freedom sonet
+ * We believe in the freedom and in the freedom of education
+ *
+ * Copyright (C) 2025 Pilolli Pietro <pilolli.pietro@gmail.com>
  *
  * Ardesia is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -8,7 +12,7 @@
  * (at your option) any later version.
  *
  * Ardesia is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY;without even the implied warranty of
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
  *

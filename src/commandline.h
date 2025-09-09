@@ -4,7 +4,7 @@
  * This program has been written such as a freedom sonet
  * We believe in the freedom and in the freedom of education
  *
- * Copyright (C) 2009 Pilolli Pietro <pilolli.pietro@gmail.com>
+ * Copyright (C) 2025 Pilolli Pietro <pilolli.pietro@gmail.com>
  *
  * Ardesia is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -69,6 +69,6 @@ void add_defaults_to_commandline ();
 /* Parse the command line in the standard getopt way. */
 void parse_options (CommandLine *commandline, gint argc, char *argv[]);
 
-void print_command_line (CommandLine *commandline);
+void debug_commandline (CommandLine *commandline);
 
 #endif

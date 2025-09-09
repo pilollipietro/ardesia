@@ -4,7 +4,7 @@
  * This program has been written such as a freedom sonet
  * We believe in the freedom and in the freedom of education
  *
- * Copyright (C) 2009 Pilolli Pietro <pilolli.pietro@gmail.com>
+ * Copyright (C) 2025 Pilolli Pietro <pilolli.pietro@gmail.com>
  *
  * Ardesia is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -44,7 +44,7 @@ Monitor *copy_monitor_struct (Monitor *m);
 
 void destroy_monitor_struct (gpointer data);
 
-void print_monitor_struct (gpointer data, gpointer userdata);
+void debug_monitor_struct (gpointer data, gpointer userdata);
 
 int is_to_left_of (gconstpointer a, gconstpointer b, gpointer data);
 
@@ -52,6 +52,6 @@ GList *create_monitor_list ();
 
 void destroy_monitor_list ();
 
-void print_monitor_list (GList *monitors);
+void debug_monitor_list (GList *monitors);
 
 #endif

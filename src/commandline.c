@@ -4,7 +4,7 @@
  * This program has been written such as a freedom sonet
  * We believe in the freedom and in the freedom of education
  *
- * Copyright (C) 2009 Pilolli Pietro <pilolli.pietro@gmail.com>
+ * Copyright (C) 2025 Pilolli Pietro <pilolli.pietro@gmail.com>
  *
  * Ardesia is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -65,7 +65,7 @@ create_command_line ()
 void
 destroy_command_line (CommandLine *commandline)
 {
-  g_printf ("Destroying command line\n");
+  g_debug ("Destroying command line\n");
   if (commandline->clipRect != NULL)
     {
       g_free (commandline->clipRect);
@@ -108,7 +108,7 @@ print_version ()
 static void
 print_help ()
 {
-  gchar *authors = "Tom McCallum (2018-2019), Pietro Pilolli (2009-2013)";
+  gchar *authors = "Tom McCallum (2018-2019), Pietro Pilolli (2009-2025)";
   g_printf ("Usage: %s [options] [filename]\n\n", PACKAGE_NAME);
   g_printf ("Ardesia the free digital sketchpad\n\n");
   g_printf ("options:\n");
@@ -265,7 +265,7 @@ parse_options (CommandLine *commandline, gint argc, char *argv[])
           commandline->is_opaque = TRUE;
           break;
         default:
-          g_printf ("Invalid argument given: %c\n", c);
+          g_debug ("Invalid argument given: %c\n", c);
           print_help ();
           break;
         }
@@ -278,7 +278,7 @@ parse_options (CommandLine *commandline, gint argc, char *argv[])
 }
 
 void
-print_command_line (CommandLine *commandline)
+debug_commandline (CommandLine *commandline)
 {
   g_debug ("Coverage: %s\n",
             (commandline->mode == DRAW_ON_MONITOR ? "Monitor" : "Area"));

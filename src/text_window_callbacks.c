@@ -4,7 +4,7 @@
  * This program has been written such as a freedom sonet
  * We believe in the freedom and in the freedom of education
  *
- * Copyright (C) 2009 Pilolli Pietro <pilolli.pietro@gmail.com>
+ * Copyright (C) 2025 Pilolli Pietro <pilolli.pietro@gmail.com>
  *
  * Ardesia is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -275,7 +275,7 @@ assign_text_properties (CharInfo *char_info)
       char_info->font_family            = g_strdup_printf (
           "%s", pango_font_description_get_family (annotation_data->font));
       char_info->font_size = pango_font_description_get_size (annotation_data->font) / PANGO_SCALE;
-      g_printf ("font: %s %d\n", char_info->font_family, char_info->font_size);
+      g_debug ("font: %s, size %d\n", char_info->font_family, char_info->font_size);
     }
 }
 

@@ -4,7 +4,7 @@
  * This program has been written such as a freedom sonet
  * We believe in the freedom and in the freedom of education
  *
- * Copyright (C) 2009 Pilolli Pietro <pilolli.pietro@gmail.com>
+ * Copyright (C) 2025 Pilolli Pietro <pilolli.pietro@gmail.com>
  *
  * Ardesia is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -58,14 +58,14 @@ set_defaults_for_workspace (Workspace *workspace)
 }
 
 void
-print_workspace (Workspace *workspace)
+debug_workspace (Workspace *workspace)
 {
   g_debug ("Project Name: %s\n", workspace->project_name);
   g_debug ("Project Directory: %s\n", workspace->project_dir);
   g_debug ("Workspace Directory: %s\n", workspace->workspace_dir);
   g_debug ("iwb filename: %s\n", workspace->iwb_filename);
   g_debug ("Date: %s\n", workspace->date);
-  print_monitor_list (workspace->monitors);
+  debug_monitor_list (workspace->monitors);
 }
 
 void
@@ -202,5 +202,5 @@ build_workspace_filesystem (Workspace *workspace)
   configure_workspace (workspace);
   create_workspace_shortcut (workspace);
   create_default_project_dir (workspace);
-  print_workspace (workspace);
+  debug_workspace (workspace);
 }

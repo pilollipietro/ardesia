@@ -4,7 +4,7 @@
  * This program has been written such as a freedom sonet
  * We believe in the freedom and in the freedom of education
  *
- * Copyright (C) 2009 Pilolli Pietro <pilolli.pietro@gmail.com>
+ * Copyright (C) 2025 Pilolli Pietro <pilolli.pietro@gmail.com>
  *
  * Ardesia is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -50,6 +50,6 @@ void build_workspace_filesystem (Workspace *workspace);
 
 void destroy_workspace (Workspace *workspace);
 
-void print_workspace (Workspace *workspace);
+void debug_workspace (Workspace *workspace);
 
 #endif

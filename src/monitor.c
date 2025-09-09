@@ -4,7 +4,7 @@
  * This program has been written such as a freedom sonet
  * We believe in the freedom and in the freedom of education
  *
- * Copyright (C) 2009 Pilolli Pietro <pilolli.pietro@gmail.com>
+ * Copyright (C) 2025 Pilolli Pietro <pilolli.pietro@gmail.com>
  *
  * Ardesia is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -71,12 +71,12 @@ create_monitor_list ()
 }
 
 void
-print_monitor_list (GList *monitors)
+debug_monitor_list (GList *monitors)
 {
   if (monitors != NULL)
     {
       g_debug ("Monitor objects created:\n");
-      g_list_foreach (monitors, (GFunc) print_monitor_struct, NULL);
+      g_list_foreach (monitors, (GFunc) debug_monitor_struct, NULL);
     }
 }
 
@@ -112,7 +112,7 @@ destroy_monitor_struct (gpointer data)
 }
 
 void
-print_monitor_struct (gpointer data, gpointer userdata)
+debug_monitor_struct (gpointer data, gpointer userdata)
 {
   Monitor *m = (Monitor *) data;
   g_debug ("Monitor %d: %d %d %d %d\n", m->monitor_index, m->rect->x,

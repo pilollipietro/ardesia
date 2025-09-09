@@ -4,7 +4,7 @@
  * This program has been written such as a freedom sonet
  * We believe in the freedom and in the freedom of education
  *
- * Copyright (C) 2009 Pilolli Pietro <pilolli.pietro@gmail.com>
+ * Copyright (C) 2025 Pilolli Pietro <pilolli.pietro@gmail.com>
  *
  * Ardesia is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -38,7 +38,7 @@ start_virtual_keyboard ()
   result     = system ("gsettings set org.florence.behaviour auto-hide false");
   if (result != 0)
     {
-      g_printerr ("Fail to show virtual keyboard: Florence and gsettings "
+      g_warning ("Fail to show virtual keyboard: Florence and gsettings "
                   "packages are required\n");
     }
 }
@@ -63,8 +63,8 @@ stop_virtual_keyboard ()
   result     = system ("gsettings set org.florence.behaviour auto-hide true");
   if (result != 0)
     {
-      g_printerr ("Fail to hide virtual keyboard: Florence and gsettings "
-                  "packages are required\n");
+      g_warning ("Fail to hide virtual keyboard: Florence and gsettings "
+                 "packages are required\n");
     }
 #endif
 }

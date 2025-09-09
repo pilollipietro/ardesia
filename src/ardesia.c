@@ -4,7 +4,7 @@
  * This program has been written such as a freedom sonet
  * We believe in the freedom and in the freedom of education
  *
- * Copyright (C) 2009 Pilolli Pietro <pilolli.pietro@gmail.com>
+ * Copyright (C) 2025 Pilolli Pietro <pilolli.pietro@gmail.com>
  *
  * Ardesia is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -225,8 +225,8 @@ main (int argc, char *argv[])
   parse_options (commandline, argc, argv);
   if (commandline->debug) 
     {
-      g_setenv("G_MESSAGES_DEBUG", "all", TRUE);
-      print_command_line (commandline);
+      g_setenv ("G_MESSAGES_DEBUG", "all", TRUE);
+      debug_commandline (commandline);
     }
 
   /* Initialize new text configuration options. */
