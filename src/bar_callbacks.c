@@ -33,6 +33,7 @@
 #include "bar_callbacks.h"
 #include "cairo_functions.h"
 #include "color_selector.h"
+#include "font_selector.h"
 #include "info_dialog.h"
 #include "iwb_saver.h"
 #include "pdf_saver.h"
@@ -744,7 +745,8 @@ void create_background_window (/* arguments */)
 G_MODULE_EXPORT void
 on_bar_fonts_clicked (GtkToolButton *toolbutton, gpointer func_data)
 {
-  show_text_settings_window ();
+  create_font_selector_window (GTK_WINDOW (get_bar_widget ()));
+  show_font_selector_window ();
 }
 
 /* Push preference button. */
@@ -884,3 +886,4 @@ on_bar_white_activate (GtkToolButton *toolbutton, gpointer func_data)
   BarData *bar_data = (BarData *) func_data;
   set_color (bar_data, WHITE);
 }
+

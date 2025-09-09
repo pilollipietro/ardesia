@@ -1,0 +1,54 @@
+/*
+ * Ardesia -- a program for painting on the screen
+ * with this program you can play, draw, learn and teach
+ * This program has been written such as a freedom sonet
+ * We believe in the freedom and in the freedom of education
+ *
+ * Copyright (C) 2009 Pilolli Pietro <pilolli.pietro@gmail.com>
+ *
+ * Ardesia is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the
+ * Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *    
+ * Ardesia is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *                     
+ * You should have received a copy of the GNU General Public License along
+ * with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *    
+ */
+  
+#include "annotation_window.h"
+#include "font_selector.h"
+
+/**
+ * @brief Handles the response from the font dialog.
+ *
+ * @param dialog The GtkDialog instance.
+ * @param response_id The response ID from the user (e.g., GTK_RESPONSE_OK, GTK_RESPONSE_CANCEL).
+ * @param user_data User data passed to the callback.
+ */
+void on_font_selector_response(GtkDialog *dialog, gint response_id, gpointer user_data)
+{
+    if (response_id == GTK_RESPONSE_OK)
+    {
+        PangoFontDescription *new_font_desc;
+        new_font_desc = gtk_font_chooser_get_font_desc(GTK_FONT_CHOOSER(dialog));
+        
+        if (annotation_data->font != NULL)
+        {
+            pango_font_description_free(annotation_data->font);
+        }
+        annotation_data->font = new_font_desc;
+    }
+
+    gtk_widget_destroy(GTK_WIDGET(dialog));
+}
+
+void on_font_selector_destroy(GtkWidget *window, gpointer user_data)
+{
+    annotation_data->font_window = NULL;
+}

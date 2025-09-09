@@ -1868,67 +1868,25 @@ annotation_window_change (int width, int height)
     }
 }
 
-gboolean
-on_font_window_leave_event (GtkWidget *widget, GdkEvent *event, gpointer user_data)
+
+void initialize_font (CommandLine *commandline)
 {
-  annotation_data->font = gtk_font_chooser_get_font_desc (GTK_FONT_CHOOSER (user_data));
-  g_debug ("selecting new font\n");
-  annotate_acquire_input_grab();
-  return FALSE;
+  if (commandline->fontfamily != NULL) {
+    gchar *font_string;
+
+    // Create a font description string in the format "Family Size".
+    // For example, "Cantarell 32".
+    font_string = g_strdup_printf("%s %d", commandline->fontfamily, 32);
+
+    // Create the PangoFontDescription object from the string.
+    annotation_data->font = pango_font_description_from_string(font_string);
+
+    // Free the temporary string.
+    g_free(font_string);
+  } else {
+    // If no font family was provided, set a default font.
+    annotation_data->font = pango_font_description_new();
+    pango_font_description_set_size(annotation_data->font, 32 * PANGO_SCALE);
+  }
 }
 
-gboolean
-on_font_window_destroy (GtkWidget *widget, gpointer userdata)
-{
-  annotation_data->font_window = NULL;
-  return FALSE;
-}
-
-gboolean
-on_font_window_configure (GtkWidget *widget, GdkEvent *event, gpointer user_data)
-{
-  if (bar_data->grab == FALSE)
-    {
-      gtk_widget_queue_draw (annotation_data->annotation_window);
-    }
-  return FALSE;
-}
-
-void create_text_settings_window ()
-{
-  GtkWidget *window       = NULL;
-  GtkWidget *font_chooser = NULL;
-
-  if (annotation_data->font_window == NULL)
-    {
-      window = GTK_WIDGET (gtk_window_new (GTK_WINDOW_TOPLEVEL));
-
-      gtk_window_set_title (GTK_WINDOW (window), "Fonts");
-      gtk_window_set_default_size (GTK_WINDOW (window), 200, 400);
-      font_chooser = gtk_font_chooser_widget_new ();
-
-      gtk_container_add (GTK_CONTAINER (window), GTK_WIDGET (font_chooser));
-
-      g_signal_connect (window, "leave-notify-event",
-                        (GCallback) on_font_window_leave_event, font_chooser);
-      g_signal_connect (window, "destroy", (GCallback) on_font_window_destroy, NULL);
-      g_signal_connect (window, "configure-event",
-                        (GCallback) on_font_window_configure, NULL);
-
-      if (annotation_data->font == NULL)
-        {
-          annotation_data->font = gtk_font_chooser_get_font_desc (GTK_FONT_CHOOSER (font_chooser));
-          pango_font_description_set_size (annotation_data->font, 32 * PANGO_SCALE);
-        }
-      gtk_font_chooser_set_font_desc (GTK_FONT_CHOOSER (font_chooser),
-                                      annotation_data->font);
-
-      annotation_data->font_window = window;
-    }
-}
-
-void show_text_settings_window()
-{
-  annotate_release_input_grab();
-  gtk_widget_show_all (annotation_data->font_window);
-}

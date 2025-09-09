@@ -10,7 +10,7 @@ desktop/info_dialog.glade
 desktop/preference_dialog.glade
 desktop/project_dialog.glade
 desktop/share_confirmation_dialog.glade
-desktop/text_window.glade
+desktop/font_selector.glade
 desktop/vertical_bar.glade
 desktop/original.vertical_bar.glade
 desktop/original_horizontal_bar.glade

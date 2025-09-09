@@ -249,7 +249,8 @@ main (int argc, char *argv[])
 
   replace_status_message (g_strdup_printf ("Project started in %s", workspace->project_dir));
 
-  create_text_settings_window();
+  //create_text_settings_window();
+  initialize_font(commandline);
 
   // main loop for a GTK application
   gtk_main ();

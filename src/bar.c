@@ -561,3 +561,4 @@ begin_clapperboard_countdown ()
 {
   timer = g_timeout_add (BAR_TO_TOP_TIMEOUT, end_clapperboad_countdown, NULL);
 }
+
