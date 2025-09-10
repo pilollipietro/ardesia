@@ -57,7 +57,6 @@ void create_font_selector_window (GtkWindow *parent)
 
 void show_font_selector_window()
 {
-   annotate_release_grab();
    gtk_widget_show_all (annotation_data->font_window);
 }
 

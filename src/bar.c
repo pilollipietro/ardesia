@@ -229,6 +229,7 @@ create_bar_window (CommandLine *commandline, GdkRectangle *rect, GtkWidget *pare
 
   bar_window = GTK_WIDGET (gtk_builder_get_object (bar_gtk_builder, BAR_WIDGET_NAME));
   gtk_widget_set_name (bar_window, BAR_WIDGET_NAME);
+  gtk_window_set_transient_for (GTK_WINDOW (bar_window), GTK_WINDOW (parent));
 
   /* Connect all the callback from bar_gtk_builder xml file. */
   gtk_builder_connect_signals (bar_gtk_builder, (gpointer) bar_data);

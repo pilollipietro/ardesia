@@ -209,7 +209,6 @@ annotate_acquire_input_grab ()
    * MACOSX; will do nothing.
    */
   gtk_widget_input_shape_combine_region (annotation_window, NULL);
-  drill_window_in_bar_area (annotation_window, get_bar_widget ());
 #endif
 }
 
@@ -425,6 +424,7 @@ create_annotation_window (Workspace *workspace, CommandLine *commandline)
 
   widget = GTK_WIDGET (gtk_builder_get_object (annotation_data->annotation_window_gtk_builder,
                                                "annotationWindow"));
+  gtk_window_set_keep_above(GTK_WINDOW (widget), TRUE);
 
   annotation_data->annotation_window = widget;
   if (annotation_data->annotation_window == NULL)
@@ -1392,7 +1392,6 @@ annotate_release_input_grab ()
   gtk_widget_input_shape_combine_region (annotation_data->annotation_window, NULL);
 
   // putting this here stops the bar from picking up signals on re-entry
-  // drill_window_in_bar_area( annotation_data->annotation_window, get_bar_widget() );
 
   const cairo_rectangle_int_t ann_rect = { 0, 0, 0, 0 };
   cairo_region_t             *r = cairo_region_create_rectangle (&ann_rect);

@@ -169,7 +169,6 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
   start_tool (bar_data);
 }
 
-void drill_window_in_cursor_area ();
 
 void
 get_desktop_mouse_location (int *x, int *y)
@@ -202,35 +201,8 @@ move_cursor_window (gpointer data)
       gtk_window_move (GTK_WINDOW (annotation_data->cursor_window), x - 32, y - 32);
       // gtk_window_move( GTK_WINDOW(annotation_data->cursor_window) , 100, 100 );
       gtk_widget_input_shape_combine_region (annotation_data->cursor_window, NULL);
-      drill_window_in_cursor_area ();
       return TRUE; // continue timer
     }
-}
-
-void
-drill_window_in_cursor_area ()
-{
-  GtkWidget *cursor_window = annotation_data->cursor_window;
-  gint       x, y, width, height;
-
-  gtk_window_get_position (GTK_WINDOW (cursor_window), &x, &y);
-  gtk_window_get_size (GTK_WINDOW (cursor_window), &width, &height);
-
-  // the rectangle we are cutting out is the same shape
-  GdkRectangle *rA = g_new (GdkRectangle, 1);
-  rA->x            = x;
-  rA->y            = y;
-  rA->width        = width;
-  rA->height       = height;
-
-  const cairo_rectangle_int_t widget_rect = { x + 1, y + 1, width - 1, height - 1 };
-  cairo_region_t *widget_reg = cairo_region_create_rectangle (&widget_rect);
-
-  // drill with input shape the pointer will go below the window.
-  gtk_widget_input_shape_combine_region (cursor_window, widget_reg);
-
-  cairo_region_destroy (widget_reg);
-  g_free (rA);
 }
 
 void draw_video_cursor (cairo_t *cr, GtkWidget *widget);
@@ -420,7 +392,6 @@ on_cursor_click (GtkToggleButton *toolbutton, gpointer func_data)
       // hide cursor window
       annotation_data->is_cursor_visible = FALSE;
       gtk_widget_hide (annotation_data->cursor_window);
-      gtk_window_set_keep_above (GTK_WINDOW (annotation_data->cursor_window), FALSE);
       annotation_data->cursor_timer = 0;
     }
   else
@@ -431,7 +402,6 @@ on_cursor_click (GtkToggleButton *toolbutton, gpointer func_data)
           g_debug ("Building cursor window\n");
           annotation_data->cursor_window = create_cursor_window ();
           gtk_widget_input_shape_combine_region (annotation_data->cursor_window, NULL);
-          drill_window_in_cursor_area ();
         }
 
       annotation_data->is_cursor_visible = TRUE;
@@ -441,7 +411,6 @@ on_cursor_click (GtkToggleButton *toolbutton, gpointer func_data)
       // after the initial hide - very weird!
       gtk_widget_hide (annotation_data->cursor_window);
       gtk_widget_show_all (annotation_data->cursor_window);
-      gtk_window_set_keep_above (GTK_WINDOW (annotation_data->cursor_window), TRUE);
       move_cursor_window (NULL);
       annotation_data->cursor_timer = g_timeout_add (100, move_cursor_window, NULL);
     }

@@ -145,17 +145,6 @@ on_preference_ok_button_clicked (GtkButton *buton, gpointer data)
                   fclose (stream);
                 }
             }
-          else
-            {
-              /* The file is not set; same cae that no background */
-
-              // clear_background_context ();
-            }
-        }
-      else
-        {
-          /* none */
-          // clear_background_context ();
         }
     }
 }

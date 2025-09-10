@@ -452,6 +452,8 @@ on_bar_recorder_activate (GtkToolButton *toolbutton, gpointer func_data)
       annotation_data->recordingstudio_window = GTK_WIDGET (gtk_builder_get_object (
           annotation_data->recordingstudio_window_gtk_builder, "recordingstudio"
                                                                "_window"));
+      gtk_window_set_transient_for (GTK_WINDOW (annotation_data->recordingstudio_window),
+		                    GTK_WINDOW (get_bar_widget ()));
 
       if (annotation_data->recordingstudio_window == NULL)
         {
@@ -540,7 +542,7 @@ background_selection_on_button_press (GtkWidget *widget, GdkEvent *event, gpoint
 gboolean
 on_add_new_background (GtkWidget *widget, gpointer user_data)
 {
-  start_preference_dialog (GTK_WINDOW (user_data));
+  start_preference_dialog (GTK_WINDOW (widget));
   return TRUE;
 }
 
@@ -703,33 +705,32 @@ on_background_selection_size_allocate (GtkWidget *widget, GdkRectangle *allocati
   // g_printf("size allocate %d %d\n", allocation->width, allocation->height);
 }
 
-void create_background_window (/* arguments */)
+void create_bar_preference_window (GtkWindow *parent)
 {
   GtkWidget   *window = NULL;
   GtkToolItem *button = NULL;
   GtkBox      *box    = NULL;
 
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title (GTK_WINDOW (window), "Backgrounds");
+  gtk_window_set_title (GTK_WINDOW (window), gettext ("Backgrounds"));
   gtk_window_set_default_size (GTK_WINDOW (window), 400, 128);
 
   box = GTK_BOX (gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0));
 
-  // actionbar = GTK_ACTION_BAR( gtk_action_bar_new() );
-  // gtk_box_pack_start( box, GTK_WIDGET(actionbar), TRUE, TRUE, 0 );
   gtk_container_add (GTK_CONTAINER (window), GTK_WIDGET (box));
 
   annotation_data->background_selection_window    = window;
   annotation_data->background_selection_container = GTK_WIDGET (box);
 
-  add_background_button ("Transparent", BACKGROUND_MODE_NONE,
+  add_background_button (gettext ("Transparent"), BACKGROUND_MODE_NONE,
                          TRANSPARENT_BACKGROUND_FILE, NULL);
-  add_background_button ("Blackboard", BACKGROUND_MODE_COLOR, NULL, BLACK);
-  add_background_button ("Whiteboard", BACKGROUND_MODE_COLOR, NULL, WHITE);
-  add_background_button ("Paper", BACKGROUND_MODE_FILE, PAPER_BACKGROUND_FILE, NULL);
+  add_background_button (gettext ("Blackboard"), BACKGROUND_MODE_COLOR, NULL, BLACK);
+  add_background_button (gettext ("Whiteboard"), BACKGROUND_MODE_COLOR, NULL, WHITE);
+  add_background_button (gettext ("Paper"), BACKGROUND_MODE_FILE, PAPER_BACKGROUND_FILE, NULL);
 
-  button = gtk_tool_button_new (NULL, "Add");
+  button = gtk_tool_button_new (NULL, gettext ("Add"));
   gtk_box_pack_start (box, GTK_WIDGET (button), TRUE, TRUE, 0);
+  gtk_window_set_transient_for (GTK_WINDOW (window), parent);
 
   g_signal_connect (button, "clicked", (GCallback) on_add_new_background, window);
   g_signal_connect (window, "destroy",
@@ -753,42 +754,13 @@ on_bar_fonts_clicked (GtkToolButton *toolbutton, gpointer func_data)
 G_MODULE_EXPORT void
 on_bar_preferences_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
-  BarData *bar_data   = (BarData *) func_data;
-  gboolean grab_value = bar_data->grab;
-  bar_data->grab      = FALSE;
-  /* Release grab. */
-  annotate_release_grab ();
-
-  gdk_window_set_cursor (gtk_widget_get_window (get_annotation_window ()),
-                         (GdkCursor *) NULL);
-
-  if (annotation_data->background_button_last_selected == BACKGROUND_NONE_SELECTED)
+  if (annotation_data->background_selection_window != NULL)
     {
-      if (annotation_data->background_selection_window != NULL)
-        {
-          gtk_widget_show_all (annotation_data->background_selection_window);
-        }
-      else
-        {
-          create_background_window ();
-        }
+      gtk_widget_show_all (annotation_data->background_selection_window);
     }
   else
     {
-      if (annotation_data->background_selection_window == NULL)
-        {
-          clear_background_context ();
-          bar_data->grab = grab_value;
-          start_tool (bar_data);
-          annotation_data->background_button_last_selected = BACKGROUND_NONE_SELECTED;
-        }
-      else
-        {
-          clear_background_context ();
-          bar_data->grab = grab_value;
-          start_tool (bar_data);
-          annotation_data->background_button_last_selected = BACKGROUND_NONE_SELECTED;
-        }
+      create_bar_preference_window (GTK_WINDOW (get_bar_widget ()));
     }
 }
 
