@@ -69,18 +69,34 @@ then
         exit 1003
     fi
 
+    # Audio detection.
+    AUDIO_INPUT=""
+    if command -v pacmd &> /dev/null; then
+        # If pacmd is available the use as audio input PulseAudio. This works on PipeWire also.
+        # This use yout integrated mic if it exists.
+        AUDIO_INPUT=":input-slave=pulse://alsa_input.pci-0000_00_1f.3.analog-stereo" # Sostituisci questo con il nome della tua sorgente
+    elif command -v pw-record &> /dev/null; then
+        # Id pw-record is availabòe, means that you are using PipeWire
+	# In this cas might work the PulseAudio audio input and the logic above. This is a fallback.
+        AUDIO_INPUT=":input-slave=pipewire-audio://"
+    else
+        # If you have not this commands use ALSA as a last resort.
+        AUDIO_INPUT=":input-slave=alsa://"
+    fi
+    
+    # Vlc common options.
+    COMMONOPTIONS="-vvv screen:// --screen-top=$TOP --screen-left=$LEFT --screen-width=$WIDTH --screen-height=$HEIGHT --screen-fps=12 $AUDIO_INPUT"
+    # *** FINE MODIFICA ***
 
     #This start the recording on file
     echo Start the screencast running $RECORDER_PROGRAM
-    COMMONOPTIONS="-vvv screen:// --screen-top=$TOP --screen-left=$LEFT --screen-width=$WIDTH --screen-height=$HEIGHT --screen-fps=12 :input-slave=alsa://"
     if [ "$ICECAST" = "TRUE" ]
     then
         RECORDER_PROGRAM_OPTIONS="${COMMONOPTIONS} --ignore-config --sout  "#transcode{venc=theora,vcodec=theo,vb=512,scale=0.7,acodec=vorb,ab=128,channels=2,samplerate=44100,audio-sync}:duplicate{dst=std{access=shout,mux=ogg,dst=source:$ICECAST_PASSWORD@$ICECAST_ADDRESS:$ICECAST_PORT/$ICECAST_MOUNTPOINT},dst=std{access=file,mux=ogg,dst=$DST}}""
     else
-    #    RECORDER_PROGRAM_OPTIONS="-vvv screen:// --screen-fps=12 :input-slave=alsa:// --sout-theora-quality=5 --sout-vorbis-quality=1 --sout "#transcode{venc=theora,vcodec=theo,vb=512,scale=1.0,acodec=vorb,ab=128,channels=2,samplerate=44100,audio-sync}:standard{access=file,mux=ogg,dst=$2}""
         RECORDER_PROGRAM_OPTIONS="${COMMONOPTIONS} --sout-theora-quality=5 --sout-vorbis-quality=1 --sout "#transcode{venc=theora,vcodec=theo,vb=512,scale=1.0,acodec=vorb,ab=128,channels=2,samplerate=44100,audio-sync}:standard{access=file,mux=ogg,dst=$DST}""
     fi
-    echo With arguments $RECORDER_PROGRAM_OPTIONS
+    echo "With arguments $RECORDER_PROGRAM_OPTIONS"
     $RECORDER_PROGRAM $RECORDER_PROGRAM_OPTIONS >>$LOG 2>&1 &
     RECORDER_PID=$!
     echo $RECORDER_PID >> $RECORDER_PID_FILE
