@@ -38,8 +38,11 @@ BarData *bar_data = NULL;
  * Calculate the better position where put the bar.
  */
 static void
-calculate_position (GtkWidget *ardesia_bar_window, gint d_width, gint d_height,
-                    gint *x, gint *y, gint w_width, gint w_height, gint position)
+calculate_position (GtkWidget *ardesia_bar_window,
+		    gint d_width, gint d_height,
+                    gint *x, gint *y,
+		    gint w_width, gint w_height,
+		    gint position)
 {
   *y = ((d_height - w_height - SPACE_FROM_BORDER) / 2);
   /* Vertical layout. */
@@ -98,7 +101,8 @@ calculate_initial_position (GtkWidget *ardesia_bar_window, gint *x, gint *y, gin
       gtk_widget_set_size_request (ardesia_bar_window, w_width, w_height);
     }
 
-  calculate_position (ardesia_bar_window, d_width, d_height, x, y, w_width, w_height, position);
+  calculate_position (ardesia_bar_window, d_width, d_height,
+		      x, y, w_width, w_height, position);
 }
 
 /* Activate tool button by name. */

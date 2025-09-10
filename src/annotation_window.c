@@ -79,7 +79,7 @@ annotate_paint_context_new (AnnotatePaintType type)
 static gdouble
 annotate_get_arrow_direction (AnnotateDeviceData *devdata)
 {
-  /* Precondition: the list must be not null and the length might be greater than two. */
+  /* The list must be not null and the length might be greater than two. */
   AnnotatePoint *point      = (AnnotatePoint *) NULL;
   AnnotatePoint *old_point  = (AnnotatePoint *) NULL;
   gdouble        delta      = 2.0;
@@ -88,7 +88,9 @@ annotate_get_arrow_direction (AnnotateDeviceData *devdata)
   gdouble        tollerance = annotate_get_thickness () * delta;
 
   /* Build the relevant point list with the standard deviation algorithm. */
-  GSList *relevantpoint_list = build_meaningful_point_list (out_ptr, FALSE, tollerance);
+  GSList *relevantpoint_list = build_meaningful_point_list (out_ptr,
+		                                            FALSE,
+							    tollerance);
 
   old_point = (AnnotatePoint *) g_slist_nth_data (relevantpoint_list, 1);
   point     = (AnnotatePoint *) g_slist_nth_data (relevantpoint_list, 0);
@@ -103,34 +105,41 @@ annotate_get_arrow_direction (AnnotateDeviceData *devdata)
   return ret;
 }
 
-/* Colour selector; if eraser than select the transparent colour else allocate the right colour. */
+/* 
+ * Colour selector; if eraser than select the transparent colour
+ * else allocate the right colour.
+ */
 static void
 select_color ()
 {
-  if (! annotation_data->annotation_cairo_context)
+  cairo_t *annotation_cairo_context;
+  annotation_cairo_context = annotation_data->annotation_cairo_context;
+
+  if (! annotation_cairo_context)
     {
       return;
     }
 
   if (annotation_data->cur_context)
     {
-      if (annotation_data->cur_context->type != ANNOTATE_ERASER) // pen or arrow tool
+      /* Pen or arrow tool. */
+      if (annotation_data->cur_context->type != ANNOTATE_ERASER)
         {
           /* Select the colour. */
           if (annotation_data->color)
             {
               g_debug ("Select colour %s\n", annotation_data->color);
-              cairo_set_source_color_from_string (annotation_data->annotation_cairo_context,
+              cairo_set_source_color_from_string (annotation_cairo_context,
                                                   annotation_data->color);
             }
 
-          cairo_set_operator (annotation_data->annotation_cairo_context, CAIRO_OPERATOR_SOURCE);
+          cairo_set_operator (annotation_cairo_context, CAIRO_OPERATOR_SOURCE);
         }
       else
         {
           /* It is the eraser tool. */
           g_debug ("Select transparent colour to erase\n");
-          cairo_set_operator (annotation_data->annotation_cairo_context, CAIRO_OPERATOR_CLEAR);
+          cairo_set_operator (annotation_cairo_context, CAIRO_OPERATOR_CLEAR);
         }
     }
 }
@@ -157,7 +166,8 @@ annotate_release_pointer_grab ()
 static void
 update_cursor ()
 {
-  if (! annotation_data->annotation_window)
+  GtkWidget *annotation_window = annotation_data->annotation_window;
+  if (! annotation_window)
     {
       return;
     }
@@ -166,7 +176,7 @@ update_cursor ()
   annotate_release_pointer_grab ();
 #endif
 
-  gdk_window_set_cursor (gtk_widget_get_window (annotation_data->annotation_window),
+  gdk_window_set_cursor (gtk_widget_get_window (annotation_window),
                          annotation_data->cursor);
 
 #ifdef _WIN32
@@ -189,16 +199,17 @@ disallocate_cursor ()
 static void
 annotate_acquire_input_grab ()
 {
+  GtkWidget *annotation_window = annotation_data->annotation_window;
 #ifdef _WIN32
-  grab_pointer (annotation_data->annotation_window, GDK_ALL_EVENTS_MASK);
+  grab_pointer (annotation_window, GDK_ALL_EVENTS_MASK);
 #endif
 
 #ifndef _WIN32
   /*
    * MACOSX; will do nothing.
    */
-  gtk_widget_input_shape_combine_region (annotation_data->annotation_window, NULL);
-  drill_window_in_bar_area (annotation_data->annotation_window, get_bar_widget ());
+  gtk_widget_input_shape_combine_region (annotation_window, NULL);
+  drill_window_in_bar_area (annotation_window, get_bar_widget ());
 #endif
 }
 
@@ -218,25 +229,29 @@ destroy_cairo (cairo_t *ctxt)
   ctxt = (cairo_t *) NULL;
 }
 
-/* This an ellipse taking the top left edge coordinates
+/*
+ * This an ellipse taking the top left edge coordinates
  * and the width and the height of the bounded rectangle.
  */
 static void
 annotate_draw_ellipse (AnnotateDeviceData *devdata, gdouble x, gdouble y,
                        gdouble width, gdouble height, gdouble pressure)
 {
+  cairo_t *annotation_cairo_context;
+  annotation_cairo_context = annotation_data->annotation_cairo_context;
+
   g_debug ("Draw ellipse: 2a=%f 2b=%f\n", width, height);
 
   annotate_modify_color (devdata, annotation_data, pressure);
 
-  cairo_save (annotation_data->annotation_cairo_context);
+  cairo_save (annotation_cairo_context);
 
   /* The ellipse is done as a 360 degree arc translated. */
-  cairo_translate (annotation_data->annotation_cairo_context, x + width / 2.,
+  cairo_translate (annotation_cairo_context, x + width / 2.,
                    y + height / 2.);
-  cairo_scale (annotation_data->annotation_cairo_context, width / 2., height / 2.);
-  cairo_arc (annotation_data->annotation_cairo_context, 0., 0., 1., 0., 2 * M_PI);
-  cairo_restore (annotation_data->annotation_cairo_context);
+  cairo_scale (annotation_cairo_context, width / 2., height / 2.);
+  cairo_arc (annotation_cairo_context, 0., 0., 1., 0., 2 * M_PI);
+  cairo_restore (annotation_cairo_context);
 }
 
 /* Draw a curve using a cubic bezier splines passing to the list's coordinate. */
@@ -482,7 +497,9 @@ create_savepoint_dir ()
   gchar       *images       = "images";
   gchar       *project_name = get_project_name ();
   gchar *ardesia_tmp_dir = g_build_filename (tmpdir, PACKAGE_NAME, (gchar *) 0);
-  gchar *project_tmp_dir = g_build_filename (ardesia_tmp_dir, project_name, (gchar *) 0);
+
+  gchar *project_tmp_dir = g_build_filename (ardesia_tmp_dir,
+		                             project_name, (gchar *) 0);
 
   if (g_file_test (ardesia_tmp_dir, G_FILE_TEST_IS_DIR))
     {
@@ -490,7 +507,8 @@ create_savepoint_dir ()
       rmdir_recursive (ardesia_tmp_dir);
     }
 
-  annotation_data->savepoint_dir = g_build_filename (project_tmp_dir, images, (gchar *) 0);
+  annotation_data->savepoint_dir = g_build_filename (project_tmp_dir,
+		                                     images, (gchar *) 0);
   g_mkdir_with_parents (annotation_data->savepoint_dir, 0777);
   g_free (ardesia_tmp_dir);
   g_free (project_tmp_dir);
@@ -552,8 +570,9 @@ delete_ardesia_tmp_dir ()
   g_free (ardesia_tmp_dir);
 }
 
-/* Draw an arrow starting from the point
- * whith the width and the direction in radiant
+/*
+ * Draw an arrow starting from the point
+ * whith the width and the direction in radiant.
  */
 static void
 draw_arrow_in_point (AnnotatePoint *point, gdouble width, gdouble direction)
@@ -888,7 +907,8 @@ annotate_coord_dev_list_free (AnnotateDeviceData *devdata)
 }
 
 /* Modify colour according to the pressure. */
-void annotate_modify_color (AnnotateDeviceData *devdata, AnnotateData *data, gdouble pressure)
+void
+annotate_modify_color (AnnotateDeviceData *devdata, AnnotateData *data, gdouble pressure)
 {
     /* Pressure value is from 0 to 1; this value modify the RGBA gradient. */
     guint r, g, b, a;
@@ -1873,7 +1893,8 @@ annotation_window_change (int width, int height)
 }
 
 
-void initialize_font (CommandLine *commandline)
+void
+initialize_font (CommandLine *commandline)
 {
   if (commandline->fontfamily != NULL) {
     gchar *font_string;
