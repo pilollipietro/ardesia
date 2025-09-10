@@ -12,8 +12,6 @@ desktop/project_dialog.glade
 desktop/share_confirmation_dialog.glade
 desktop/font_selector.glade
 desktop/vertical_bar.glade
-desktop/original.vertical_bar.glade
-desktop/original_horizontal_bar.glade
 desktop/recordingstudio_window.glade
 
 src/ardesia.c
