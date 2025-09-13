@@ -46,7 +46,9 @@
 
 /* Windows state event: this occurs when the windows state changes. */
 G_MODULE_EXPORT gboolean
-on_bar_window_state_event (GtkWidget *widget, GdkEventWindowState *event, gpointer func_data)
+on_bar_window_state_event (GtkWidget *widget,
+		           GdkEventWindowState *event,
+			   gpointer func_data)
 {
   g_debug ("on bar state event\n");
   BarData *bar_data = (BarData *) func_data;
@@ -162,7 +164,9 @@ on_bar_info (GtkToolButton *toolbutton, gpointer func_data)
 
 /* Called when leave the window. */
 G_MODULE_EXPORT gboolean
-on_bar_leave_notify_event (GtkWidget *widget, GdkEvent *event, gpointer func_data)
+on_bar_leave_notify_event (GtkWidget *widget,
+		           GdkEvent *event,
+			   gpointer func_data)
 {
   BarData *bar_data = (BarData *) func_data;
   add_alpha (bar_data);
@@ -172,7 +176,9 @@ on_bar_leave_notify_event (GtkWidget *widget, GdkEvent *event, gpointer func_dat
 
 /* Called when enter the window. */
 G_MODULE_EXPORT gboolean
-on_bar_enter_notify_event (GtkWidget *widget, GdkEvent *event, gpointer func_data)
+on_bar_enter_notify_event (GtkWidget *widget,
+		           GdkEvent *event,
+			   gpointer func_data)
 {
   g_debug ("bar enter notify event\n");
   if (is_text_toggle_tool_button_active ())
@@ -212,7 +218,10 @@ on_bar_mode_activate (GtkToolButton *toolbutton, gpointer func_data)
           /* Select the rounder mode. */
           GObject *rounder_obj = gtk_builder_get_object (bar_gtk_builder,
                                                          "rounder");
-          gtk_tool_button_set_icon_widget (toolbutton, GTK_WIDGET (rounder_obj));
+
+          gtk_tool_button_set_icon_widget (toolbutton,
+			                   GTK_WIDGET (rounder_obj));
+
           bar_data->rounder   = TRUE;
           bar_data->rectifier = FALSE;
           replace_status_message (gettext ("Rounder mode selected"));
@@ -222,7 +231,10 @@ on_bar_mode_activate (GtkToolButton *toolbutton, gpointer func_data)
           /* Select the rectifier mode. */
           GObject *rectifier_obj = gtk_builder_get_object (bar_gtk_builder,
                                                            "rectifier");
-          gtk_tool_button_set_icon_widget (toolbutton, GTK_WIDGET (rectifier_obj));
+
+          gtk_tool_button_set_icon_widget (toolbutton,
+			                   GTK_WIDGET (rectifier_obj));
+
           bar_data->rectifier = TRUE;
           bar_data->rounder   = FALSE;
           replace_status_message (gettext ("Polygon mode selected"));
@@ -486,7 +498,8 @@ on_remove_background_button (GtkMenuItem *menuitem, gpointer user_data)
 }
 
 void
-background_selection_on_toggled (GtkToggleToolButton *toggle_tool_button, gpointer userdata)
+background_selection_on_toggled (GtkToggleToolButton *toggle_tool_button,
+		                 gpointer userdata)
 {
   BackgroundButtonData *button_data = (BackgroundButtonData *) userdata;
   annotation_data->background_button_last_selected = button_data->index;
@@ -510,7 +523,9 @@ background_selection_on_toggled (GtkToggleToolButton *toggle_tool_button, gpoint
 }
 
 gboolean
-background_selection_on_button_press (GtkWidget *widget, GdkEvent *event, gpointer userdata)
+background_selection_on_button_press (GtkWidget *widget,
+		                      GdkEvent *event,
+				      gpointer userdata)
 {
   GdkEventButton *event_button;
   if (event->type == GDK_BUTTON_PRESS)
@@ -528,7 +543,8 @@ background_selection_on_button_press (GtkWidget *widget, GdkEvent *event, gpoint
               gtk_menu_attach (GTK_MENU (menu), menuitem, 0, 1, 0, 1);
 
               g_signal_connect (menuitem, "activate",
-                                (GCallback) on_remove_background_button, widget);
+                                (GCallback) on_remove_background_button,
+				widget);
 
               gtk_widget_show_all (menu);
               gtk_menu_popup_at_pointer (GTK_MENU (menu), NULL);
@@ -593,17 +609,20 @@ resize_image_to_button (BackgroundButtonData *data, gint size)
     }
   data->size = size;
 
-  gtk_tool_button_set_icon_widget (GTK_TOOL_BUTTON (data->button), GTK_WIDGET (image));
+  gtk_tool_button_set_icon_widget (GTK_TOOL_BUTTON (data->button),
+		                   GTK_WIDGET (image));
 
   cairo_surface_destroy (surface);
   cairo_destroy (cr);
 }
 
 gboolean
-on_background_selection_window_configure_event (GtkWidget *widget, GdkEvent *event,
+on_background_selection_window_configure_event (GtkWidget *widget,
+		                                GdkEvent *event,
                                                 gpointer user_data)
 {
-  if (widget == annotation_data->background_selection_window && event->type == GDK_CONFIGURE)
+  if (widget == annotation_data->background_selection_window &&
+      event->type == GDK_CONFIGURE)
     {
       gint elements = g_slist_length (annotation_data->background_button_data);
       gint h        = gtk_widget_get_allocated_height (
@@ -653,11 +672,13 @@ add_background_button (gchar *label, gint mode, gchar *filename, gchar *color)
     }
   if (g_slist_length (annotation_data->background_button_data) == 0)
     {
-      gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON (button), TRUE);
+      gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON (button),
+		                         TRUE);
     }
   else
     {
-      gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON (button), FALSE);
+      gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON (button),
+		                         FALSE);
     }
   if (label != NULL)
     {
@@ -677,10 +698,14 @@ add_background_button (gchar *label, gint mode, gchar *filename, gchar *color)
                                                             data);
 
   // used added button
-  g_signal_connect (button, "toggled", (GCallback) background_selection_on_toggled, data);
+  g_signal_connect (button,
+		    "toggled",
+		    (GCallback) background_selection_on_toggled,
+		    data);
+
   g_signal_connect (button, "button_press_event",
-                    (GCallback) background_selection_on_button_press, data);
-  // g_signal_connect( button, "size-allocate", (GCallback) background_selection_on_button_size_allocate, data );
+                    (GCallback) background_selection_on_button_press,
+		    data);
 
   if (g_slist_length (annotation_data->background_button_data) > 3)
     {
@@ -699,7 +724,8 @@ on_background_selection_window_destroy (GtkWidget *object, gpointer user_data)
 }
 
 void
-on_background_selection_size_allocate (GtkWidget *widget, GdkRectangle *allocation,
+on_background_selection_size_allocate (GtkWidget *widget,
+		                       GdkRectangle *allocation,
                                        gpointer user_data)
 {
   // g_printf("size allocate %d %d\n", allocation->width, allocation->height);
@@ -722,23 +748,46 @@ void create_bar_preference_window (GtkWindow *parent)
   annotation_data->background_selection_window    = window;
   annotation_data->background_selection_container = GTK_WIDGET (box);
 
-  add_background_button (gettext ("Transparent"), BACKGROUND_MODE_NONE,
-                         TRANSPARENT_BACKGROUND_FILE, NULL);
-  add_background_button (gettext ("Blackboard"), BACKGROUND_MODE_COLOR, NULL, BLACK);
-  add_background_button (gettext ("Whiteboard"), BACKGROUND_MODE_COLOR, NULL, WHITE);
-  add_background_button (gettext ("Paper"), BACKGROUND_MODE_FILE, PAPER_BACKGROUND_FILE, NULL);
+  add_background_button (gettext ("Transparent"),
+		         BACKGROUND_MODE_NONE,
+                         TRANSPARENT_BACKGROUND_FILE,
+			 NULL);
+
+  add_background_button (gettext ("Blackboard"),
+		         BACKGROUND_MODE_COLOR,
+			 NULL,
+			 BLACK);
+
+  add_background_button (gettext ("Whiteboard"),
+		         BACKGROUND_MODE_COLOR,
+			 NULL,
+			 WHITE);
+
+  add_background_button (gettext ("Paper"),
+		         BACKGROUND_MODE_FILE,
+			 PAPER_BACKGROUND_FILE,
+			 NULL);
 
   button = gtk_tool_button_new (NULL, gettext ("Add"));
   gtk_box_pack_start (box, GTK_WIDGET (button), TRUE, TRUE, 0);
   gtk_window_set_transient_for (GTK_WINDOW (window), parent);
 
-  g_signal_connect (button, "clicked", (GCallback) on_add_new_background, window);
+  g_signal_connect (button,
+		    "clicked",
+		    (GCallback) on_add_new_background,
+		    window);
+
   g_signal_connect (window, "destroy",
-                    (GCallback) on_background_selection_window_destroy, NULL);
+                    (GCallback) on_background_selection_window_destroy,
+		    NULL);
+
   g_signal_connect (window, "configure-event",
-                    (GCallback) on_background_selection_window_configure_event, NULL);
+                    (GCallback) on_background_selection_window_configure_event,
+		    NULL);
+
   g_signal_connect (window, "size-allocate",
                     (GCallback) on_background_selection_size_allocate, NULL);
+
   gtk_widget_show_all (window);
 }
 

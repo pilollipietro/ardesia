@@ -78,6 +78,10 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
     return;
   g_debug ("on_recording_click\n");
   gboolean grab_value = bar_data->grab;
+  GtkBuilder *recordingstudio_window_gtk_builder;
+  recordingstudio_window_gtk_builder =
+                           annotation_data->recordingstudio_window_gtk_builder;
+  GtkWidget *annotation_window = get_annotation_window ();
 
   /* Release grab. */
   annotate_release_grab ();
@@ -90,32 +94,23 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
         {
           resume_recorder ();
 
-          /* Set the stop tool-tip. */
-          // gtk_tool_button_set_tooltip_text ( toolbutton, gettext ("Stop"));
-
           /* Put the stop icon. */
           GtkWidget *imageWidget = GTK_WIDGET (
-              gtk_builder_get_object (annotation_data->recordingstudio_window_gtk_builder,
+              gtk_builder_get_object (recordingstudio_window_gtk_builder,
                                       "media-playback-stop"));
           gtk_button_set_image ((GtkButton *) toolbutton, imageWidget);
           gtk_button_set_label ((GtkButton *) toolbutton, "Pause");
-          // gtk_tool_button_set_icon_name (toolbutton, "media-playback-stop");
         }
       else
         {
           pause_recorder ();
 
-          /* Set the stop tool-tip. */
-          // gtk_tool_button_set_tooltip_text ( toolbutton, gettext ("Record"));
-
           /* Put the record icon. */
           GtkWidget *imageWidget = GTK_WIDGET (gtk_builder_get_object (
-              annotation_data->recordingstudio_window_gtk_builder, "media-"
-                                                                   "record"));
+              recordingstudio_window_gtk_builder, "media-record"));
           gtk_button_set_image ((GtkButton *) toolbutton, imageWidget);
           gtk_button_set_label ((GtkButton *) toolbutton, "Record");
 
-          // gtk_tool_button_set_icon_name (toolbutton, "media-record");
           replace_status_message (gettext ("Screen recorder stopped"));
         }
     }
@@ -125,12 +120,12 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
       if (! is_recorder_available ())
         {
           GtkWidget *imageWidget = GTK_WIDGET (
-              gtk_builder_get_object (annotation_data->recordingstudio_window_gtk_builder,
+              gtk_builder_get_object (recordingstudio_window_gtk_builder,
                                       "media-recorder-unavailable"));
           gtk_button_set_image ((GtkButton *) toolbutton, imageWidget);
           gtk_button_set_label ((GtkButton *) toolbutton, "Unavailable");
 
-          gdk_window_set_cursor (gtk_widget_get_window (get_annotation_window ()),
+          gdk_window_set_cursor (gtk_widget_get_window (annotation_window),
                                  (GdkCursor *) NULL);
 
           visualize_missing_recorder_program_dialog (
@@ -139,13 +134,12 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
                        "vlc program and add it to the PATH environment "
                        "variable"));
           /* Put an icon that remember that the tool is not available. */
-          // gtk_tool_button_set_icon_widget (toolbutton, GTK_WIDGET (recorder_obj));
           bar_data->grab = grab_value;
           start_tool (bar_data);
           return;
         }
 
-      gdk_window_set_cursor (gtk_widget_get_window (get_annotation_window ()),
+      gdk_window_set_cursor (gtk_widget_get_window (annotation_window),
                              (GdkCursor *) NULL);
 
       replace_status_message (gettext ("Starting screen recorder"));
@@ -154,12 +148,8 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
                                                  GTK_WINDOW (get_bar_widget ()));
       if (status)
         {
-          /* Set the stop tool-tip. */
-          //    gtk_tool_button_set_tooltip_text (  toolbutton, gettext ("Stop"));
-          /* Put the stop icon. */
-          // gtk_tool_button_set_icon_name(toolbutton, gettext("media-playback-stop") );
           GtkWidget *imageWidget = GTK_WIDGET (
-              gtk_builder_get_object (annotation_data->recordingstudio_window_gtk_builder,
+              gtk_builder_get_object (recordingstudio_window_gtk_builder,
                                       "media-playback-stop"));
           gtk_button_set_image ((GtkButton *) toolbutton, imageWidget);
           gtk_button_set_label ((GtkButton *) toolbutton, "Pause");
@@ -198,9 +188,10 @@ move_cursor_window (gpointer data)
       GdkDevice  *device  = gdk_seat_get_pointer (seat);
 
       gdk_window_get_device_position (desktop, device, &x, &y, NULL);
-      gtk_window_move (GTK_WINDOW (annotation_data->cursor_window), x - 32, y - 32);
-      // gtk_window_move( GTK_WINDOW(annotation_data->cursor_window) , 100, 100 );
-      gtk_widget_input_shape_combine_region (annotation_data->cursor_window, NULL);
+      gtk_window_move (GTK_WINDOW (annotation_data->cursor_window),
+		      x - 32, y - 32);
+      gtk_widget_input_shape_combine_region (annotation_data->cursor_window,
+		                             NULL);
       return TRUE; // continue timer
     }
 }
@@ -247,19 +238,29 @@ create_cursor_window ()
   g_debug ("Creating cursor\n");
   gint       size   = 64;
   GtkWidget *window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_decorated (GTK_WINDOW (window), FALSE); // remove titlebar, resize controls etc
-  gtk_window_set_deletable (GTK_WINDOW (window), FALSE); // remove close box
-  gtk_window_set_skip_taskbar_hint (GTK_WINDOW (window), TRUE); // remove from taskbar
-  gtk_window_set_skip_pager_hint (GTK_WINDOW (window), TRUE); // remove from pager
-  gtk_window_set_default_size (GTK_WINDOW (window), size, size); // sets initial size
-  gtk_widget_set_size_request (window, size, size);      // sets minimum size
-  gtk_window_set_resizable (GTK_WINDOW (window), FALSE); // cannot be resized by user
+  // remove titlebar, resize controls etc
+  gtk_window_set_decorated (GTK_WINDOW (window), FALSE);
+  // remove close box
+  gtk_window_set_deletable (GTK_WINDOW (window), FALSE);
+  // remove from taskbar
+  gtk_window_set_skip_taskbar_hint (GTK_WINDOW (window), TRUE);
+  // remove from pager
+  gtk_window_set_skip_pager_hint (GTK_WINDOW (window), TRUE);
+  // sets initial size
+  gtk_window_set_default_size (GTK_WINDOW (window), size, size);
+  // sets minimum size
+  gtk_widget_set_size_request (window, size, size);
+  // cannot be resized by user
+  gtk_window_set_resizable (GTK_WINDOW (window), FALSE);
 
   GtkWidget *drawing_area = gtk_drawing_area_new ();
   gtk_container_add (GTK_CONTAINER (window), drawing_area);
-  g_signal_connect (G_OBJECT (drawing_area), "draw", G_CALLBACK (on_draw_event), NULL);
-  gtk_widget_set_events (drawing_area, gtk_widget_get_events (drawing_area) |
-                                           GDK_BUTTON_PRESS_MASK | GDK_POINTER_MOTION_MASK);
+  g_signal_connect (G_OBJECT (drawing_area),
+		    "draw",
+		    G_CALLBACK (on_draw_event),
+		    NULL);
+  gtk_widget_set_events (drawing_area,
+		        gtk_widget_get_events (drawing_area) | GDK_BUTTON_PRESS_MASK | GDK_POINTER_MOTION_MASK);
   setup_transparency (window);
   return window;
 }
@@ -283,15 +284,21 @@ draw_video_cursor (cairo_t *cr, GtkWidget *widget)
   int x, y;
   get_desktop_mouse_location (&x, &y);
   GdkWindow *root_win = gdk_get_default_root_window ();
-  cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 32, 32);
-  GdkPixbuf *pb = gdk_pixbuf_get_from_window (root_win, x - 16, y - 16, 32, 32);
+  cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+		                                         32, 32);
+  GdkPixbuf *pb = gdk_pixbuf_get_from_window (root_win, 
+		                              x - 16,
+					      y - 16,
+					      32,
+					      32);
   cairo_t   *desktop = cairo_create (surface);
   gdk_cairo_set_source_pixbuf (desktop, pb, 0, 0);
   cairo_paint (desktop);
 
   // average over all pixels
   unsigned char *pixels = cairo_image_surface_get_data (surface);
-  int stride = cairo_image_surface_get_stride (surface); // gives back 128 = 32 pixels * 4 bytes each
+  // gives back 128 = 32 pixels * 4 bytes each
+  int stride = cairo_image_surface_get_stride (surface);
   gint avg_pixel = 0;
   for (int ii = 0; ii < 32; ii++)
     {
@@ -401,7 +408,8 @@ on_cursor_click (GtkToggleButton *toolbutton, gpointer func_data)
           // build cursor window
           g_debug ("Building cursor window\n");
           annotation_data->cursor_window = create_cursor_window ();
-          gtk_widget_input_shape_combine_region (annotation_data->cursor_window, NULL);
+          gtk_widget_input_shape_combine_region (annotation_data->cursor_window,
+			                         NULL);
         }
 
       annotation_data->is_cursor_visible = TRUE;
@@ -412,7 +420,9 @@ on_cursor_click (GtkToggleButton *toolbutton, gpointer func_data)
       gtk_widget_hide (annotation_data->cursor_window);
       gtk_widget_show_all (annotation_data->cursor_window);
       move_cursor_window (NULL);
-      annotation_data->cursor_timer = g_timeout_add (100, move_cursor_window, NULL);
+      annotation_data->cursor_timer = g_timeout_add (100,
+		                                     move_cursor_window,
+						     NULL);
     }
 }
 
@@ -423,12 +433,15 @@ on_clapperboard_click (GtkToolButton *toolbutton, gpointer func_data)
   gboolean grab_value = bar_data->grab;
   bar_data->grab      = FALSE;
   annotate_release_grab ();
+  GtkWidget *annotation_window = get_annotation_window ();
   if (annotation_data->clapperboard_cairo_context == NULL)
     {
-      int width = gtk_widget_get_allocated_width (annotation_data->annotation_window);
-      int height = gtk_widget_get_allocated_height (annotation_data->annotation_window);
-      annotation_data->clapperboard_cairo_context = create_new_context (width, height);
-      load_color_onto_context (BLACK, annotation_data->clapperboard_cairo_context);
+      int width = gtk_widget_get_allocated_width (annotation_window);
+      int height = gtk_widget_get_allocated_height (annotation_window);
+      annotation_data->clapperboard_cairo_context = create_new_context (width,
+		                                                        height);
+      load_color_onto_context (BLACK,
+		               annotation_data->clapperboard_cairo_context);
     }
 
   annotation_data->is_clapperboard_visible = TRUE;
@@ -436,7 +449,7 @@ on_clapperboard_click (GtkToolButton *toolbutton, gpointer func_data)
   // make the screen black and then go back to what it was before
   bar_data->grab = grab_value;
   start_tool (bar_data);
-  gtk_widget_queue_draw (annotation_data->annotation_window);
+  gtk_widget_queue_draw (annotation_window);
   begin_clapperboard_countdown ();
 }
 
@@ -453,14 +466,18 @@ on_new_click (GtkToolButton *toolbutton, gpointer func_data)
 }
 
 G_MODULE_EXPORT void
-on_recordingstudio_window_destroy_event (GtkWidget *widget, GdkEvent *event, gpointer data)
+on_recordingstudio_window_destroy_event (GtkWidget *widget,
+		                         GdkEvent *event,
+					 gpointer data)
 {
 
   g_debug ("recording studio window being destroyed\n");
 }
 
 G_MODULE_EXPORT gboolean
-on_recordingstudio_window_delete_event (GtkWidget *widget, GdkEvent *event, gpointer data)
+on_recordingstudio_window_delete_event (GtkWidget *widget,
+		                        GdkEvent *event,
+					gpointer data)
 {
   gtk_widget_hide (widget);
   return TRUE;

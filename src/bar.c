@@ -81,8 +81,13 @@ calculate_position (GtkWidget *ardesia_bar_window,
  * Calculate the initial position.
  */
 static void
-calculate_initial_position (GtkWidget *ardesia_bar_window, gint *x, gint *y, gint w_width,
-                            gint w_height, GdkRectangle *rect, gint position)
+calculate_initial_position (GtkWidget *ardesia_bar_window,
+		            gint *x,
+			    gint *y,
+			    gint w_width,
+                            gint w_height,
+			    GdkRectangle *rect,
+			    gint position)
 {
   gint d_width  = rect->width;
   gint d_height = rect->height;
@@ -167,7 +172,9 @@ get_xdg_config_file (const char *name)
  * @rect    the monitor rectangle to place toolbar on
  */
 GtkWidget *
-create_bar_window (CommandLine *commandline, GdkRectangle *rect, GtkWidget *parent)
+create_bar_window (CommandLine *commandline,
+		   GdkRectangle *rect,
+		   GtkWidget *parent)
 {
   GtkWidget *bar_window = (GtkWidget *) NULL;
   bar_data              = (BarData *) NULL;
@@ -213,7 +220,9 @@ create_bar_window (CommandLine *commandline, GdkRectangle *rect, GtkWidget *pare
         }
     }
 
-  /* Load the bar_gtk_builder file with the definition of the ardesia bar gui. */
+  /* 
+   * Load the bar_gtk_builder file with the definition
+   * of the ardesia bar gui. */
   g_debug ("Bar ui file: %s\n", file);
   gtk_builder_add_from_file (bar_gtk_builder, file, &error);
   if (error)
@@ -226,8 +235,9 @@ create_bar_window (CommandLine *commandline, GdkRectangle *rect, GtkWidget *pare
     }
 
   bar_data = init_bar_data ();
+  GObject *bar_obj = gtk_builder_get_object (bar_gtk_builder, BAR_WIDGET_NAME);
 
-  bar_window = GTK_WIDGET (gtk_builder_get_object (bar_gtk_builder, BAR_WIDGET_NAME));
+  bar_window = GTK_WIDGET (bar_obj);
   gtk_widget_set_name (bar_window, BAR_WIDGET_NAME);
   gtk_window_set_transient_for (GTK_WINDOW (bar_window), GTK_WINDOW (parent));
 
@@ -304,7 +314,8 @@ bar_to_top (gpointer data)
 gboolean
 is_toggle_tool_button_active (gchar *toggle_tool_button_name)
 {
-  GObject *g_object = gtk_builder_get_object (bar_gtk_builder, toggle_tool_button_name);
+  GObject *g_object = gtk_builder_get_object (bar_gtk_builder,
+		                              toggle_tool_button_name);
   GtkToggleToolButton *toggle_tool_button = GTK_TOGGLE_TOOL_BUTTON (g_object);
   return gtk_toggle_tool_button_get_active (toggle_tool_button);
 }
@@ -396,7 +407,8 @@ take_pen_tool ()
     {
       GObject *eraser_obj = gtk_builder_get_object (bar_gtk_builder,
                                                     "buttonEraser");
-      GtkToggleToolButton *eraser_tool_button = GTK_TOGGLE_TOOL_BUTTON (eraser_obj);
+      GtkToggleToolButton *eraser_tool_button = NULL;
+      eraser_tool_button = GTK_TOGGLE_TOOL_BUTTON (eraser_obj);
       gtk_toggle_tool_button_set_active (eraser_tool_button, FALSE);
       gtk_toggle_tool_button_set_active (pencil_tool_button, TRUE);
     }
@@ -405,7 +417,8 @@ take_pen_tool ()
     {
       GObject *pointer_obj = gtk_builder_get_object (bar_gtk_builder,
                                                      "buttonPointer");
-      GtkToggleToolButton *pointer_tool_button = GTK_TOGGLE_TOOL_BUTTON (pointer_obj);
+      GtkToggleToolButton *pointer_tool_button = NULL;
+      pointer_tool_button = GTK_TOGGLE_TOOL_BUTTON (pointer_obj);
       gtk_toggle_tool_button_set_active (pointer_tool_button, FALSE);
       gtk_toggle_tool_button_set_active (pencil_tool_button, TRUE);
     }
@@ -432,7 +445,9 @@ release_lock (BarData *bar_data)
       annotate_release_grab ();
 
       /* Try to up-rise the window. */
-      timer = g_timeout_add (BAR_TO_TOP_TIMEOUT, bar_to_top, get_annotation_window ());
+      timer = g_timeout_add (BAR_TO_TOP_TIMEOUT,
+		             bar_to_top,
+			     get_annotation_window ());
 #ifdef _WIN32 // WIN32
       if (gtk_window_get_opacity (GTK_WINDOW (get_annotation_window ())) != 0)
         {
@@ -470,12 +485,14 @@ lock (BarData *bar_data)
 #ifdef _WIN32 // WIN32
 
       /*
-       * @HACK Deny the mouse input to go below the window putting the opacity greater than 0
+       * @HACK Deny the mouse input to go below the window putting
+       * the opacity greater than 0.
        * @TODO remove the opacity hack when will be solved the next todo.
        */
       if (gtk_window_get_opacity (GTK_WINDOW (get_background_window ())) == 0)
         {
-          gtk_window_set_opacity (GTK_WINDOW (get_background_window ()), BACKGROUND_OPACITY);
+          gtk_window_set_opacity (GTK_WINDOW (get_background_window ()),
+			          BACKGROUND_OPACITY);
         }
 #endif
     }
@@ -504,7 +521,8 @@ set_options (BarData *bar_data)
 
   annotate_set_thickness (bar_data->thickness);
 
-  if (is_pen_toggle_tool_button_active () || is_highlighter_toggle_tool_button_active () ||
+  if (is_pen_toggle_tool_button_active ()         ||
+      is_highlighter_toggle_tool_button_active () ||
       is_arrow_toggle_tool_button_active ())
     {
       annotate_set_color (bar_data->color);
@@ -522,8 +540,10 @@ start_tool (BarData *bar_data)
 {
   if (bar_data->grab)
     {
-      annotate_release_grab (); // release the old cursor
-      annotate_acquire_grab (); // grab the pointer again so that button release will respond
+      // release the old cursor
+      annotate_release_grab ();
+      // grab the pointer again so that button release will respond
+      annotate_acquire_grab ();
 
       if (is_text_toggle_tool_button_active ())
         {

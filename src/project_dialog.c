@@ -48,10 +48,14 @@ start_project_dialog ()
   project_data->project_dialog_gtk_builder = gtk_builder_new ();
 
   /* Load the gtk builder file created with glade */
-  gtk_builder_add_from_file (project_data->project_dialog_gtk_builder, PROJECT_UI_FILE, NULL);
+  gtk_builder_add_from_file (project_data->project_dialog_gtk_builder,
+		             PROJECT_UI_FILE,
+			     NULL);
 
   /* Fill the window by the gtk builder xml */
-  project_obj = gtk_builder_get_object (project_data->project_dialog_gtk_builder, "projectDialog");
+  project_obj = gtk_builder_get_object (project_data->project_dialog_gtk_builder,
+		                        "projectDialog");
+
   project_dialog = GTK_WIDGET (project_obj);
   gtk_window_set_modal (GTK_WINDOW (project_dialog), TRUE);
   gtk_window_set_keep_above (GTK_WINDOW (project_dialog), TRUE);
@@ -66,6 +70,7 @@ start_project_dialog ()
 
   dialog_obj = gtk_builder_get_object (project_data->project_dialog_gtk_builder,
                                        "projectDialogEntry");
+
   dialog_entry = GTK_WIDGET (dialog_obj);
 
   project_data->project_name = g_strdup_printf ("ardesia_project_%s", date);
@@ -74,7 +79,8 @@ start_project_dialog ()
                             project_data->project_name, -1, &pos);
 
   /* Connect all signals by reflection. */
-  gtk_builder_connect_signals (project_data->project_dialog_gtk_builder, (gpointer) project_data);
+  gtk_builder_connect_signals (project_data->project_dialog_gtk_builder,
+		               (gpointer) project_data);
 
   gtk_dialog_run (GTK_DIALOG (project_dialog));
 

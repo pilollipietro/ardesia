@@ -27,7 +27,9 @@
 
 /* This shot when the text entry is in focus. */
 G_MODULE_EXPORT gboolean
-on_project_dialog_entry_focus_in_event (GtkWidget *widget, GdkEvent *event, gpointer func_data)
+on_project_dialog_entry_focus_in_event (GtkWidget *widget,
+		                        GdkEvent *event,
+					gpointer func_data)
 {
   start_virtual_keyboard ();
   return TRUE;

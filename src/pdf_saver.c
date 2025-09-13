@@ -61,14 +61,19 @@ start_save_pdf_dialog (GtkWindow *parent, GdkPixbuf *pixbuf)
 
   /* Save the preview in a image buffer. */
   preview        = gtk_image_new ();
-  preview_pixbuf = gdk_pixbuf_scale_simple (pixbuf, preview_width,
-                                            preview_height, GDK_INTERP_BILINEAR);
+
+  preview_pixbuf = gdk_pixbuf_scale_simple (pixbuf,
+		                            preview_width,
+                                            preview_height,
+					    GDK_INTERP_BILINEAR);
+
   gtk_image_set_from_pixbuf (GTK_IMAGE (preview), preview_pixbuf);
 
   gtk_file_chooser_set_preview_widget (GTK_FILE_CHOOSER (chooser), preview);
   g_object_unref (preview_pixbuf);
 
-  gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (chooser), get_project_dir ());
+  gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (chooser),
+		                       get_project_dir ());
 
   filename = get_default_filename ();
 
@@ -83,7 +88,9 @@ start_save_pdf_dialog (GtkWindow *parent, GdkPixbuf *pixbuf)
 
       if (! g_str_has_suffix (filename, supported_extension))
         {
-          pdf_data->filename = g_strdup_printf ("%s%s", filename, supported_extension);
+          pdf_data->filename = g_strdup_printf ("%s%s",
+			                        filename,
+						supported_extension);
         }
       else
         {
@@ -141,11 +148,14 @@ init_pdf_saver (GtkWindow *parent, GdkPixbuf *pixbuf)
 static void
 pdf_save ()
 {
-  int width = gtk_widget_get_allocated_width (annotation_data->annotation_window);
-  int height = gtk_widget_get_allocated_height (annotation_data->annotation_window);
+  GtkWidget *annotation_window = get_annotation_window ();
+  int width = gtk_widget_get_allocated_width (annotation_window);
+  int height = gtk_widget_get_allocated_height (annotation_window);
 
   /* create the cairo surface for pdf */
-  cairo_surface_t *pdf_surface = cairo_pdf_surface_create (pdf_data->filename, width, height);
+  cairo_surface_t *pdf_surface = cairo_pdf_surface_create (pdf_data->filename,
+		                                           width,
+							   height);
   cairo_t *pdf_cr = cairo_create (pdf_surface);
 
   gint lenght = g_slist_length (pdf_data->input_filelist);
@@ -191,16 +201,18 @@ void
 add_pdf_page_callback (GdkPixbuf *pixbuf)
 {
   GtkWidget *parent = get_bar_widget ();
+  GtkWidget *annotation_window = get_annotation_window ();
 
-  int width = gtk_widget_get_allocated_width (annotation_data->annotation_window);
-  int height = gtk_widget_get_allocated_height (annotation_data->annotation_window);
+  int width = gtk_widget_get_allocated_width (annotation_window);
+  int height = gtk_widget_get_allocated_height (annotation_window);
   cairo_surface_t *saved_surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
                                                                width, height);
 
   cairo_t     *cr               = cairo_create (saved_surface);
   const gchar *tmp_dir          = g_get_tmp_dir ();
   gchar       *default_filename = get_default_filename ();
-  gchar *screenshoot_name = g_strdup_printf ("%s_screenshoot.png", default_filename);
+  gchar *screenshoot_name = g_strdup_printf ("%s_screenshoot.png",
+		                             default_filename);
   gchar  *filename = g_build_filename (tmp_dir, screenshoot_name, (gchar *) 0);
   GError *err      = NULL;
 
@@ -208,7 +220,10 @@ add_pdf_page_callback (GdkPixbuf *pixbuf)
 
   g_free (default_filename);
 
-  /* Load a surface with the data->annotation_cairo_context content and write the file. */
+  /* 
+   * Load a surface with the data->annotation_cairo_context content
+   * and write the file.
+   */
   gdk_cairo_set_source_pixbuf (cr, pixbuf, 0, 0);
   cairo_paint (cr);
   cairo_surface_write_to_png (saved_surface, filename);
@@ -225,13 +240,16 @@ add_pdf_page_callback (GdkPixbuf *pixbuf)
     }
 
   g_object_unref (pixbuf);
-  pdf_data->input_filelist = g_slist_prepend (pdf_data->input_filelist, filename);
+  pdf_data->input_filelist = g_slist_prepend (pdf_data->input_filelist,
+		                              filename);
 
   wait_for_pdf_save_pending_thread ();
 
   /* Start save thread. */
-  if ((pdf_data->thread = g_thread_try_new ("pdf_thread", (GThreadFunc) pdf_save,
-                                            (void *) NULL, &err)) == NULL)
+  if ((pdf_data->thread = g_thread_try_new ("pdf_thread",
+				            (GThreadFunc) pdf_save,
+                                            (void *) NULL,
+					    &err)) == NULL)
     {
       g_printerr ("Thread create failed: %s!!\n", err->message);
       g_error_free (err);
@@ -249,11 +267,13 @@ quit_pdf_saver ()
       /* Free the list and all the buffers inside it. */
       while (pdf_data->input_filelist)
         {
-          gchar *filename = (gchar *) g_slist_nth_data (pdf_data->input_filelist, 0);
+          gchar *filename = (gchar *) g_slist_nth_data (pdf_data->input_filelist,
+			                                0);
           if (filename)
             {
               g_remove (filename);
-              pdf_data->input_filelist = g_slist_remove (pdf_data->input_filelist, filename);
+              pdf_data->input_filelist = g_slist_remove (pdf_data->input_filelist,
+			                                 filename);
               g_free (filename);
               filename = NULL;
             }

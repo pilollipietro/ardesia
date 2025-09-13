@@ -105,7 +105,9 @@ print_device_info (GdkDevice *device)
       g_debug ("Device %d: Number of Axes : %d\n", deviceIndex,
                gdk_device_get_n_axes (device));
     }
-  g_debug ("Device %d: Source : %d\n", deviceIndex, gdk_device_get_source (device));
+  g_debug ("Device %d: Source : %d\n",
+           deviceIndex,
+	   gdk_device_get_source (device));
   switch (gdk_device_get_source (device))
     {
     case 0:
@@ -161,7 +163,8 @@ remove_input_device (GdkDevice *device, AnnotateData *data)
 {
   if (data)
     {
-      AnnotateDeviceData *devdata = g_hash_table_lookup (data->devdatatable, device);
+      AnnotateDeviceData *devdata = g_hash_table_lookup (data->devdatatable,
+		                                         device);
       annotate_coord_dev_list_free (devdata);
       g_hash_table_remove (data->devdatatable, device);
     }
@@ -182,7 +185,8 @@ grab_pointer (GtkWidget *widget, GdkEventMask eventmask)
   gdk_x11_display_error_trap_push (display);
 
   result = gdk_seat_grab (device_manager, gtk_widget_get_window (widget),
-                          GDK_SEAT_CAPABILITY_ALL_POINTING, TRUE, NULL, NULL, NULL, NULL);
+                          GDK_SEAT_CAPABILITY_ALL_POINTING, TRUE,
+			  NULL, NULL, NULL, NULL);
 
   gdk_display_flush (display);
   if (gdk_x11_display_error_trap_pop (display))

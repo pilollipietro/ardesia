@@ -122,7 +122,9 @@ gchar *gdkcolor_to_rgb (GdkRGBA *gdkcolor);
 gchar *gdkrgba_to_rgba (GdkRGBA *gdkcolor);
 
 /* Scale the surface with the width and height requested */
-cairo_surface_t *scale_surface (cairo_surface_t *surface, gdouble width, gdouble height);
+cairo_surface_t *scale_surface (cairo_surface_t *surface,
+		                gdouble width,
+				gdouble height);
 
 /* Set the cairo surface color to the RGBA string. */
 void cairo_set_source_color_from_string (cairo_t *cr, gchar *color);
@@ -191,10 +193,16 @@ void rmdir_recursive (gchar *path);
 void remove_dir_if_empty (gchar *dir_path);
 
 /* Allocate a new point belonging to the path passing the values. */
-AnnotatePoint *allocate_point (gdouble x, gdouble y, gdouble width, gdouble pressure);
+AnnotatePoint *allocate_point (gdouble x,
+		               gdouble y,
+			       gdouble width,
+			       gdouble pressure);
 
 /* Send an email. */
-void send_email (gchar *to, gchar *subject, gchar *body, GSList *attachment_list);
+void send_email (gchar *to,
+		 gchar *subject,
+		 gchar *body,
+		 GSList *attachment_list);
 
 /* Send artefacts with email. */
 void send_artifacts_with_email (GSList *attachment_list);
@@ -228,4 +236,7 @@ void get_surface_size (cairo_surface_t *surface, int *width, int *height);
 
 void get_context_size (cairo_t *cr, int *width, int *height);
 
-void save_cairo_context (cairo_t *cr, gchar *savedir, gchar *category, int index);
+void save_cairo_context (cairo_t *cr,
+		         gchar *savedir,
+			 gchar *category,
+			 int index);

@@ -73,14 +73,16 @@ start_preference_dialog (GtkWindow *parent)
   preference_data = g_malloc ((gsize) sizeof (PreferenceData));
 
   /* Initialize the main window. */
-  preference_data->preference_dialog_gtk_builder = gtk_builder_new ();
+  GtkBuilder *preference_dialog_gtk_builder = gtk_builder_new ();
+  preference_data->preference_dialog_gtk_builder = preference_dialog_gtk_builder;
 
   /* Load the gtk builder file created with glade. */
-  gtk_builder_add_from_file (preference_data->preference_dialog_gtk_builder,
-                             PREFERENCE_UI_FILE, NULL);
+  gtk_builder_add_from_file (preference_dialog_gtk_builder,
+                             PREFERENCE_UI_FILE,
+			     NULL);
 
   /* Take the preference object. */
-  preference_obj = gtk_builder_get_object (preference_data->preference_dialog_gtk_builder,
+  preference_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
                                            "preferences");
 
   preference_dialog = GTK_WIDGET (preference_obj);
@@ -89,7 +91,7 @@ start_preference_dialog (GtkWindow *parent)
   gtk_window_set_modal (GTK_WINDOW (preference_dialog), TRUE);
   gtk_window_set_keep_above (GTK_WINDOW (preference_dialog), TRUE);
 
-  img_obj = gtk_builder_get_object (preference_data->preference_dialog_gtk_builder,
+  img_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
                                     "imageChooserButton");
 
   chooser = GTK_FILE_CHOOSER (img_obj);
@@ -105,20 +107,20 @@ start_preference_dialog (GtkWindow *parent)
   preference_data->preview = gtk_image_new ();
   gtk_file_chooser_set_preview_widget (chooser, preference_data->preview);
 
-  bg_color_obj = gtk_builder_get_object (preference_data->preference_dialog_gtk_builder,
+  bg_color_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
                                          "backgroundColorButton");
 
   gtk_color_chooser_set_use_alpha (GTK_COLOR_CHOOSER (bg_color_obj), TRUE);
 
   /* Connect all signals by reflection. */
-  gtk_builder_connect_signals (preference_data->preference_dialog_gtk_builder,
+  gtk_builder_connect_signals (preference_dialog_gtk_builder,
                                (gpointer) preference_data);
 
   gint background_type = background_data->type;
 
   if (background_type == 1)
     {
-      GObject *color_obj = gtk_builder_get_object (preference_data->preference_dialog_gtk_builder,
+      GObject *color_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
                                                    "color");
 
       GtkToggleButton *color_tool_button = GTK_TOGGLE_BUTTON (color_obj);
@@ -126,7 +128,7 @@ start_preference_dialog (GtkWindow *parent)
     }
   else if (background_type == 2)
     {
-      GObject *file_obj = gtk_builder_get_object (preference_data->preference_dialog_gtk_builder,
+      GObject *file_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
                                                   "file");
 
       GtkToggleButton *image_tool_button = GTK_TOGGLE_BUTTON (file_obj);
@@ -155,7 +157,7 @@ start_preference_dialog (GtkWindow *parent)
       preference_dialog = NULL;
     }
 
-  g_object_unref (preference_data->preference_dialog_gtk_builder);
+  g_object_unref (preference_dialog_gtk_builder);
   preference_data->preference_dialog_gtk_builder = NULL;
   g_free (preference_data);
   preference_data = NULL;

@@ -151,18 +151,25 @@ spline (GSList *list)
     {
 
       /* B second derivates */
-      // printf ("%d: Bx'' (0) = %lf\n", i+1, 6*mx[i][0]-12*mp[i][0]+6*mq[i][0]);
-      // printf ("%d: Bx'' (1) = %lf\n\n", i+1, 6*mp[i][0]-12*mq[i][0]+6*mx[i+1][0]);
+      // printf ("%d: Bx'' (0) = %lf\n",
+      //         i+1,
+      //         6*mx[i][0]-12*mp[i][0]+6*mq[i][0]);
+      // printf ("%d: Bx'' (1) = %lf\n\n",
+      //         i+1,
+      //         6*mp[i][0]-12*mq[i][0]+6*mx[i+1][0]);
 
       /* B first derivates */
       // printf ("%d: Bx' (0) = %lf\n", i+1, -3*mx[i][0]+3*mp[i][0]);
       // printf ("%d: Bx' (1) = %lf\n", i+1, -3*mq[i][0]+3*mx[i+1][0]);
 
-      AnnotatePoint *first_point = allocate_point (mp[i][0], mp[i][1], width, pressure);
+      AnnotatePoint *first_point = allocate_point (mp[i][0], mp[i][1],
+		                                   width, pressure);
 
-      AnnotatePoint *second_point = allocate_point (mq[i][0], mq[i][1], width, pressure);
+      AnnotatePoint *second_point = allocate_point (mq[i][0], mq[i][1],
+		                                    width, pressure);
 
-      AnnotatePoint *third_point = allocate_point (mx[i + 1][0], mx[i + 1][1], width, pressure);
+      AnnotatePoint *third_point = allocate_point (mx[i + 1][0], mx[i + 1][1],
+		                                   width, pressure);
 
       ret = g_slist_prepend (ret, first_point);
       ret = g_slist_prepend (ret, second_point);

@@ -29,23 +29,35 @@
 BOOL (WINAPI *setLayeredWindowAttributesProc)
 (HWND hwnd, COLORREF cr_key, BYTE b_alpha, DWORD dw_flags) = NULL;
 
-/* This is needed to wrap the setLayeredWindowAttributes throught the windows user32 dll. */
+/*
+ * This is needed to wrap the setLayeredWindowAttributes
+ * throught the windows user32 dll.
+ * */
 void
-setLayeredGdkWindowAttributes (GdkWindow *gdk_window, COLORREF cr_key, BYTE b_alpha, DWORD dw_flags)
+setLayeredGdkWindowAttributes (GdkWindow *gdk_window,
+		               COLORREF cr_key,
+			       BYTE b_alpha,
+			       DWORD dw_flags)
 {
   HWND      hwnd       = GDK_WINDOW_HWND (gdk_window);
   HINSTANCE h_instance = LoadLibraryA ("user32");
 
-  setLayeredWindowAttributesProc = (BOOL (WINAPI *) (HWND hwnd, COLORREF cr_key,
-                                                     BYTE b_alpha, DWORD dw_flags))
-      GetProcAddress (h_instance, "SetLayeredWindowAttributes");
+  setLayeredWindowAttributesProc = (BOOL (WINAPI *) (HWND hwnd,
+			                             COLORREF cr_key,
+                                                     BYTE b_alpha,
+						     DWORD dw_flags))
+
+  GetProcAddress (h_instance, "SetLayeredWindowAttributes");
 
   setLayeredWindowAttributesProc (hwnd, cr_key, b_alpha, dw_flags);
 }
 
 /* Send an email with MAPI. */
 void
-windows_send_email (gchar *to, gchar *subject, gchar *body, GSList *attachment_list)
+windows_send_email (gchar *to,
+		    gchar *subject,
+		    gchar *body,
+		    GSList *attachment_list)
 {
   HINSTANCE      inst;
   LPMAPISENDMAIL MAPISendMail;
@@ -95,7 +107,10 @@ windows_send_email (gchar *to, gchar *subject, gchar *body, GSList *attachment_l
 
 /* Create a link with icon. */
 void
-windows_create_link (gchar *src, gchar *dest, gchar *icon_path, int icon_index)
+windows_create_link (gchar *src,
+		     gchar *dest,
+		     gchar *icon_path,
+		     int icon_index)
 {
 
   gchar *extension     = "lnk";
@@ -115,13 +130,22 @@ windows_create_link (gchar *src, gchar *dest, gchar *icon_path, int icon_index)
                     &IID_IShellLink, (LPVOID *) &shell_link);
 
   shell_link->lpVtbl->SetPath (shell_link, (LPCTSTR) src);
-  shell_link->lpVtbl->SetIconLocation (shell_link, (LPCTSTR) icon_path, icon_index);
 
-  shell_link->lpVtbl->QueryInterface (shell_link, &IID_IPersistFile, (LPVOID *) &persist_file);
+  shell_link->lpVtbl->SetIconLocation (shell_link,
+		                       (LPCTSTR) icon_path,
+				       icon_index);
 
-  MultiByteToWideChar (CP_ACP, 0, (PTSTR) link_filename, -1, wsz, MAX_PATH);
+  shell_link->lpVtbl->QueryInterface (shell_link,
+		                      &IID_IPersistFile,
+				      (LPVOID *) &persist_file);
+
+  MultiByteToWideChar (CP_ACP,
+		       0,
+		       (PTSTR) link_filename,
+		       -1,
+		       wsz, MAX_PATH);
+
   g_free (link_filename);
-
   persist_file->lpVtbl->Save (persist_file, wsz, TRUE);
   persist_file->lpVtbl->Release (persist_file);
   shell_link->lpVtbl->Release (shell_link);

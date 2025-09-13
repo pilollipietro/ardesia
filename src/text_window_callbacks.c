@@ -45,7 +45,10 @@ is_above_virtual_keyboard (gint x, gint y)
     {
       return FALSE;
     }
-  if ((rect.left < x) && (x < rect.right) && (rect.top < y) && (y < rect.bottom))
+  if ((rect.left < x)  &&
+      (x < rect.right) &&
+      (rect.top < y)   &&
+      (y < rect.bottom))
     {
       return TRUE;
     }
@@ -53,22 +56,22 @@ is_above_virtual_keyboard (gint x, gint y)
 }
 #endif
 
-/* The windows has been exposed. Need Double Buffering to be activated for this to work properly*/
+/*
+ * The windows has been exposed.
+ * Need Double Buffering to be activated for this to work properly
+ */
 G_MODULE_EXPORT gboolean
 on_text_window_expose_event (GtkWidget *widget, cairo_t *cr, gpointer data)
 {
   return FALSE;
 }
 
-/* This is called when the button is leased. */
-// G_MODULE_EXPORT gboolean
-// on_text_window_button_release     (GtkWidget       *win,
-//                                    GdkEventButton  *ev,
-//                                    gpointer         user_data)
-// {
 gboolean
-on_text_window_button_release (GtkWidget *win, GdkEventButton *ev, TextData *data)
+on_text_window_button_release (GtkWidget *win,
+		               GdkEventButton *ev,
+			       TextData *data)
 {
+  GtkWidget *annotation_window = get_annotation_window ();
   g_debug ("on_text_window_button_release BEGIN\n");
   /* only button1 allowed */
   if (ev->button != 1)
@@ -100,12 +103,13 @@ on_text_window_button_release (GtkWidget *win, GdkEventButton *ev, TextData *dat
       text_config->start_x = ev->x;
       replace_status_message (g_strdup_printf ("on_text_window_button_release: "
                                                "text pos: %f %f",
-                                               text_data->pos->x, text_data->pos->y));
+                                               text_data->pos->x,
+					       text_data->pos->y));
 
       /* This present the ardesia bar and the panels. */
       gtk_window_present (GTK_WINDOW (get_bar_widget ()));
-      gtk_window_present (GTK_WINDOW (annotation_data->annotation_window));
-      gdk_window_raise (gtk_widget_get_window (annotation_data->annotation_window));
+      gtk_window_present (GTK_WINDOW (annotation_window));
+      gdk_window_raise (gtk_widget_get_window (annotation_window));
 
       stop_virtual_keyboard ();
       start_virtual_keyboard ();
@@ -119,7 +123,9 @@ on_text_window_button_release (GtkWidget *win, GdkEventButton *ev, TextData *dat
 
 /* This shots when the text pointer is moving. */
 G_MODULE_EXPORT gboolean
-on_text_window_cursor_motion (GtkWidget *win, GdkEventMotion *ev, gpointer func_data)
+on_text_window_cursor_motion (GtkWidget *win,
+		              GdkEventMotion *ev,
+			      gpointer func_data)
 {
 #ifdef _WIN32
   if (inside_bar_window (ev->x_root, ev->y_root))
@@ -161,10 +167,14 @@ draw_character (cairo_t *cr, CharInfo *char_info)
           weight *= 5;
         }
 
-      // sscanf( char_info->color, "%02X%02X%02X%02X", &r, &g, &b, &a);
       if (char_info->background_color != NULL)
         {
-          sscanf (char_info->background_color, "%02X%02X%02X%02X", &br, &bg, &bb, &ba);
+          sscanf (char_info->background_color,
+		  "%02X%02X%02X%02X",
+		  &br,
+		  &bg,
+		  &bb,
+		  &ba);
         }
 
       cairo_save (cr);
@@ -172,20 +182,16 @@ draw_character (cairo_t *cr, CharInfo *char_info)
                 char_info->y, char_info->color, char_info->font_family);
 
       cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
-      // cairo_set_source_rgba( cr, r, g, b, a);
 
       cairo_set_line_width (cr, char_info->pen_width);
       cairo_set_source_color_from_string (cr, char_info->color);
-      // cairo_set_font_size (cr, char_info->font_size);
-
-      /* Select the font */
-      // cairo_select_font_face (cr, char_info->font_family,
-      //                         CAIRO_FONT_SLANT_NORMAL,
-      //                         CAIRO_FONT_WEIGHT_NORMAL);
 
       // uses the Pango Layout interface
       PangoLayout *layout = pango_cairo_create_layout (cr);
-      pango_layout_set_font_description (layout, char_info->pango_font_description);
+
+      pango_layout_set_font_description (layout,
+		                         char_info->pango_font_description);
+
       pango_layout_set_text (layout, char_info->character, -1);
 
       // match the pango layout with the cairo object and any transformation
@@ -201,9 +207,6 @@ draw_character (cairo_t *cr, CharInfo *char_info)
       char_info->text_width  = text_width;
       char_info->text_height = text_height;
       char_info->baseline    = baseline;
-      // cairo_show_text (cr, char_info->character);
-      // cairo_text_extents (cr, char_info->character, &char_info->extents); // gets the bounding box of the non-whitespace characters
-      // cairo_stroke (cr);
       cairo_surface_flush (cairo_get_target (cr));
       cairo_restore (cr);
 
@@ -228,7 +231,9 @@ is_tab_char (int ch)
 static gboolean
 is_return_char (int ch)
 {
-  return (ch == GDK_KEY_Return) || (ch == GDK_KEY_ISO_Enter) || (ch == GDK_KEY_KP_Enter);
+  return (ch == GDK_KEY_Return)     ||
+	  (ch == GDK_KEY_ISO_Enter) ||
+	  (ch == GDK_KEY_KP_Enter);
 }
 
 static void
@@ -275,7 +280,9 @@ assign_text_properties (CharInfo *char_info)
       char_info->font_family            = g_strdup_printf (
           "%s", pango_font_description_get_family (annotation_data->font));
       char_info->font_size = pango_font_description_get_size (annotation_data->font) / PANGO_SCALE;
-      g_debug ("font: %s, size %d\n", char_info->font_family, char_info->font_size);
+      g_debug ("font: %s, size %d\n",
+	       char_info->font_family,
+	       char_info->font_size);
     }
 }
 
@@ -297,11 +304,7 @@ delete_character ()
       CharInfo *char_info = (CharInfo *) g_slist_nth_data (text_data->letterlist, 0);
       if (char_info)
         {
-          if (g_strcmp0 (char_info->character, "\n") == 0)
-            {
-              // when deleting return we just move the cursor back to where we started
-            }
-          else
+          if (g_strcmp0 (char_info->character, "\n") != 0)
             {
               cairo_save (text_data->cr);
               cairo_set_operator (text_data->cr, CAIRO_OPERATOR_CLEAR);
@@ -310,15 +313,15 @@ delete_character ()
                   cairo_rectangle (text_data->cr,
                                    char_info->x + char_info->extents.x_bearing,
                                    char_info->y + char_info->extents.y_bearing,
-                                   char_info->extents.width, // text_data->pos->x - char_info->x,
+                                   char_info->extents.width,
                                    char_info->extents.height);
                 }
               else
                 {
                   cairo_rectangle (text_data->cr,
-                                   char_info->x, //+ char_info->text_width,
-                                   char_info->y - (char_info->baseline / PANGO_SCALE), //+ char_info->text_height,
-                                   char_info->text_width, // text_data->pos->x - char_info->x,
+                                   char_info->x,
+                                   char_info->y - (char_info->baseline / PANGO_SCALE),
+                                   char_info->text_width,
                                    char_info->text_height);
                 }
               cairo_fill (text_data->cr);   // fill inner piece of rectangle
@@ -328,7 +331,8 @@ delete_character ()
           text_data->pos->x = char_info->x;
           text_data->pos->y = char_info->y;
           destroy_text_properties (char_info);
-          text_data->letterlist = g_slist_remove (text_data->letterlist, char_info);
+          text_data->letterlist = g_slist_remove (text_data->letterlist,
+			                          char_info);
         }
     }
 }
@@ -400,7 +404,9 @@ handle_printable_char (char ch)
 }
 
 G_MODULE_EXPORT gboolean
-on_text_window_key_press_event (GtkWidget *widget, GdkEvent *event, gpointer user_data)
+on_text_window_key_press_event (GtkWidget *widget,
+		                GdkEvent *event,
+				gpointer user_data)
 {
   GdkEventKey *keyEvent = (GdkEventKey *) event;
   g_debug ("on key press event for text window %d\n", keyEvent->keyval);
@@ -417,7 +423,8 @@ on_text_window_key_press_event (GtkWidget *widget, GdkEvent *event, gpointer use
   gboolean closed_to_bar = inside_bar_window (
       text_data->pos->x + text_data->extents.x_advance,
       text_data->pos->y - text_data->max_font_height / 2);
-  int width = gtk_widget_get_allocated_width (GTK_WIDGET (annotation_data->annotation_window));
+  GtkWidget *annotation_window = get_annotation_window ();
+  int width = gtk_widget_get_allocated_width (GTK_WIDGET (annotation_window));
   // int height = gtk_widget_get_allocated_width(text_data->window);
 
   if (is_delete_char (keyEvent->keyval))

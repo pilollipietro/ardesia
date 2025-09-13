@@ -49,7 +49,8 @@ start_info_dialog (GtkToolButton *toolbutton, GtkWindow *parent)
   gtk_window_set_transient_for (GTK_WINDOW (info_dialog), parent);
   gtk_window_set_modal (GTK_WINDOW (info_dialog), TRUE);
 
-  gtk_about_dialog_set_version (GTK_ABOUT_DIALOG (info_dialog), PACKAGE_VERSION);
+  gtk_about_dialog_set_version (GTK_ABOUT_DIALOG (info_dialog),
+		                PACKAGE_VERSION);
 
   /* Connect all signals by reflection. */
   gtk_builder_connect_signals (info_dialog_gtk_builder, NULL);

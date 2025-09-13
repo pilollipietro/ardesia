@@ -65,7 +65,8 @@ create_monitor_list ()
 
       // place monitors in order
       monitors = g_list_insert_sorted_with_data (monitors, m,
-                                                 (GCompareDataFunc) is_to_left_of, NULL);
+                                                 (GCompareDataFunc) is_to_left_of,
+						 NULL);
     }
   return monitors;
 }

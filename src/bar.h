@@ -90,7 +90,9 @@ typedef struct
 extern BarData *bar_data;
 
 /* Create the ardesia bar window. */
-GtkWidget *create_bar_window (CommandLine *commandline, GdkRectangle *rect, GtkWidget *parent);
+GtkWidget *create_bar_window (CommandLine *commandline,
+		              GdkRectangle *rect,
+			      GtkWidget *parent);
 
 gboolean  bar_to_top (gpointer data);
 gboolean  is_toggle_tool_button_active (gchar *toggle_tool_button_name);
@@ -110,7 +112,8 @@ void     add_alpha (BarData *bar_data);
 void     take_pen_tool ();
 void     release_lock (BarData *bar_data);
 void     lock (BarData *bar_data);
-void     set_color (BarData *bar_data, gchar *selected_color);
+void     set_color (BarData *bar_data,
+		    gchar *selected_color);
 void     set_options (BarData *bar_data);
 void     start_tool (BarData *bar_data);
 void     begin_clapperboard_countdown ();

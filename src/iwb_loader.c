@@ -57,12 +57,15 @@ add_background_color_reference (xmlXPathContextPtr context, xmlChar *ref)
   gint     comma_index         = g_substrlastpos ((const gchar *) fill, ",");
   gint     close_bracket_index = g_substrlastpos ((const gchar *) fill, ")");
 
-  gchar *blue = g_substr ((const gchar *) fill, comma_index + 1, close_bracket_index - 1);
+  gchar *blue = g_substr ((const gchar *) fill,
+		          comma_index + 1,
+			  close_bracket_index - 1);
 
   guint16 bd = (guint16) g_ascii_strtoull (blue, NULL, 10);
   g_free (blue);
 
-  gchar *remain_string = g_substr ((const gchar *) fill, open_bracket_index + 1,
+  gchar *remain_string = g_substr ((const gchar *) fill,
+		                   open_bracket_index + 1,
                                    comma_index - 1);
 
   g_free ((gchar *) fill);
@@ -109,7 +112,9 @@ add_background_color_reference (xmlXPathContextPtr context, xmlChar *ref)
 
 /* Follow the ref and load the associated save-point. */
 void
-load_background_by_reference (gchar *project_tmp_dir, xmlXPathContextPtr context, xmlChar *ref)
+load_background_by_reference (gchar *project_tmp_dir,
+		              xmlXPathContextPtr context,
+			      xmlChar *ref)
 {
   xmlChar *xpath = (xmlChar *) g_strdup_printf (
       "/iwb/svg:svg/svg:image[@id='%s']", (gchar *) ref);
@@ -224,18 +229,24 @@ decompress_iwb (gchar *iwbfile, gchar *project_tmp_dir)
 static xmlXPathContextPtr
 register_namespaces (xmlXPathContextPtr context)
 {
-  xmlXPathRegisterNs (context, (xmlChar *) "iwb", (xmlChar *) "http://www.becta.org.uk/iwb");
-  xmlXPathRegisterNs (context, (xmlChar *) "xlink", (xmlChar *) "http://www.w3.org/1999/xlink");
-  xmlXPathRegisterNs (context, (xmlChar *) "svg", (xmlChar *) "http://www.w3.org/2000/svg");
+  xmlXPathRegisterNs (context, (xmlChar *) "iwb",
+		      (xmlChar *) "http://www.becta.org.uk/iwb");
+  xmlXPathRegisterNs (context,
+		      (xmlChar *) "xlink", (xmlChar *) "http://www.w3.org/1999/xlink");
+  xmlXPathRegisterNs (context, (xmlChar *) "svg",
+		      (xmlChar *) "http://www.w3.org/2000/svg");
   return context;
 }
 
 /* Load save-points from iwb. */
 static GSList *
-load_savepoints_by_iwb (GSList *savepoint_list, gchar *project_tmp_dir, xmlXPathContextPtr context)
+load_savepoints_by_iwb (GSList *savepoint_list,
+		        gchar *project_tmp_dir,
+			xmlXPathContextPtr context)
 {
   xmlChar *xpath_get_element = (xmlChar *) "/iwb/iwb:element";
-  xmlXPathObjectPtr result = xmlXPathEvalExpression (xpath_get_element, context);
+  xmlXPathObjectPtr result = xmlXPathEvalExpression (xpath_get_element,
+		                                     context);
   gint i = 0;
 
   if (xmlXPathNodeSetIsEmpty (result->nodesetval))
@@ -261,7 +272,8 @@ load_savepoints_by_iwb (GSList *savepoint_list, gchar *project_tmp_dir, xmlXPath
       else
         {
           /* Follow the ref and take xlink href filename. */
-          savepoint_list = load_savepoint_by_reference (savepoint_list, project_tmp_dir,
+          savepoint_list = load_savepoint_by_reference (savepoint_list,
+			                                project_tmp_dir,
                                                         context, ref);
         }
       xmlFree (ref);
@@ -280,7 +292,9 @@ load_iwb (gchar *iwbfile)
   GSList      *savepoint_list = (GSList *) NULL;
   gchar *ardesia_tmp_dir = g_build_filename (tmpdir, PACKAGE_NAME, (gchar *) 0);
   gchar *project_name    = get_project_name ();
-  gchar *project_tmp_dir = g_build_filename (ardesia_tmp_dir, project_name, (gchar *) 0);
+  gchar *project_tmp_dir = g_build_filename (ardesia_tmp_dir,
+		                             project_name,
+					     (gchar *) 0);
   gchar *content_filename = "content.xml";
   gchar *content_filepath = g_build_filename (project_tmp_dir, content_filename,
                                               (gchar *) 0);
@@ -321,7 +335,9 @@ load_iwb (gchar *iwbfile)
 
   context = register_namespaces (context);
 
-  savepoint_list = load_savepoints_by_iwb (savepoint_list, project_tmp_dir, context);
+  savepoint_list = load_savepoints_by_iwb (savepoint_list,
+		                           project_tmp_dir,
+					   context);
 
   g_remove (content_filepath);
 

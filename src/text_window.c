@@ -157,12 +157,20 @@ assign_text_cursor_to_window (GtkWidget *window)
       cairo_line_to (text_pointer_cr, width - 1, 1);
       cairo_line_to (text_pointer_cr, width - 1, decoration_height);
       cairo_line_to (text_pointer_cr, 2 * width / 3 + 1, decoration_height);
-      cairo_line_to (text_pointer_cr, 2 * width / 3 + 1, height - decoration_height);
+
+      cairo_line_to (text_pointer_cr,
+		     2 * width / 3 + 1,
+		     height - decoration_height);
+
       cairo_line_to (text_pointer_cr, width - 1, height - decoration_height);
       cairo_line_to (text_pointer_cr, width - 1, height - 1);
       cairo_line_to (text_pointer_cr, 1, height - 1);
       cairo_line_to (text_pointer_cr, 1, height - decoration_height);
-      cairo_line_to (text_pointer_cr, width / 3 - 1, height - decoration_height);
+
+      cairo_line_to (text_pointer_cr,
+		     width / 3 - 1,
+		     height - decoration_height);
+
       cairo_line_to (text_pointer_cr, width / 3 - 1, decoration_height);
       cairo_line_to (text_pointer_cr, 1, decoration_height);
       cairo_close_path (text_pointer_cr);
@@ -171,11 +179,17 @@ assign_text_cursor_to_window (GtkWidget *window)
       cairo_restore (text_pointer_cr);
 
       cairo_destroy (text_pointer_cr);
-      pixbuf = gdk_pixbuf_get_from_surface (text_surface_t, 0, 0, width, height);
+      pixbuf = gdk_pixbuf_get_from_surface (text_surface_t,
+		                            0,
+					    0,
+					    width,
+					    height);
 
       cursor = gdk_cursor_new_from_pixbuf (
-          gdk_window_get_display (gtk_widget_get_window (window)), pixbuf,
-          width / 2 - decoration_height, height - decoration_height);
+          gdk_window_get_display (gtk_widget_get_window (window)),
+	  pixbuf,
+          width / 2 - decoration_height,
+	  height - decoration_height);
 
       gdk_window_set_cursor (gtk_widget_get_window (window), cursor);
       gtk_widget_queue_draw (window);
@@ -201,7 +215,8 @@ save_text ()
           if (text_data->letterlist)
             {
               annotate_push_context (text_data->cr);
-              g_slist_free_full (text_data->letterlist, (GDestroyNotify) destroy_text_properties);
+              g_slist_free_full (text_data->letterlist,
+			         (GDestroyNotify) destroy_text_properties);
               text_data->letterlist = NULL;
             }
         }
@@ -231,7 +246,9 @@ set_cursor_height (GtkWidget *widget)
   // this is to find out what size we should make the cursor
   // we don't need the window cairo context for this
   // so we just create a blank surface
-  cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);
+  cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+		                                         width,
+							 height);
   cairo_t *cr = cairo_create (surface);
   cairo_save (cr);
   cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
@@ -240,7 +257,9 @@ set_cursor_height (GtkWidget *widget)
   cairo_set_font_size (cr, text_data->pen_width * 5);
 
   /* Select the font */
-  cairo_select_font_face (cr, text_config->fontfamily, CAIRO_FONT_SLANT_NORMAL,
+  cairo_select_font_face (cr,
+		          text_config->fontfamily,
+			  CAIRO_FONT_SLANT_NORMAL,
                           CAIRO_FONT_WEIGHT_NORMAL);
 
   /* This is a trick; we must found the maximum height of the font. */

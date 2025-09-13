@@ -110,14 +110,16 @@ start_save_image_dialog_callback (GdkPixbuf *buffer)
   /* Save the preview in a buffer. */
   preview        = gtk_image_new ();
   preview_pixbuf = gdk_pixbuf_scale_simple (buffer, preview_width,
-                                            preview_height, GDK_INTERP_BILINEAR);
+                                            preview_height,
+					    GDK_INTERP_BILINEAR);
   gtk_image_set_from_pixbuf (GTK_IMAGE (preview), preview_pixbuf);
 
   gtk_file_chooser_set_preview_widget (GTK_FILE_CHOOSER (chooser), preview);
   g_object_unref (preview_pixbuf);
   preview_pixbuf = NULL;
 
-  gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (chooser), get_project_dir ());
+  gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (chooser),
+		                       get_project_dir ());
 
   filename = get_default_filename ();
 
@@ -137,7 +139,8 @@ start_save_image_dialog_callback (GdkPixbuf *buffer)
       if (! g_str_has_suffix (filename, supported_extension))
         {
           g_free (filename_copy);
-          filename_copy = g_strdup_printf ("%s%s", filename, supported_extension);
+          filename_copy = g_strdup_printf ("%s%s", filename,
+			                   supported_extension);
         }
 
       g_free (filename);

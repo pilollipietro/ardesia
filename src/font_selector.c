@@ -45,11 +45,19 @@ void create_font_selector_window (GtkWindow *parent)
 
     if (annotation_data->font != NULL)
       {
-        gtk_font_chooser_set_font_desc(GTK_FONT_CHOOSER(font_dialog), annotation_data->font);
+        gtk_font_chooser_set_font_desc(GTK_FONT_CHOOSER(font_dialog),
+			               annotation_data->font);
       }
 
-    g_signal_connect(font_dialog, "response", G_CALLBACK(on_font_selector_response), NULL);
-    g_signal_connect(font_dialog, "destroy", G_CALLBACK(on_font_selector_destroy), NULL);
+    g_signal_connect(font_dialog,
+		     "response",
+		     G_CALLBACK(on_font_selector_response),
+		     NULL);
+
+    g_signal_connect(font_dialog,
+		     "destroy",
+		     G_CALLBACK(on_font_selector_destroy),
+		     NULL);
 
     annotation_data->font_window = font_dialog;
   }

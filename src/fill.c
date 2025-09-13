@@ -77,12 +77,17 @@ is_similar_to_old_pixel_value (struct FillInfo *fill_info, gdouble x, gdouble y)
       gfloat deltab = fabs (ob * oa / 256.0 - b * a / 256.0);
 
       /*
-       * It excludes the points with alpha value used for transparent, semitranparent and opaque color.
+       * It excludes the points with alpha value used for transparent,
+       * semitranparent and opaque color.
        * This is a rough way to detect the borders.
        * The points are filtered on threshold and balanced with alpha channel.
        */
-      if ((deltaa != 255) && ((deltaa < 135) || (deltaa > 136)) && (deltaa != 0) &&
-          (deltar < threshold) && (deltag < threshold) && (deltab < threshold))
+      if ((deltaa != 255)                   &&
+	  ((deltaa < 135) ||(deltaa > 136)) &&
+	  (deltaa != 0)                     &&
+          (deltar < threshold)              &&
+	  (deltag < threshold)              &&
+	  (deltab < threshold))
         {
           return TRUE;
         }

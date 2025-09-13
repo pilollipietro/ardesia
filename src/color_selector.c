@@ -37,7 +37,9 @@ static gchar *picked_color = NULL;
  * it return the selected color.
  */
 gchar *
-start_color_selector_dialog (GtkToolButton *toolbutton, GtkWindow *parent, gchar *color)
+start_color_selector_dialog (GtkToolButton *toolbutton,
+		             GtkWindow *parent,
+			     gchar *color)
 {
   GtkToggleToolButton *button    = GTK_TOGGLE_TOOL_BUTTON (toolbutton);
   gchar               *ret_color = NULL;
@@ -49,7 +51,8 @@ start_color_selector_dialog (GtkToolButton *toolbutton, GtkWindow *parent, gchar
       /* Open colour widget. */
       GtkWidget *color_widget = gtk_color_chooser_dialog_new (
           gettext ("Changing colour"), parent);
-      GtkColorChooserDialog *color_dialog = GTK_COLOR_CHOOSER_DIALOG (color_widget);
+      GtkColorChooserDialog *color_dialog = NULL;
+      color_dialog = GTK_COLOR_CHOOSER_DIALOG (color_widget);
       gtk_color_chooser_set_use_alpha (GTK_COLOR_CHOOSER (color_dialog), TRUE);
 
       gint     result = -1;
@@ -73,7 +76,8 @@ start_color_selector_dialog (GtkToolButton *toolbutton, GtkWindow *parent, gchar
       switch (result)
         {
         case GTK_RESPONSE_OK:
-          gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER (color_dialog), gdkcolor);
+          gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER (color_dialog),
+			              gdkcolor);
           ret_color = gdkrgba_to_rgba (gdkcolor);
 
           // reset previously picked color

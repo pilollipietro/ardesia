@@ -30,9 +30,8 @@
 #include "project_dialog.h"
 #include "text_window.h"
 #include "utils.h"
-
-/*ch* External defined structure used to configure text input. (see text_window.c) */
 #include "text_window.h"
+
 extern TextConfig *text_config;
 GtkWidget         *ardesia_bar_window;
 GtkWidget         *background_window;
@@ -47,7 +46,8 @@ get_toolbar_area ()
     {
       if (commandline->mode == DRAW_ON_MONITOR)
         {
-          Monitor *monitor = g_list_nth_data (workspace->monitors, commandline->tools_monitor);
+          Monitor *monitor = g_list_nth_data (workspace->monitors,
+			                      commandline->tools_monitor);
           return monitor->rect;
         }
     }
@@ -72,12 +72,14 @@ get_drawable_area ()
                          "to monitor 0.\n");
               commandline->workspace_monitor = 0;
             }
-          Monitor *monitor = g_list_nth_data (workspace->monitors, commandline->workspace_monitor);
+          Monitor *monitor = g_list_nth_data (workspace->monitors,
+			                      commandline->workspace_monitor);
           return monitor->rect;
         }
       else if (commandline->mode == DRAW_ON_FULLDESKTOP)
         {
-          GdkWindow *rootwindow = gdk_screen_get_root_window (gdk_screen_get_default ());
+	  GdkScreen  *screen  = gdk_screen_get_default ();
+          GdkWindow *rootwindow = gdk_screen_get_root_window (screen);
           int maxwidth                  = gdk_window_get_width (rootwindow);
           int maxheight                 = gdk_window_get_height (rootwindow);
           commandline->clipRect->x      = 0;
@@ -89,7 +91,8 @@ get_drawable_area ()
       else
         {
           // check clipRect bounds
-          GdkWindow *rootwindow = gdk_screen_get_root_window (gdk_screen_get_default ());
+	  GdkScreen  *screen  = gdk_screen_get_default ();
+          GdkWindow *rootwindow = gdk_screen_get_root_window (screen);
           int maxwidth  = gdk_window_get_width (rootwindow);
           int maxheight = gdk_window_get_height (rootwindow);
           g_debug ("Maximum Size: %d %d\n", maxwidth, maxheight);
@@ -122,7 +125,10 @@ static void
 run_missing_composite_manager_dialog ()
 {
   GtkWidget *msg_dialog;
-  msg_dialog = gtk_message_dialog_new (NULL, GTK_DIALOG_MODAL, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK,
+  msg_dialog = gtk_message_dialog_new (NULL,
+		                       GTK_DIALOG_MODAL,
+				       GTK_MESSAGE_ERROR,
+				       GTK_BUTTONS_OK,
                                        gettext ("In order to run Ardesia you "
                                                 "need to enable a composite "
                                                 "manager"));
@@ -169,7 +175,7 @@ enable_localization_support ()
 void
 build_annotation_window ()
 {
-  annotation_window          = create_annotation_window (workspace, commandline);
+  annotation_window = create_annotation_window (workspace, commandline);
   if (annotation_window == NULL)
     {
       annotate_quit ();

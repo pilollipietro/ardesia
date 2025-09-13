@@ -167,7 +167,11 @@ parse_options (CommandLine *commandline, gint argc, char *argv[])
       gint c;
 
       gint option_index = 0;
-      c = getopt_long (argc, argv, "hdvVg:f:l:t:w:c:m:M:x:y:o", long_options, &option_index);
+      c = getopt_long (argc,
+		       argv,
+		       "hdvVg:f:l:t:w:c:m:M:x:y:o",
+		       long_options,
+		       &option_index);
 
       /* Detect the end of the options. */
       if (c == -1)
@@ -212,7 +216,8 @@ parse_options (CommandLine *commandline, gint argc, char *argv[])
             }
           break;
         case 'f':
-          if (g_strcmp0 (optarg, "serif") == 0 || g_strcmp0 (optarg, "sans-serif") == 0 ||
+          if (g_strcmp0 (optarg, "serif") == 0 ||
+	      g_strcmp0 (optarg, "sans-serif") == 0 ||
               g_strcmp0 (optarg, "monospace") == 0)
             {
               commandline->fontfamily = optarg;

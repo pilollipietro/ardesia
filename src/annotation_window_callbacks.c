@@ -44,7 +44,9 @@ on_configure (GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
 
   g_debug ("Annotation window get configure event (%d,%d,%d,%d)\n",
            gtk_widget_get_allocated_width (widget),
-           gtk_widget_get_allocated_height (widget), state, gtk_widget_is_focus (widget));
+           gtk_widget_get_allocated_height (widget),
+	   state,
+	   gtk_widget_is_focus (widget));
   if (! data->is_grabbed)
     {
       return FALSE;
@@ -106,7 +108,9 @@ on_window_state_event (GtkWidget *widget, GdkEvent *event, gpointer user_data)
  * Required to make window transparent
  **/
 G_MODULE_EXPORT void
-on_screen_changed (GtkWidget *widget, GdkScreen *previous_screen, gpointer user_data)
+on_screen_changed (GtkWidget *widget,
+		   GdkScreen *previous_screen,
+		   gpointer user_data)
 {
   g_debug ("Annotation window get screen-changed event\n");
 
@@ -154,7 +158,9 @@ on_expose (GtkWidget *widget, cairo_t *cr, gpointer user_data)
       g_debug ("annotation_window_callbacks\n");
       // draw annotation layer on context cr
       initialize_annotation_cairo_context (annotation_data);
-      draw_cairo_context (cr, annotation_data->annotation_cairo_context, use_paint);
+      draw_cairo_context (cr,
+		          annotation_data->annotation_cairo_context,
+			  use_paint);
     }
 
   if (annotation_data->is_text_editor_visible == TRUE)
@@ -171,7 +177,9 @@ on_expose (GtkWidget *widget, cairo_t *cr, gpointer user_data)
     {
       if (annotation_data->clapperboard_cairo_context)
         {
-          draw_cairo_context (cr, annotation_data->clapperboard_cairo_context, use_paint);
+          draw_cairo_context (cr,
+			      annotation_data->clapperboard_cairo_context,
+			      use_paint);
         }
     }
 
@@ -190,7 +198,8 @@ on_button_press (GtkWidget *win, GdkEventButton *ev, gpointer user_data)
   AnnotateData *data   = (AnnotateData *) user_data;
   gboolean      retval = FALSE;
 
-  if (data->is_annotation_visible == TRUE && data->is_text_editor_visible == FALSE)
+  if (data->is_annotation_visible == TRUE &&
+      data->is_text_editor_visible == FALSE)
     {
       retval = annotation_window_button_press (ev, data);
     }
@@ -205,7 +214,8 @@ on_motion_notify (GtkWidget *win, GdkEventMotion *ev, gpointer user_data)
 
   AnnotateData *data   = (AnnotateData *) user_data;
   gboolean      retval = FALSE;
-  if (data->is_annotation_visible == TRUE && data->is_text_editor_visible == FALSE)
+  if (data->is_annotation_visible == TRUE &&
+      data->is_text_editor_visible == FALSE)
     {
       retval = annotation_window_mouse_move (ev, data);
     }
@@ -232,7 +242,9 @@ on_button_release (GtkWidget *win, GdkEventButton *ev, gpointer user_data)
 
 /* On device added. */
 void
-on_device_removed (GdkDeviceManager *device_manager, GdkDevice *device, gpointer user_data)
+on_device_removed (GdkDeviceManager *device_manager,
+		   GdkDevice *device,
+		   gpointer user_data)
 {
   AnnotateData *data = (AnnotateData *) user_data;
   g_debug ("device '%s' removed\n", gdk_device_get_name (device));
@@ -241,7 +253,9 @@ on_device_removed (GdkDeviceManager *device_manager, GdkDevice *device, gpointer
 
 /* On device removed. */
 void
-on_device_added (GdkDeviceManager *device_manager, GdkDevice *device, gpointer user_data)
+on_device_added (GdkDeviceManager *device_manager,
+		 GdkDevice *device,
+		 gpointer user_data)
 {
   AnnotateData *data = (AnnotateData *) user_data;
   g_debug ("device '%s' added\n", gdk_device_get_name (device));
