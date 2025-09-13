@@ -195,7 +195,8 @@ void
 flood_fill (cairo_t *annotation_cairo_context, cairo_surface_t *surface,
             gchar *filled_color, gdouble x, gdouble y)
 {
-
+  // @TODO Fix If I have highlighter the clor has opacity FF
+  g_debug ("Filled colour %s", filled_color);
   struct FillInfo fill_info;
 
   fill_info.width      = cairo_image_surface_get_width (surface);

@@ -1342,8 +1342,6 @@ annotate_fill (AnnotateDeviceData *devdata,
 
   cairo_restore (annotation_data->annotation_cairo_context);
   annotate_add_savepoint ();
-
-  // @TODO needs something to happen at this point for it to become visible
 }
 
 /* Draw a point in x,y respecting the context. */
