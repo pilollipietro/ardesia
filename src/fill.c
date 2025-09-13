@@ -118,55 +118,73 @@ set_new_pixel_value (struct FillInfo *fill_info, gint x, gint y)
 static void
 flood_fill_internal (struct FillInfo *info, gdouble x, gdouble y)
 {
-  /* TODO: check for stack overflow? */
-  /* TODO: that's a lot of memory! esp if we never use it */
+  struct FillPixelInfo *stack;
+  struct FillPixelInfo *sp;
+  int l, x1, x2, dy;
+  int width = info->width;
+  int height = info->height;
 
-  struct FillPixelInfo  stack[STACKSIZE];
-  struct FillPixelInfo *sp = stack;
-  int                   l, x1, x2, dy;
+  stack = g_malloc0 (STACKSIZE * sizeof (struct FillPixelInfo));
+  sp = stack;
 
-  if ((x >= 0) && (x < info->width) && (y >= 0) && (y < info->height))
+  if ((x < 0) || (x >= width) || (y < 0) || (y >= height))
     {
-      PUSH (y, x, x, 1);
-      PUSH (y + 1, x, x, -1);
-      while (sp > stack)
+      g_free (stack);
+      return;
+    }
+
+  PUSH (y, x, x, 1);
+  PUSH (y + 1, x, x, -1);
+
+  while (sp > stack)
+    {
+      POP (y, x1, x2, dy);
+
+      /* scan left from x1 */
+      for (x = x1; x >= 0; x--)
         {
-          POP (y, x1, x2, dy);
-          for (x = x1; (x >= 0) && is_similar_to_old_pixel_value (info, x, y); x--)
+          gboolean similar = is_similar_to_old_pixel_value (info, x, y);
+          if (!similar)
+            break;
+
+          set_new_pixel_value (info, x, y);
+        }
+
+      l = x + 1;
+      if (l < x1)
+        PUSH (y, l, x1 - 1, -dy);
+
+      x = x1 + 1;
+
+      while (x <= x2)
+        {
+          /* scan right */
+          for (; x < width; x++)
             {
+              gboolean similar = is_similar_to_old_pixel_value (info, x, y);
+              if (!similar)
+                break;
+
               set_new_pixel_value (info, x, y);
             }
-          if (x >= x1)
+
+          PUSH (y, l, x - 1, dy);
+
+          if (x > x2 + 1)
+            PUSH (y, x2 + 1, x - 1, -dy);
+
+          /* skip non-similar pixels */
+          l = x;
+          for (x++; x <= x2; x++)
             {
-              goto skip;
+              gboolean similar = is_similar_to_old_pixel_value (info, x, y);
+              if (similar)
+                break;
             }
-          l = x + 1;
-          if (l < x1)
-            {
-              PUSH (y, l, x1 - 1, -dy);
-            }
-          x = x1 + 1;
-          do
-            {
-              for (; (x < info->width) && is_similar_to_old_pixel_value (info, x, y); x++)
-                {
-                  set_new_pixel_value (info, x, y);
-                }
-              PUSH (y, l, x - 1, dy);
-              if (x > x2 + 1)
-                {
-                  PUSH (y, x2 + 1, x - 1, -dy);
-                }
-            skip:
-              for (x++; x <= x2 && ! is_similar_to_old_pixel_value (info, x, y); x++)
-                {
-                  // empty block;
-                }
-              l = x;
-            }
-          while (x <= x2);
         }
     }
+
+  g_free (stack);
 }
 
 /*
