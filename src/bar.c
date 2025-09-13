@@ -133,6 +133,9 @@ init_bar_data ()
   bar_data->screenshot_callback         = NULL;
   bar_data->screenshot_saved_location_x = -1;
   bar_data->screenshot_saved_location_y = -1;
+  bar_data->saved_x = 0;
+  bar_data->saved_y = 0;
+  bar_data->snapshot_surface = NULL;
   activate_tool_button ("buttonHighlighter");
   set_color (bar_data, "FFFF0088"); // default to yellow
   return bar_data;

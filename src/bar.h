@@ -82,9 +82,15 @@ typedef struct
 
   /* we want to take a snapshot */
   gboolean screenshot_pending;
+
   void (*screenshot_callback) (GdkPixbuf *);
+
   gint screenshot_saved_location_x;
+
   gint screenshot_saved_location_y;
+
+  cairo_surface_t *snapshot_surface;
+
 } BarData;
 
 extern BarData *bar_data;

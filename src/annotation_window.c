@@ -845,8 +845,10 @@ initialize_annotation_cairo_context (AnnotateData *data)
       if (annotation_data->savepoint_list == NULL)
         {
           g_debug("It has not savepoint; clear the screen");
-          /* Clear the screen and create the first empty savepoint. */
+          /* Clear the screen.  */
           annotate_clear_screen ();
+	  /* Create the first empty savepoint. */
+	  annotate_add_savepoint ();
         }
       else
 	{
@@ -1611,7 +1613,7 @@ annotate_redo ()
     }
 }
 
-/* Clear the annotations windows and make an empty savepoint. */
+/* Clear the annotations windows. */
 void
 annotate_clear_screen ()
 {
@@ -1627,9 +1629,6 @@ annotate_clear_screen ()
 
       /* call for a redraw; it generates an expose event. */
       gtk_widget_queue_draw (annotation_data->annotation_window);
-
-      /* Add the empty savepoint. */
-      annotate_add_savepoint ();
     }
 }
 
