@@ -105,18 +105,31 @@ blink_cursor (gpointer data)
           cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
           cairo_set_line_width (cr, text_data->pen_width);
           cairo_set_source_color_from_string (cr, text_data->color);
-          cairo_rectangle (cr, text_data->pos->x, text_data->pos->y - height,
-                           TEXT_CURSOR_WIDTH, height);
+
+          cairo_rectangle (cr,
+			   text_data->pos->x,
+			   text_data->pos->y - height,
+                           TEXT_CURSOR_WIDTH,
+			   height);
+
           text_data->blink_show = FALSE;
         }
       else
         {
           cairo_set_operator (cr, CAIRO_OPERATOR_CLEAR);
-          cairo_rectangle (cr, text_data->pos->x, text_data->pos->y - height,
-                           TEXT_CURSOR_WIDTH, height);
 
-          cairo_rectangle (cr, text_data->pos->x - 1, text_data->pos->y - height - 1,
-                           TEXT_CURSOR_WIDTH + 2, height + 2);
+          cairo_rectangle (cr,
+			   text_data->pos->x,
+			   text_data->pos->y - height,
+                           TEXT_CURSOR_WIDTH,
+			   height);
+
+          cairo_rectangle (cr,
+			   text_data->pos->x - 1,
+			   text_data->pos->y - height - 1,
+                           TEXT_CURSOR_WIDTH + 2,
+			   height + 2);
+
           text_data->blink_show = TRUE;
         }
 
@@ -137,9 +150,17 @@ assign_text_cursor_to_window (GtkWidget *window)
   gdouble decoration_height = 4;
   gint    height = text_data->max_font_height + decoration_height * 2;
   gint    width  = TEXT_CURSOR_WIDTH * 3;
-  g_debug ("assign new cursor to window %d %d %s\n", width, height, text_data->color);
-  cairo_surface_t *text_surface_t = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-                                                                width, height);
+
+  g_debug ("assign new cursor to window %d %d %s\n",
+           width,
+	   height,
+	   text_data->color);
+
+  cairo_surface_t *text_surface_t;
+  text_surface_t = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+                                               width,
+					       height);
+
   cairo_t   *text_pointer_cr    = cairo_create (text_surface_t);
   GdkRGBA   *foreground_color_p = rgba_to_gdkcolor (text_data->color);
   GdkCursor *cursor             = (GdkCursor *) NULL;

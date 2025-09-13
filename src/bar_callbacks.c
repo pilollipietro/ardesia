@@ -52,9 +52,11 @@ on_bar_window_state_event (GtkWidget *widget,
 {
   g_debug ("on bar state event\n");
   BarData *bar_data = (BarData *) func_data;
+  GdkWindow *win = gtk_widget_get_window(widget);
+  GdkWindowState state = gdk_window_get_state(win);
 
   /* Track the minimized signals */
-  if (gdk_window_get_state (gtk_widget_get_window (widget)) & GDK_WINDOW_STATE_ICONIFIED)
+  if (state & GDK_WINDOW_STATE_ICONIFIED)
     {
       release_lock (bar_data);
     }
@@ -396,7 +398,10 @@ on_bar_showhide_activate (GtkToolButton *toolButton, gpointer func_data)
         {
           replace_status_message (gettext ("Annotations hidden"));
           gtk_widget_hide (window);
-          /* @TODO loses its position so we need to save the position and loses image */
+          /* 
+	   * @TODO loses its position so we need
+	   * to save the position and loses image
+	   */
           bar_data->annotation_is_visible = FALSE;
 
           /* Set the stop tool-tip. */
@@ -446,13 +451,21 @@ on_bar_recorder_activate (GtkToolButton *toolbutton, gpointer func_data)
       g_debug ("Showing recording menu");
       if (annotation_data->recordingstudio_options == NULL)
         {
-          annotation_data->recordingstudio_options = g_malloc ((gsize) sizeof (RecordingStudioData));
+          annotation_data->recordingstudio_options =
+	    g_malloc ((gsize) sizeof (RecordingStudioData));
         }
 
       // create new window  /* Initialize the main window. */
       annotation_data->recordingstudio_window_gtk_builder = gtk_builder_new ();
-      gtk_builder_add_from_file (annotation_data->recordingstudio_window_gtk_builder,
-                                 RECORDINGSTUDIO_UI_FILE, &error);
+
+      GtkBuilder *recording_studio_gtk_builder;
+
+      recording_studio_gtk_builder =
+        annotation_data->recordingstudio_window_gtk_builder;
+
+      gtk_builder_add_from_file (recording_studio_gtk_builder,
+                                 RECORDINGSTUDIO_UI_FILE,
+				 &error);
 
       if (error)
         {
@@ -461,10 +474,17 @@ on_bar_recorder_activate (GtkToolButton *toolbutton, gpointer func_data)
           return;
         }
 
-      annotation_data->recordingstudio_window = GTK_WIDGET (gtk_builder_get_object (
-          annotation_data->recordingstudio_window_gtk_builder, "recordingstudio"
-                                                               "_window"));
-      gtk_window_set_transient_for (GTK_WINDOW (annotation_data->recordingstudio_window),
+      GObject   *recordingstudio_obj;
+      GtkWidget *recordingstudio_window;
+
+      recordingstudio_obj =
+        gtk_builder_get_object (recording_studio_gtk_builder,
+			        "recordingstudio_window");
+
+      recordingstudio_window = GTK_WIDGET (recordingstudio_obj);
+      annotation_data->recordingstudio_window = recordingstudio_window;
+
+      gtk_window_set_transient_for (GTK_WINDOW (recordingstudio_window),
 		                    GTK_WINDOW (get_bar_widget ()));
 
       if (annotation_data->recordingstudio_window == NULL)
@@ -472,7 +492,7 @@ on_bar_recorder_activate (GtkToolButton *toolbutton, gpointer func_data)
           g_debug ("Failed to create the recording studio window");
           return;
         }
-      gtk_builder_connect_signals (annotation_data->recordingstudio_window_gtk_builder,
+      gtk_builder_connect_signals (recording_studio_gtk_builder,
                                    (gpointer) annotation_data);
 
       gtk_widget_show (annotation_data->recordingstudio_window);
@@ -490,10 +510,15 @@ on_remove_background_button (GtkMenuItem *menuitem, gpointer user_data)
   GtkWidget *widget = GTK_WIDGET (user_data);
   gint       width  = gtk_widget_get_allocated_width (widget);
   gtk_widget_destroy (widget);
-  gint cwidth = gtk_widget_get_allocated_width (annotation_data->background_selection_window);
-  gint cheight = gtk_widget_get_allocated_height (annotation_data->background_selection_window);
+  GtkWidget *background_selection_window;
+  gint       cwidth;
+  gint       cheight;
+  background_selection_window = annotation_data->background_selection_window;
+  cwidth = gtk_widget_get_allocated_width (background_selection_window);
+  cheight = gtk_widget_get_allocated_height (background_selection_window);
   gtk_window_resize (GTK_WINDOW (annotation_data->background_selection_window),
-                     cwidth - width, cheight);
+                     cwidth - width,
+		     cheight);
   return TRUE;
 }
 
@@ -503,10 +528,13 @@ background_selection_on_toggled (GtkToggleToolButton *toggle_tool_button,
 {
   BackgroundButtonData *button_data = (BackgroundButtonData *) userdata;
   annotation_data->background_button_last_selected = button_data->index;
-  BackgroundButtonData *data =
-      (BackgroundButtonData *) (g_slist_nth (annotation_data->background_button_data,
-                                             button_data->index)
-                                    ->data);
+
+  GSList *node;
+  BackgroundButtonData *data;
+  node = g_slist_nth (annotation_data->background_button_data,
+		      button_data->index);
+  data = (BackgroundButtonData *) node->data;
+
   if (data->mode == BACKGROUND_MODE_COLOR)
     {
       update_background_color (data->color);
@@ -518,7 +546,10 @@ background_selection_on_toggled (GtkToggleToolButton *toggle_tool_button,
   else
     {
       clear_background_context ();
-      annotation_data->background_button_last_selected = BACKGROUND_NONE_SELECTED;
+
+      annotation_data->background_button_last_selected =
+	BACKGROUND_NONE_SELECTED;
+
     }
 }
 
@@ -575,7 +606,13 @@ resize_image_to_button (BackgroundButtonData *data, gint size)
   cairo_surface_t *surface = NULL;
   gchar           *output  = NULL;
   GError          *error   = NULL;
-  GtkImage *image = GTK_IMAGE (gtk_tool_button_get_icon_widget (GTK_TOOL_BUTTON (data->button)));
+  GtkToolButton *tool_button;
+  GtkWidget     *icon_widget;
+  GtkImage      *image;
+  
+  tool_button = GTK_TOOL_BUTTON (data->button);
+  icon_widget = gtk_tool_button_get_icon_widget (tool_button);
+  image = GTK_IMAGE (icon_widget);
 
   surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, w, h);
   cr      = cairo_create (surface);
@@ -632,9 +669,12 @@ on_background_selection_window_configure_event (GtkWidget *widget,
 
       for (gint ii = 0; ii < elements; ii++)
         {
-          BackgroundButtonData *data =
-              (BackgroundButtonData *) (g_slist_nth (annotation_data->background_button_data, ii)
-                                            ->data);
+	  GSList *node;
+	  BackgroundButtonData *data;
+	  
+	  node = g_slist_nth (annotation_data->background_button_data, ii);
+	  data = (BackgroundButtonData *) node->data;
+
           GtkImage *image = GTK_IMAGE (
               gtk_tool_button_get_icon_widget (GTK_TOOL_BUTTON (data->button)));
           if (image == NULL || data->size != m)
@@ -661,10 +701,14 @@ add_background_button (gchar *label, gint mode, gchar *filename, gchar *color)
     }
   else
     {
-      BackgroundButtonData *data =
-          (BackgroundButtonData *) (g_slist_last (annotation_data->background_button_data)
-                                        ->data);
-      button = gtk_radio_tool_button_new_from_widget (GTK_RADIO_TOOL_BUTTON (data->button));
+      GSList *last_node;
+      BackgroundButtonData *data;
+      last_node = g_slist_last (annotation_data->background_button_data);
+      data = (BackgroundButtonData *) last_node->data;
+
+      GtkRadioToolButton *radio_button;
+      radio_button = GTK_RADIO_TOOL_BUTTON (data->button);
+      button = gtk_radio_tool_button_new_from_widget (radio_button);
     }
   if (label == NULL)
     {
@@ -684,8 +728,12 @@ add_background_button (gchar *label, gint mode, gchar *filename, gchar *color)
     {
       gtk_tool_item_set_tooltip_text (GTK_TOOL_ITEM (button), label);
     }
+
   gtk_box_pack_start (GTK_BOX (annotation_data->background_selection_container),
-                      GTK_WIDGET (button), TRUE, TRUE, 0);
+                      GTK_WIDGET (button),
+		      TRUE,
+		      TRUE,
+		      0);
 
   BackgroundButtonData *data = g_new (BackgroundButtonData, 1);
   data->mode                 = mode;
@@ -694,8 +742,10 @@ add_background_button (gchar *label, gint mode, gchar *filename, gchar *color)
   data->button               = button;
   data->index = g_slist_length (annotation_data->background_button_data);
   data->size  = 32;
-  annotation_data->background_button_data = g_slist_append (annotation_data->background_button_data,
-                                                            data);
+
+  annotation_data->background_button_data =
+    g_slist_append (annotation_data->background_button_data,
+                    data);
 
   // used added button
   g_signal_connect (button,

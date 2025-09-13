@@ -277,9 +277,13 @@ assign_text_properties (CharInfo *char_info)
   else
     {
       char_info->pango_font_description = annotation_data->font;
-      char_info->font_family            = g_strdup_printf (
-          "%s", pango_font_description_get_family (annotation_data->font));
-      char_info->font_size = pango_font_description_get_size (annotation_data->font) / PANGO_SCALE;
+
+      char_info->font_family = g_strdup_printf (
+        "%s", pango_font_description_get_family (annotation_data->font));
+
+      char_info->font_size =
+        pango_font_description_get_size (annotation_data->font) / PANGO_SCALE;
+
       g_debug ("font: %s, size %d\n",
 	       char_info->font_family,
 	       char_info->font_size);
@@ -301,7 +305,8 @@ delete_character ()
 {
   if (text_data->cr)
     {
-      CharInfo *char_info = (CharInfo *) g_slist_nth_data (text_data->letterlist, 0);
+      CharInfo *char_info;
+      char_info = (CharInfo *) g_slist_nth_data (text_data->letterlist, 0);
       if (char_info)
         {
           if (g_strcmp0 (char_info->character, "\n") != 0)
@@ -318,9 +323,11 @@ delete_character ()
                 }
               else
                 {
+		  gdouble baseline_offset;
+		  baseline_offset = (gdouble) char_info->baseline / PANGO_SCALE;
                   cairo_rectangle (text_data->cr,
                                    char_info->x,
-                                   char_info->y - (char_info->baseline / PANGO_SCALE),
+                                   char_info->y - baseline_offset,
                                    char_info->text_width,
                                    char_info->text_height);
                 }

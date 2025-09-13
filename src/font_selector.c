@@ -39,7 +39,11 @@ void create_font_selector_window (GtkWindow *parent)
 
     gchar  *file = FONT_UI_FILE;
     builder = gtk_builder_new_from_file(file);
-    font_dialog = GTK_WIDGET(gtk_builder_get_object(builder, "font_dialog"));
+    GObject   *obj;
+    
+    obj = gtk_builder_get_object (builder, "font_dialog");
+    font_dialog = GTK_WIDGET (obj);
+
     gtk_window_set_transient_for (GTK_WINDOW (font_dialog), parent);
     gtk_window_set_modal (GTK_WINDOW (font_dialog), TRUE);
 

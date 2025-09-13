@@ -39,14 +39,19 @@ static FILE *fp = NULL;
 static void
 add_header ()
 {
-  gchar *becta_ns    = "http://www.becta.org.uk/iwb";
-  gchar *svg_ns      = "http://www.w3.org/2000/svg";
-  gchar *xlink_ns    = "http://www.w3.org/1999/xlink";
-  gchar *iwb_version = "1.0";
+  const gchar *becta_ns    = "http://www.becta.org.uk/iwb";
+  const gchar *svg_ns      = "http://www.w3.org/2000/svg";
+  const gchar *xlink_ns    = "http://www.w3.org/1999/xlink";
+  const gchar *iwb_version = "1.0";
+  const gchar *iwb_format =
+  "<iwb xmlns:iwb=\"%s\" xmlns:svg=\"%s\" xmlns:xlink=\"%s\" version=\"%s\">\n";
 
   fprintf (fp,
-	   "<iwb xmlns:iwb=\"%s\" xmlns:svg=\"%s\" xmlns:xlink=\"%s\" version=\"%s\">\n",
-           becta_ns, svg_ns, xlink_ns, iwb_version);
+	   iwb_format,
+           becta_ns,
+	   svg_ns,
+	   xlink_ns,
+	   iwb_version);
 }
 
 /* Close the iwb xml tag. */
@@ -86,12 +91,18 @@ add_savepoint (gint index)
   gchar *file = g_strdup_printf ("images/%s_%d_vellum.png",
 		                 PACKAGE_NAME,
 				 index);
+  const gchar *svg_image_format =
+    "\t\t<svg:image id=\"%s\" xlink:href=\"%s\" x=\"0\" y=\"0\" "
+    "width=\"%d\" height=\"%d\"/>\n";
 
   open_svg ();
 
   fprintf (fp,
-	   "\t\t<svg:image id=\"%s\" xlink:href=\"%s\" x=\"0\" y=\"0\" width=\"%d\" height=\"%d\"/>\n",
-           id, file, width, height);
+	   svg_image_format,
+           id,
+	   file,
+	   width,
+	   height);
 
   g_free (file);
   file = NULL;
@@ -122,11 +133,17 @@ add_background (gchar *img_dir_path, gchar *background_image)
 	   * Copy the file in ardesia_0_vellum.png
 	   * under image_path overriding it
 	   * */
-          GFile *image_destination = g_file_new_for_path (image_destination_path);
+          GFile *image_destination = NULL;
+	  image_destination = g_file_new_for_path (image_destination_path);
           GFile *image_source = g_file_new_for_path (background_image);
 
-          g_file_copy (image_source, image_destination, G_FILE_COPY_OVERWRITE,
-                       NULL, NULL, NULL, NULL);
+          g_file_copy (image_source,
+		       image_destination,
+		       G_FILE_COPY_OVERWRITE,
+                       NULL,
+		       NULL,
+		       NULL,
+		       NULL);
 
           g_object_unref (image_source);
           g_object_unref (image_destination);
@@ -141,6 +158,10 @@ add_background (gchar *img_dir_path, gchar *background_image)
       guint  g     = 0;
       guint  b     = 0;
       guint  a     = 0;
+      const gchar *svg_rect_format =
+        "\t\t<svg:rect id=\"id1\" x=\"0\" y=\"0\" "
+	"width=\"%d\" height=\"%d\" "
+	"fill=\"%s\" fill-opacity=\"%d\"/>\n";
 
       /* If the background type is colour then parse it */
       if ((color != NULL) && (background_data->type != 0))
@@ -151,8 +172,14 @@ add_background (gchar *img_dir_path, gchar *background_image)
       gchar *rgb = g_strdup_printf ("rgb(%d,%d,%d)", r, g, b);
 
       open_svg ();
-      fprintf (fp, "\t\t<svg:rect id=\"id1\" x=\"0\" y=\"0\" width=\"%d\" height=\"%d\" fill=\"%s\" fill-opacity=\"%d\"/>\n",
-               width, height, rgb, a);
+
+      fprintf (fp,
+	       svg_rect_format,
+               width,
+	       height,
+	       rgb,
+	       a);
+
       close_svg ();
       g_free (rgb);
     }
@@ -260,7 +287,8 @@ add_folder_to_gst_outfile (GsfOutfile *gst_outfile,
 		           gchar *working_dir,
 			   gchar *folder)
 {
-  GsfOutfile *gst_dir = GSF_OUTFILE (gsf_outfile_new_child (gst_outfile, folder, TRUE));
+  GsfOutfile *gst_dir = NULL;
+  gst_dir = GSF_OUTFILE (gsf_outfile_new_child (gst_outfile, folder, TRUE));
   gchar *path = g_build_filename (working_dir, folder, NULL);
   GDir  *dir  = g_dir_open (path, 0, NULL);
 

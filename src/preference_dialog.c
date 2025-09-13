@@ -74,7 +74,9 @@ start_preference_dialog (GtkWindow *parent)
 
   /* Initialize the main window. */
   GtkBuilder *preference_dialog_gtk_builder = gtk_builder_new ();
-  preference_data->preference_dialog_gtk_builder = preference_dialog_gtk_builder;
+
+  preference_data->preference_dialog_gtk_builder =
+    preference_dialog_gtk_builder;
 
   /* Load the gtk builder file created with glade. */
   gtk_builder_add_from_file (preference_dialog_gtk_builder,
@@ -120,8 +122,9 @@ start_preference_dialog (GtkWindow *parent)
 
   if (background_type == 1)
     {
-      GObject *color_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
-                                                   "color");
+      GObject *color_obj;
+      color_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
+                                          "color");
 
       GtkToggleButton *color_tool_button = GTK_TOGGLE_BUTTON (color_obj);
       gtk_toggle_button_set_active (color_tool_button, TRUE);

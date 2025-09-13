@@ -143,9 +143,12 @@ create_copy_of_context (cairo_t *current_context)
       int width  = 0;
       int height = 0;
       get_context_size (current_context, &width, &height);
-      cairo_surface_t *dest_surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-                                                                  width,
-								  height);
+      cairo_surface_t *dest_surface;
+
+      dest_surface  = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+		                                  width,
+						  height);
+
       cairo_surface_t *source_surface = cairo_get_target (current_context);
       cairo_t         *dest_cr        = cairo_create (dest_surface);
       cairo_set_operator (dest_cr, CAIRO_OPERATOR_SOURCE);

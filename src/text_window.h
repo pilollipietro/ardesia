@@ -89,9 +89,13 @@ typedef struct
   cairo_text_extents_t extents;
 
   PangoFontDescription *pango_font_description;
+
   gint baseline; // to be useful needs to be divided by PANGO_SCALE
+
   gint text_width;
+
   gint text_height;
+
 } CharInfo;
 
 typedef struct

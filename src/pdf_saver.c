@@ -164,7 +164,10 @@ pdf_save ()
 
   for (i = lenght - 1; i >= 0; i--)
     {
-      gchar *current_filename = (gchar *) g_slist_nth_data (pdf_data->input_filelist, i);
+      gchar *current_filename;
+      current_filename  =
+       (gchar *) g_slist_nth_data (pdf_data->input_filelist, i);
+
       /* load the file name content */
       GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file (current_filename, NULL);
       gdk_cairo_set_source_pixbuf (pdf_cr, pixbuf, 0, 0);
@@ -205,8 +208,11 @@ add_pdf_page_callback (GdkPixbuf *pixbuf)
 
   int width = gtk_widget_get_allocated_width (annotation_window);
   int height = gtk_widget_get_allocated_height (annotation_window);
-  cairo_surface_t *saved_surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-                                                               width, height);
+
+  cairo_surface_t *saved_surface;
+  saved_surface  = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+                                               width,
+					       height);
 
   cairo_t     *cr               = cairo_create (saved_surface);
   const gchar *tmp_dir          = g_get_tmp_dir ();
@@ -267,13 +273,17 @@ quit_pdf_saver ()
       /* Free the list and all the buffers inside it. */
       while (pdf_data->input_filelist)
         {
-          gchar *filename = (gchar *) g_slist_nth_data (pdf_data->input_filelist,
-			                                0);
+          gchar *filename;
+	  filename = (gchar *) g_slist_nth_data (pdf_data->input_filelist,
+			                         0);
           if (filename)
             {
               g_remove (filename);
-              pdf_data->input_filelist = g_slist_remove (pdf_data->input_filelist,
-			                                 filename);
+
+              pdf_data->input_filelist =
+		g_slist_remove (pdf_data->input_filelist,
+			        filename);
+
               g_free (filename);
               filename = NULL;
             }

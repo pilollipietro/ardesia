@@ -143,9 +143,12 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
                              (GdkCursor *) NULL);
 
       replace_status_message (gettext ("Starting screen recorder"));
+
       /* The recording is not active. */
-      gboolean status = start_save_video_dialog ((GtkButton *) toolbutton,
-                                                 GTK_WINDOW (get_bar_widget ()));
+      gboolean status;
+      status  = start_save_video_dialog ((GtkButton *) toolbutton,
+                                         GTK_WINDOW (get_bar_widget ()));
+
       if (status)
         {
           GtkWidget *imageWidget = GTK_WIDGET (
@@ -260,7 +263,9 @@ create_cursor_window ()
 		    G_CALLBACK (on_draw_event),
 		    NULL);
   gtk_widget_set_events (drawing_area,
-		        gtk_widget_get_events (drawing_area) | GDK_BUTTON_PRESS_MASK | GDK_POINTER_MOTION_MASK);
+		         gtk_widget_get_events (drawing_area)
+			 | GDK_BUTTON_PRESS_MASK
+			 | GDK_POINTER_MOTION_MASK);
   setup_transparency (window);
   return window;
 }
@@ -278,9 +283,11 @@ draw_video_cursor (cairo_t *cr, GtkWidget *widget)
       return;
     }
 
-  // take a screen grab around where the mouse is
-  // check to see if the pixel is nearer to white than black
-  // change color accordingly
+  /*
+   * Take a screen grab around where the mouse is
+   * check to see if the pixel is nearer to white than black
+   * change color accordingly
+   */
   int x, y;
   get_desktop_mouse_location (&x, &y);
   GdkWindow *root_win = gdk_get_default_root_window ();
@@ -314,13 +321,15 @@ draw_video_cursor (cairo_t *cr, GtkWidget *widget)
   gint white = 255;
   gint r = 0, g = 0, b = 0;
   if (white - avg_pixel > avg_pixel)
-    { // nearer to black
+    { 
+      // nearer to black
       r = 1;
       g = 1;
       b = 0;
     }
   else
-    { // nearer to white
+    { 
+      // nearer to white
       r = 0;
       g = 1;
       b = 0;
@@ -391,9 +400,11 @@ G_MODULE_EXPORT void
 on_cursor_click (GtkToggleButton *toolbutton, gpointer func_data)
 {
   g_debug ("on_cursor_click\n");
-  // vlc --screen-mouse-pointer does not work on linux so
-  // instead what we want to do is show an image just under where
-  // the mouse pointer is going to be
+  /*
+   * vlc --screen-mouse-pointer does not work on linux so
+   * instead what we want to do is show an image just under where
+   * the mouse pointer is going to be
+   */
   if (annotation_data->is_cursor_visible == TRUE)
     {
       // hide cursor window
@@ -415,8 +426,10 @@ on_cursor_click (GtkToggleButton *toolbutton, gpointer func_data)
       annotation_data->is_cursor_visible = TRUE;
       gtk_window_present (GTK_WINDOW (annotation_data->cursor_window));
       gtk_widget_show_all (annotation_data->cursor_window);
-      // needed this hide and show in here to make window appear again
-      // after the initial hide - very weird!
+      /*
+       * needed this hide and show in here to make window appear again
+       * after the initial hide - very weird!
+       */
       gtk_widget_hide (annotation_data->cursor_window);
       gtk_widget_show_all (annotation_data->cursor_window);
       move_cursor_window (NULL);

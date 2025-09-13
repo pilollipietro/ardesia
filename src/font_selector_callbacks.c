@@ -28,7 +28,8 @@
  * @brief Handles the response from the font dialog.
  *
  * @param dialog The GtkDialog instance.
- * @param response_id The response ID from the user (e.g., GTK_RESPONSE_OK, GTK_RESPONSE_CANCEL).
+ * @param response_id The response ID from the user
+ *        (e.g., GTK_RESPONSE_OK, GTK_RESPONSE_CANCEL).
  * @param user_data User data passed to the callback.
  */
 void on_font_selector_response(GtkDialog *dialog,
@@ -38,7 +39,9 @@ void on_font_selector_response(GtkDialog *dialog,
     if (response_id == GTK_RESPONSE_OK)
     {
         PangoFontDescription *new_font_desc;
-        new_font_desc = gtk_font_chooser_get_font_desc(GTK_FONT_CHOOSER(dialog));
+	GtkFontChooser *chooser;
+	chooser = GTK_FONT_CHOOSER (dialog);
+	new_font_desc = gtk_font_chooser_get_font_desc (chooser);
         
         if (annotation_data->font != NULL)
         {

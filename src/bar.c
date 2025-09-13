@@ -427,7 +427,8 @@ take_pen_tool ()
     {
       GObject *filler_obj = gtk_builder_get_object (bar_gtk_builder,
                                                     "buttonFiller");
-      GtkToggleToolButton *filler_tool_button = GTK_TOGGLE_TOOL_BUTTON (filler_obj);
+      GtkToggleToolButton *filler_tool_button = NULL;
+      filler_tool_button = GTK_TOGGLE_TOOL_BUTTON (filler_obj);
       gtk_toggle_tool_button_set_active (filler_tool_button, FALSE);
       gtk_toggle_tool_button_set_active (pencil_tool_button, TRUE);
     }

@@ -187,7 +187,8 @@ decompress_infile (GsfInfile *infile, gchar *dest_dir)
       else
         {
           gchar *file_path = g_build_filename (dest_dir, filename, (gchar *) 0);
-          GsfOutput *output = GSF_OUTPUT (gsf_output_stdio_new (file_path, &err));
+          GsfOutput *output;
+	  output = GSF_OUTPUT (gsf_output_stdio_new (file_path, &err));
           gsf_input_copy (child, output);
           gsf_output_close (output);
           g_object_unref (output);

@@ -169,7 +169,10 @@ flood_fill_internal (struct FillInfo *info, gdouble x, gdouble y)
     }
 }
 
-/* It perform the flood fill algorithm starting from point with coordinate (x,y). */
+/*
+ * It perform the flood fill algorithm starting from
+ * point with coordinate (x,y).
+ */
 void
 flood_fill (cairo_t *annotation_cairo_context, cairo_surface_t *surface,
             gchar *filled_color, gdouble x, gdouble y)

@@ -162,7 +162,10 @@ is_a_triangle (GSList *list, gdouble pixel_tollerance)
   guint left   = countPointsAlongHorizontal (list, minx, pixel_tollerance * 3);
   guint right  = countPointsAlongHorizontal (list, maxx, pixel_tollerance * 3);
 
-  replace_status_message (g_strdup_printf ("triangle: %d %d %d %d", top, left, bottom, right));
+  const gchar *format = "triangle: %d %d %d %d";
+  gchar       *msg;
+  msg = g_strdup_printf (format, top, left, bottom, right);
+  replace_status_message (msg);
 
   // if one of the axis only has one point in it we will regard as a triangle
   return (top == 1 || bottom == 1 || left == 1 || right == 1);
@@ -344,8 +347,10 @@ straighten (GSList *list)
       if (delta_degree > degree_threshold)
         {
           /* Copy B it's a good point. */
-          AnnotatePoint *point = allocate_point (point_b->x, point_b->y,
-                                                 point_b->width, point_b->pressure);
+          AnnotatePoint *point = allocate_point (point_b->x,
+			                         point_b->y,
+                                                 point_b->width,
+						 point_b->pressure);
 
           list_out = g_slist_prepend (list_out, point);
         }
@@ -358,8 +363,11 @@ straighten (GSList *list)
 
   /* Copy the last point; it is a good point. */
   last_point     = (AnnotatePoint *) g_slist_nth_data (list, length - 1);
-  last_out_point = allocate_point (last_point->x, last_point->y,
-                                   last_point->width, last_point->pressure);
+
+  last_out_point = allocate_point (last_point->x,
+		                   last_point->y,
+                                   last_point->width,
+				   last_point->pressure);
 
   list_out = g_slist_prepend (list_out, last_out_point);
 
@@ -962,26 +970,26 @@ broken (GSList *list_inp,
 	gboolean rectify,
 	gdouble pixel_tollerance)
 {
-  GSList *meaningful_point_list = build_meaningful_point_list (list_inp,
-		                                               close_path,
-                                                               pixel_tollerance);
+  GSList *meaningful_points = build_meaningful_point_list (list_inp,
+		                                           close_path,
+                                                           pixel_tollerance);
 
-  if (meaningful_point_list)
+  if (meaningful_points)
     {
 
       if (rectify)
         {
-          GSList *rectified_list = build_rectified_list (meaningful_point_list,
+          GSList *rectified_list = build_rectified_list (meaningful_points,
                                                          close_path,
 							 pixel_tollerance);
 
           /* Free the meaningful_point_list. */
-          g_slist_foreach (meaningful_point_list, (GFunc) g_free, NULL);
-          g_slist_free (meaningful_point_list);
+          g_slist_foreach (meaningful_points, (GFunc) g_free, NULL);
+          g_slist_free (meaningful_points);
 
           return rectified_list;
         }
     }
 
-  return meaningful_point_list;
+  return meaningful_points;
 }

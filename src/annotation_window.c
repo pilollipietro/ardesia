@@ -267,7 +267,9 @@ annotate_draw_curve (AnnotateDeviceData *devdata, GSList *list)
       guint i = 0;
       for (i = 0; i < length; i = i + 3)
         {
-          AnnotatePoint *first_point = (AnnotatePoint *) g_slist_nth_data (list, i);
+          AnnotatePoint *first_point = NULL;
+	  first_point = (AnnotatePoint *) g_slist_nth_data (list,
+			                                    i);
           if (! first_point)
             {
               return;
@@ -275,19 +277,25 @@ annotate_draw_curve (AnnotateDeviceData *devdata, GSList *list)
           if (length == 1)
             {
               /* It is a point. */
-              annotate_draw_point (devdata, first_point->x, first_point->y,
+              annotate_draw_point (devdata,
+			           first_point->x,
+				   first_point->y,
                                    first_point->pressure);
             }
           else
             {
-              AnnotatePoint *second_point = (AnnotatePoint *) g_slist_nth_data (list, i + 1);
+              AnnotatePoint *second_point = NULL;
+	      second_point = (AnnotatePoint *) g_slist_nth_data (list,
+			                                         i + 1);
               if (! second_point)
                 {
                   return;
                 }
               else
                 {
-                  AnnotatePoint *third_point = (AnnotatePoint *) g_slist_nth_data (list, i + 2);
+                  AnnotatePoint *third_point = NULL;
+		  third_point = (AnnotatePoint *) g_slist_nth_data (list,
+				                                    i + 2);
                   if (! third_point)
                     {
                       /* draw line from first to second point */
@@ -367,7 +375,8 @@ roundify (AnnotateDeviceData *devdata, gboolean closed_path)
           // ellipse/circle.
           gint n    = g_slist_length (rect_list);
           gint left = 0, right = 0, top = 0, bottom = 0;
-          AnnotatePoint *point1 = (AnnotatePoint *) g_slist_nth_data (rect_list, 0);
+          AnnotatePoint *point1 = NULL;
+	  point1 = (AnnotatePoint *) g_slist_nth_data (rect_list, 0);
           left   = point1->x;
           right  = point1->x;
           top    = point1->y;
@@ -424,12 +433,15 @@ create_annotation_window (Workspace *workspace, CommandLine *commandline)
   annotate_init(NULL);
 
   /* Initialize the main window. */
-  annotation_data->annotation_window_gtk_builder = gtk_builder_new ();
+  annotation_data->annotation_window_gtk_builder = gtk_builder_new();
+
+  GtkBuilder * annotation_window_gtk_builder =
+    annotation_data->annotation_window_gtk_builder;
+
   annotation_data->is_opaque = commandline->is_opaque;
   
-
   /* Load the gtk builder file created with glade. */
-  gtk_builder_add_from_file (annotation_data->annotation_window_gtk_builder,
+  gtk_builder_add_from_file (annotation_window_gtk_builder,
                              ANNOTATION_UI_FILE, &error);
 
   if (error)
@@ -438,7 +450,7 @@ create_annotation_window (Workspace *workspace, CommandLine *commandline)
       g_error_free (error);
       return widget;
     }
-  GtkBuilder *annotation_window_gtk_builder = annotation_data->annotation_window_gtk_builder;
+
   GObject  *annotation_obj;
   annotation_obj = gtk_builder_get_object (annotation_window_gtk_builder,
 		                           "annotationWindow");
@@ -453,7 +465,7 @@ create_annotation_window (Workspace *workspace, CommandLine *commandline)
     }
 
   /* Connect all the callback from gtkbuilder xml file. */
-  gtk_builder_connect_signals (annotation_data->annotation_window_gtk_builder,
+  gtk_builder_connect_signals (annotation_window_gtk_builder,
                                (gpointer) annotation_data);
 
   /*
@@ -568,7 +580,9 @@ delete_savepoint (AnnotateSavepoint *savepoint)
           g_free (savepoint->filename);
           savepoint->filename = (gchar *) NULL;
         }
-      annotation_data->savepoint_list = g_slist_remove (annotation_data->savepoint_list,
+      GSList *savepoint_list = NULL;
+      savepoint_list = annotation_data->savepoint_list;
+      annotation_data->savepoint_list = g_slist_remove (savepoint_list,
                                                         savepoint);
       g_free (savepoint);
       savepoint = (AnnotateSavepoint *) NULL;
@@ -580,12 +594,14 @@ static void
 annotate_redolist_free ()
 {
   guint   i         = annotation_data->current_save_index;
-  GSList *stop_list = g_slist_nth (annotation_data->savepoint_list, i);
+  GSList *savepoint_list = NULL;
+  savepoint_list = annotation_data->savepoint_list;
+  GSList *stop_list = g_slist_nth (savepoint_list, i);
 
-  while (annotation_data->savepoint_list != stop_list)
+  while (savepoint_list != stop_list)
     {
-      AnnotateSavepoint *savepoint = (AnnotateSavepoint *) g_slist_nth_data (
-          annotation_data->savepoint_list, 0);
+      AnnotateSavepoint *savepoint = NULL;
+      savepoint = (AnnotateSavepoint *) g_slist_nth_data (savepoint_list, 0);
       delete_savepoint (savepoint);
     }
 }
@@ -618,6 +634,8 @@ delete_ardesia_tmp_dir ()
 static void
 draw_arrow_in_point (AnnotatePoint *point, gdouble width, gdouble direction)
 {
+  cairo_t *annotation_cairo_context;
+  annotation_cairo_context = annotation_data->annotation_cairo_context;
 
   gdouble width_cos = width * cos (direction);
   gdouble width_sin = width * sin (direction);
@@ -638,36 +656,40 @@ draw_arrow_in_point (AnnotatePoint *point, gdouble width, gdouble direction)
   gdouble arrow_head_3_x = point->x - width_cos - width_sin;
   gdouble arrow_head_3_y = point->y + width_cos - width_sin;
 
-  cairo_save (annotation_data->annotation_cairo_context);
-  cairo_stroke (annotation_data->annotation_cairo_context);
+  cairo_save (annotation_cairo_context);
+  cairo_stroke (annotation_cairo_context);
 
   /* Initialize cairo properties. */
-  cairo_set_line_join (annotation_data->annotation_cairo_context,
+  cairo_set_line_join (annotation_cairo_context,
 		       CAIRO_LINE_JOIN_MITER);
-  cairo_set_operator (annotation_data->annotation_cairo_context,
+
+  cairo_set_operator (annotation_cairo_context,
 		      CAIRO_OPERATOR_SOURCE);
-  cairo_set_line_width (annotation_data->annotation_cairo_context, width);
+
+  cairo_set_line_width (annotation_cairo_context, width);
 
   /* Draw the arrow. */
-  cairo_move_to (annotation_data->annotation_cairo_context,
+  cairo_move_to (annotation_cairo_context,
 		 arrow_head_2_x,
 		 arrow_head_2_y);
-  cairo_line_to (annotation_data->annotation_cairo_context,
+
+  cairo_line_to (annotation_cairo_context,
 		 arrow_head_1_x,
 		 arrow_head_1_y);
-  cairo_line_to (annotation_data->annotation_cairo_context,
+
+  cairo_line_to (annotation_cairo_context,
 		 arrow_head_0_x,
 		 arrow_head_0_y);
 
-  cairo_line_to (annotation_data->annotation_cairo_context,
+  cairo_line_to (annotation_cairo_context,
 		 arrow_head_3_x,
 		 arrow_head_3_y);
 
-  cairo_close_path (annotation_data->annotation_cairo_context);
-  cairo_fill_preserve (annotation_data->annotation_cairo_context);
-  cairo_stroke (annotation_data->annotation_cairo_context);
-  cairo_surface_flush (cairo_get_target (annotation_data->annotation_cairo_context));
-  cairo_restore (annotation_data->annotation_cairo_context);
+  cairo_close_path (annotation_cairo_context);
+  cairo_fill_preserve (annotation_cairo_context);
+  cairo_stroke (annotation_cairo_context);
+  cairo_surface_flush (cairo_get_target (annotation_cairo_context));
+  cairo_restore (annotation_cairo_context);
 
   g_debug ("with vertex at (x,y)= (%f : %f)\n", arrow_head_0_x, arrow_head_0_y);
 }
@@ -676,28 +698,35 @@ draw_arrow_in_point (AnnotatePoint *point, gdouble width, gdouble direction)
 void
 annotate_configure_pen_options (AnnotateData *data)
 {
+  cairo_t *annotation_cairo_context;
+  annotation_cairo_context = annotation_data->annotation_cairo_context;
 
-  if (annotation_data->annotation_cairo_context)
+  if (annotation_cairo_context)
     {
-      cairo_new_path (annotation_data->annotation_cairo_context);
-      cairo_set_line_cap (annotation_data->annotation_cairo_context,
+      cairo_new_path (annotation_cairo_context);
+
+      cairo_set_line_cap (annotation_cairo_context,
 		          CAIRO_LINE_CAP_ROUND);
-      cairo_set_line_join (annotation_data->annotation_cairo_context,
+
+      cairo_set_line_join (annotation_cairo_context,
 		           CAIRO_LINE_JOIN_ROUND);
 
       if (annotation_data->cur_context->type == ANNOTATE_ERASER)
         {
           annotation_data->cur_context = annotation_data->default_eraser;
-          cairo_set_operator (annotation_data->annotation_cairo_context,
+
+          cairo_set_operator (annotation_cairo_context,
 			      CAIRO_OPERATOR_CLEAR);
-          cairo_set_line_width (annotation_data->annotation_cairo_context,
+
+          cairo_set_line_width (annotation_cairo_context,
                                 annotate_get_thickness ());
         }
       else
         {
-          cairo_set_operator (annotation_data->annotation_cairo_context,
+          cairo_set_operator (annotation_cairo_context,
 			      CAIRO_OPERATOR_SOURCE);
-          cairo_set_line_width (annotation_data->annotation_cairo_context,
+
+          cairo_set_line_width (annotation_cairo_context,
                                 annotate_get_thickness ());
         }
     }
@@ -726,11 +755,18 @@ annotate_add_savepoint ()
   guint savepoint_index = g_slist_length (annotation_data->savepoint_list) + 1;
 
   savepoint->filename = g_strdup_printf ("%s%s%s_%d_vellum.png",
-                                         annotation_data->savepoint_dir, G_DIR_SEPARATOR_S,
-                                         PACKAGE_NAME, savepoint_index);
+                                         annotation_data->savepoint_dir,
+					 G_DIR_SEPARATOR_S,
+                                         PACKAGE_NAME,
+					 savepoint_index);
+
+  GSList *savepoint_list = (GSList *) NULL;
+  savepoint_list = annotation_data->savepoint_list;
 
   /* Add a new save-point. */
-  annotation_data->savepoint_list = g_slist_prepend (annotation_data->savepoint_list, savepoint);
+  annotation_data->savepoint_list = g_slist_prepend (savepoint_list,
+		                                     savepoint);
+
   annotation_data->current_save_index = 0;
 
   int w;
@@ -771,7 +807,10 @@ initialize_annotation_cairo_context (AnnotateData *data)
       /* Initialize a transparent window. */
 #ifdef _WIN32
       /* The hdc has depth 32 and the technology is DT_RASDISPLAY. */
-      HDC hdc = GetDC (GDK_WINDOW_HWND (gtk_widget_get_window (annotation_window)));
+      GdkWindow *window;
+      HDC        hdc;
+      window = gtk_widget_get_window (annotation_window);
+      hdc = GetDC (GDK_WINDOW_HWND (window));
       /*
        * @TODO Use an HDC that support the ARGB32 format to support
        * the alpha channel; this fix the highlighter bug.
@@ -791,13 +830,16 @@ initialize_annotation_cairo_context (AnnotateData *data)
 
 #endif
 
-      if (cairo_status (annotation_data->annotation_cairo_context) != CAIRO_STATUS_SUCCESS)
+      cairo_t *annotation_cr;
+      annotation_cr = annotation_data->annotation_cairo_context;
+
+      if (cairo_status (annotation_cr) != CAIRO_STATUS_SUCCESS)
         {
           g_printerr ("Failed to allocate the annotation cairo context");
           annotate_quit ();
           exit (EXIT_FAILURE);
         }
-      cairo_set_operator (annotation_data->annotation_cairo_context,
+      cairo_set_operator (annotation_cr,
 		          CAIRO_OPERATOR_OVER);
 
       if (annotation_data->savepoint_list == NULL)
@@ -828,12 +870,15 @@ annotate_restore_surface ()
 
   if (annotation_data->annotation_cairo_context)
     {
+      cairo_t *annotation_cr;
+      annotation_cr = annotation_data->annotation_cairo_context;
+
       guint i = annotation_data->current_save_index;
       if (g_slist_length (annotation_data->savepoint_list) == i)
         {
 	  // clears path and current point
-          cairo_new_path (annotation_data->annotation_cairo_context);
-          clear_cairo_context (annotation_data->annotation_cairo_context);
+          cairo_new_path (annotation_cr);
+          clear_cairo_context (annotation_cr);
           return;
         }
 
@@ -846,10 +891,10 @@ annotate_restore_surface ()
           return;
         }
 
-      cairo_save (annotation_data->annotation_cairo_context);
-      clear_cairo_context (annotation_data->annotation_cairo_context);
-      cairo_new_path (annotation_data->annotation_cairo_context);
-      cairo_set_operator (annotation_data->annotation_cairo_context,
+      cairo_save (annotation_cr);
+      clear_cairo_context (annotation_cr);
+      cairo_new_path (annotation_cr);
+      cairo_set_operator (annotation_cr,
 		          CAIRO_OPERATOR_SOURCE);
 
       if (savepoint->filename)
@@ -864,14 +909,14 @@ annotate_restore_surface ()
           if (image_surface)
             {
               g_debug ("paint savepoint %s\n", savepoint->filename);
-              cairo_set_source_surface (annotation_data->annotation_cairo_context,
+              cairo_set_source_surface (annotation_cr,
                                         image_surface, 0, 0);
-              cairo_paint (annotation_data->annotation_cairo_context);
-              cairo_stroke (annotation_data->annotation_cairo_context);
+              cairo_paint (annotation_cr);
+              cairo_stroke (annotation_cr);
               cairo_surface_destroy (image_surface);
             }
         }
-      cairo_restore (annotation_data->annotation_cairo_context);
+      cairo_restore (annotation_cr);
       // try and redraw
     }
 
@@ -984,14 +1029,16 @@ annotate_modify_color (AnnotateDeviceData *devdata,
     gdouble old_pressure = pressure;
     gdouble new_alpha;
     gdouble contrast = 1.5; 
+    cairo_t *annotation_cr;
+    annotation_cr = annotation_data->annotation_cairo_context;
 
-    if ((! annotation_data->annotation_cairo_context) ||
+    if ((! annotation_cr) ||
 	(! annotation_data->color)) {
         return;
     }
     if (pressure >= 1) {
-        cairo_set_source_color_from_string(annotation_data->annotation_cairo_context,
-                                           annotation_data->color);
+	cairo_set_source_color_from_string (annotation_cr,
+			                    annotation_data->color);
         return;
     }
 
@@ -999,12 +1046,18 @@ annotate_modify_color (AnnotateDeviceData *devdata,
     sscanf(annotation_data->color, "%02X%02X%02X%02X", &r, &g, &b, &a);
 
     if (devdata->coord_list != NULL) {
-        AnnotatePoint *last_point = (AnnotatePoint *) g_slist_nth_data(devdata->coord_list, 0);
+        AnnotatePoint *last_point;
+
+        last_point = (AnnotatePoint *) g_slist_nth_data(devdata->coord_list,
+			                                0);
+
         old_pressure = last_point->pressure;
     }
 
-    /* Use a squareroot function to give an exponential curve. This amplifies
-     * low pressure values, making the stroke more visible at the start and end.
+    /*
+     * Use a squareroot function to give an exponential curve.
+     * This amplifies low pressure values,
+     * making the stroke more visible at the start and end.
      */
     gdouble smoothed_pressure = (3 * pressure + old_pressure) / 4;
     gdouble curved_pressure = sqrt(smoothed_pressure);
@@ -1021,7 +1074,7 @@ annotate_modify_color (AnnotateDeviceData *devdata,
     }
 
     g_debug("pressure %f, new_alpha %f", pressure, new_alpha);
-    cairo_set_source_rgba(annotation_data->annotation_cairo_context,
+    cairo_set_source_rgba(annotation_cr,
                           (gdouble)r / 255.0, (gdouble)g / 255.0,
                           (gdouble)b / 255.0, new_alpha * (gdouble)a / 255.0);
 }
@@ -1164,11 +1217,13 @@ annotate_draw_line (AnnotateDeviceData *devdata,
     }
   else
     {
-      AnnotatePoint *last_point = (AnnotatePoint *) g_slist_nth_data (devdata->coord_list, 0);
+      AnnotatePoint *last_point;
+      last_point = (AnnotatePoint *) g_slist_nth_data (devdata->coord_list, 0);
       if (last_point)
         {
           cairo_move_to (annotation_data->annotation_cairo_context,
-                         last_point->x, last_point->y);
+                         last_point->x,
+			 last_point->y);
         }
       else
         {
@@ -1222,7 +1277,8 @@ annotate_draw_arrow (AnnotateDeviceData *devdata, gdouble distance)
   gdouble pen_width          = annotate_get_thickness ();
   gdouble arrow_minimum_size = pen_width * 2;
 
-  AnnotatePoint *point = (AnnotatePoint *) g_slist_nth_data (devdata->coord_list, 0);
+  AnnotatePoint *point;
+  point = (AnnotatePoint *) g_slist_nth_data (devdata->coord_list, 0);
 
   if (distance < arrow_minimum_size)
     {
@@ -1260,10 +1316,13 @@ annotate_fill (AnnotateDeviceData *devdata,
   cairo_save (annotation_data->annotation_cairo_context);
   int width = gtk_widget_get_allocated_width (annotation_window);
   int height = gtk_widget_get_allocated_width (annotation_window);
-  cairo_surface_t *image_surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-                                                               width, height);
+  cairo_surface_t *image_surface;
+  image_surface  = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+		                               width,
+					       height);
 
-  cairo_surface_t *source_surface = cairo_get_target (annotation_data->annotation_cairo_context);
+  cairo_surface_t *source_surface;
+  source_surface = cairo_get_target (annotation_data->annotation_cairo_context);
 
   // first we paint a new context with our current window image
   cairo_t *cr = cairo_create (image_surface);
@@ -1274,7 +1333,11 @@ annotate_fill (AnnotateDeviceData *devdata,
 
   flood_fill (annotation_data->annotation_cairo_context, image_surface,
               annotation_data->color, x, y);
-  cairo_surface_flush (cairo_get_target (annotation_data->annotation_cairo_context));
+
+  cairo_t *annotation_cr;
+  annotation_cr = annotation_data->annotation_cairo_context;
+  cairo_surface_flush (cairo_get_target (annotation_cr));
+
   cairo_surface_destroy (image_surface);
 
   cairo_restore (annotation_data->annotation_cairo_context);
@@ -1528,7 +1591,7 @@ annotate_undo ()
       if (annotation_data->current_save_index !=
           g_slist_length (annotation_data->savepoint_list) - 1)
         {
-          annotation_data->current_save_index = annotation_data->current_save_index + 1;
+          annotation_data->current_save_index += 1;
           annotate_restore_surface ();
         }
     }
@@ -1544,7 +1607,7 @@ annotate_redo ()
     {
       if (annotation_data->current_save_index != 0)
         {
-          annotation_data->current_save_index = annotation_data->current_save_index - 1;
+          annotation_data->current_save_index -= 1;
           annotate_restore_surface ();
         }
     }
@@ -1601,8 +1664,13 @@ create_annotation_data ()
   annotation_data->is_cursor_hidden = TRUE;
 
   annotation_data->default_pen = annotate_paint_context_new (ANNOTATE_PEN);
-  annotation_data->default_eraser = annotate_paint_context_new (ANNOTATE_ERASER);
-  annotation_data->default_filler = annotate_paint_context_new (ANNOTATE_FILLER);
+
+  annotation_data->default_eraser =
+    annotate_paint_context_new (ANNOTATE_ERASER);
+
+  annotation_data->default_filler =
+    annotate_paint_context_new (ANNOTATE_FILLER);
+
   annotation_data->cur_context = annotation_data->default_pen;
   annotation_data->monitor     = NULL;
 
@@ -1664,8 +1732,9 @@ annotation_window_button_press (GdkEventButton *ev, AnnotateData *data)
   GdkDevice *master = gdk_event_get_device ((GdkEvent *) ev);
 
   /* Get the data for this device. */
-  AnnotateDeviceData *masterdata = g_hash_table_lookup (annotation_data->devdatatable,
-		                                        master);
+  AnnotateDeviceData *masterdata;
+  masterdata = g_hash_table_lookup (annotation_data->devdatatable,
+		                    master);
 
   gdouble pressure = 1.0;
 
@@ -1826,7 +1895,13 @@ annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
               masterdata->coord_list, 0);
           gdouble tollerance = annotate_get_thickness ();
 
-          if (get_distance (last_point->x, last_point->y, ev->x, ev->y) < tollerance)
+	  gdouble distance;
+	  distance = get_distance (last_point->x,
+			           last_point->y,
+				   ev->x,
+				   ev->y);
+
+          if (distance < tollerance)
             {
               /* Seems that you are uprising the pen. */
               if (pressure <= last_point->pressure)
@@ -1933,7 +2008,9 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
     {
       AnnotatePoint *first_point = (AnnotatePoint *) g_slist_nth_data (
           masterdata->coord_list, length - 1);
-      AnnotatePoint *last_point = (AnnotatePoint *) g_slist_nth_data (masterdata->coord_list, 0);
+      AnnotatePoint *last_point;
+      last_point = (AnnotatePoint *) g_slist_nth_data (masterdata->coord_list,
+		                                       0);
 
       gdouble distance = get_distance (ev->x,
 		                       ev->y,

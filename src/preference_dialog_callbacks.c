@@ -63,7 +63,10 @@ G_MODULE_EXPORT void
 on_image_chooser_button_file_set (GtkButton *buton, gpointer data)
 {
   PreferenceData *preference_data = (PreferenceData *) data;
-  GtkBuilder *preference_dialog_gtk_builder = preference_data->preference_dialog_gtk_builder;
+
+  GtkBuilder *preference_dialog_gtk_builder =
+    preference_data->preference_dialog_gtk_builder;
+
   GObject *file_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
 		                              "file");
   GtkToggleButton *image_tool_button = GTK_TOGGLE_BUTTON (file_obj);
@@ -75,9 +78,13 @@ G_MODULE_EXPORT void
 on_background_color_button_color_set (GtkButton *buton, gpointer data)
 {
   PreferenceData *preference_data = (PreferenceData *) data;
-  GtkBuilder *preference_dialog_gtk_builder = preference_data->preference_dialog_gtk_builder;
+  
+  GtkBuilder *preference_dialog_gtk_builder =
+    preference_data->preference_dialog_gtk_builder;
+
   GObject *color_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
 		                               "color");
+
   GtkToggleButton *color_tool_button = GTK_TOGGLE_BUTTON (color_obj);
   gtk_toggle_button_set_active (color_tool_button, TRUE);
 }
@@ -88,16 +95,22 @@ on_preference_ok_button_clicked (GtkButton *buton, gpointer data)
 {
   PreferenceData *preference_data = (PreferenceData *) data;
   gchar          *rgba            = NULL;
-  GtkBuilder *preference_dialog_gtk_builder = preference_data->preference_dialog_gtk_builder;
-  GObject *color_tool_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
-                                                    "color");
+
+  GtkBuilder *preference_dialog_gtk_builder =
+    preference_data->preference_dialog_gtk_builder;
+
+  GObject *color_tool_obj;
+  color_tool_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
+                                           "color");
+
   GtkToggleButton *color_tool_button = GTK_TOGGLE_BUTTON (color_tool_obj);
 
   if (gtk_toggle_button_get_active (color_tool_button))
     {
       /* background colour */
-      GObject *bg_color_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
-                                                      "backgroundColorButton");
+      GObject *bg_color_obj;
+      bg_color_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
+                                             "backgroundColorButton");
 
       GdkRGBA *gdkcolor = g_malloc ((gsize) sizeof (GdkRGBA));
       gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER (bg_color_obj), gdkcolor);
@@ -115,25 +128,37 @@ on_preference_ok_button_clicked (GtkButton *buton, gpointer data)
       if (gtk_toggle_button_get_active (image_tool_button))
         {
           /* background png from file */
-          GObject *image_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
-                                                       "imageChooserButton");
-          GtkFileChooserButton *image_chooser_button = GTK_FILE_CHOOSER_BUTTON (image_obj);
-          gchar *filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (image_chooser_button));
+          GObject *image_obj = NULL;
+          image_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
+                                              "imageChooserButton");
+          GtkFileChooserButton *image_chooser_button = NULL;
+	  image_chooser_button = GTK_FILE_CHOOSER_BUTTON (image_obj);
+          gchar *filename = NULL;
+
+	  GtkFileChooser *chooser;
+	  chooser = GTK_FILE_CHOOSER (image_chooser_button);
+
+	  filename = gtk_file_chooser_get_filename (chooser);
           if (filename)
             {
               FILE *stream = g_fopen (filename, "r");
               if (stream == NULL)
                 {
-                  GObject   *preference_obj    = (GObject *) NULL;
                   GtkWindow *preference_window = (GtkWindow *) NULL;
-                  preference_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
-                                                           "preferences");
+
+                  GObject   *preference_obj    =
+	            gtk_builder_get_object (preference_dialog_gtk_builder,
+                                            "preferences");
+
                   preference_window = GTK_WINDOW (preference_obj);
                   show_permission_denied_dialog (preference_window);
                 }
               else
                 {
-                  // cut out filename (without extension) from absolute file path
+                  /*
+		   * Cut out filename (without extension)
+		   * from absolute file path.
+		   */
                   int start = g_substrlastpos (filename, G_DIR_SEPARATOR_S) + 1;
                   if (start < 0)
                     {

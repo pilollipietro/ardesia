@@ -469,7 +469,8 @@ get_desktop_dir (void)
 const gchar *
 get_documents_dir (void)
 {
-  const gchar *documents_dir = g_get_user_special_dir (G_USER_DIRECTORY_DOCUMENTS);
+  const gchar *documents_dir;
+  documents_dir = g_get_user_special_dir (G_USER_DIRECTORY_DOCUMENTS);
   if (documents_dir == NULL)
     {
       documents_dir = get_home_dir ();
@@ -772,9 +773,10 @@ save_cairo_context (cairo_t *cr, gchar *savedir, gchar *category, int index)
    * Load a surface with the data->annotation_cairo_context
    * content and write the file.
    */
-  cairo_surface_t *saved_surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-		                                               w,
-							       h);
+  cairo_surface_t *saved_surface;
+  saved_surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+		                              w,
+					      h);
 
   cairo_surface_t *source_surface = cairo_get_target (cr);
   cairo_t         *dest_cr        = cairo_create (saved_surface);

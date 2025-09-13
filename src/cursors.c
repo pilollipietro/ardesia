@@ -85,7 +85,9 @@ get_highlighter_image_surface ()
       return highlighter_image_surface;
     }
 
-  highlighter_image_surface = cairo_image_surface_create_from_svg (HIGHLIGHTER_ICON);
+  highlighter_image_surface =
+    cairo_image_surface_create_from_svg (HIGHLIGHTER_ICON);
+
   return highlighter_image_surface;
 }
 

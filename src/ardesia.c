@@ -65,14 +65,17 @@ get_drawable_area ()
     {
       if (commandline->mode == DRAW_ON_MONITOR)
         {
+	  GList *monitors;
+	  monitors = workspace->monitors;
+
           if (commandline->workspace_monitor < 0 ||
-              commandline->workspace_monitor >= g_list_length (workspace->monitors))
+              commandline->workspace_monitor >= g_list_length (monitors))
             {
               g_warning ("Workspace monitor was given an illegal value, moving "
                          "to monitor 0.\n");
               commandline->workspace_monitor = 0;
             }
-          Monitor *monitor = g_list_nth_data (workspace->monitors,
+          Monitor *monitor = g_list_nth_data (monitors,
 			                      commandline->workspace_monitor);
           return monitor->rect;
         }
@@ -253,7 +256,11 @@ main (int argc, char *argv[])
   build_annotation_window ();
   build_toolbar_window ();
 
-  replace_status_message (g_strdup_printf ("Project started in %s", workspace->project_dir));
+  const gchar *status_format = "Project started in %s";
+  gchar       *status_msg;
+  status_msg = g_strdup_printf (status_format,
+		                workspace->project_dir);
+  replace_status_message (status_msg);
 
   //create_text_settings_window();
   initialize_font(commandline);
