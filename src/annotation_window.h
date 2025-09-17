@@ -235,6 +235,9 @@ typedef struct
 
   /* monitor */
   Monitor *monitor;
+
+  /* paths */
+  GList *paths;
 } AnnotateData;
 
 extern AnnotateData *annotation_data;
@@ -285,10 +288,10 @@ void annotate_redo ();
 /* Quit the annotation. */
 void annotate_quit ();
 
-/* Set the pen colour. */
+/* Set the pen color. */
 void annotate_set_color (gchar *color);
 
-/* Modify colour according to the pressure. */
+/* Modify color according to the pressure. */
 void annotate_modify_color (AnnotateDeviceData *devdata,
 		            AnnotateData *data,
 			    gdouble pressure);
@@ -407,5 +410,7 @@ void create_text_settings_window ();
 void show_text_settings_window ();
 
 void initialize_font (CommandLine *commandline);
+
+void save_closed_path();
 
 #endif

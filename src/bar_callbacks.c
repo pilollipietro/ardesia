@@ -75,10 +75,6 @@ void
 on_bar_hide_event (GtkWidget *widget, gpointer user_data)
 {
   g_debug ("bar hide event\n");
-
-  if (bar_data->screenshot_pending == TRUE)
-    {
-    }
 }
 
 /* Configure events occurs.
@@ -171,7 +167,6 @@ on_bar_leave_notify_event (GtkWidget *widget,
 			   gpointer func_data)
 {
   BarData *bar_data = (BarData *) func_data;
-  add_alpha (bar_data);
   start_tool (bar_data);
   return TRUE;
 }
@@ -909,7 +904,7 @@ on_bar_clear_activate (GtkToolButton *toolbutton, gpointer func_data)
   annotate_add_savepoint ();
 }
 
-/* Push colour selector button. */
+/* Push color selector button. */
 G_MODULE_EXPORT void
 on_bar_color_activate (GtkToggleToolButton *toolbutton, gpointer func_data)
 {
@@ -932,7 +927,7 @@ on_bar_color_activate (GtkToggleToolButton *toolbutton, gpointer func_data)
                                            GTK_WINDOW (get_bar_widget ()),
                                            bar_data->color);
 
-  if (new_color) // if it is a valid colour
+  if (new_color) // if it is a valid color
     {
       set_color (bar_data, new_color);
       g_free (new_color);
@@ -942,7 +937,7 @@ on_bar_color_activate (GtkToggleToolButton *toolbutton, gpointer func_data)
   start_tool (bar_data);
 }
 
-/* Push blue colour button. */
+/* Push blue color button. */
 G_MODULE_EXPORT void
 on_bar_blue_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -950,7 +945,7 @@ on_bar_blue_activate (GtkToolButton *toolbutton, gpointer func_data)
   set_color (bar_data, BLUE);
 }
 
-/* Push red colour button. */
+/* Push red color button. */
 G_MODULE_EXPORT void
 on_bar_red_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -958,7 +953,7 @@ on_bar_red_activate (GtkToolButton *toolbutton, gpointer func_data)
   set_color (bar_data, RED);
 }
 
-/* Push green colour button. */
+/* Push green color button. */
 G_MODULE_EXPORT void
 on_bar_green_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -966,7 +961,7 @@ on_bar_green_activate (GtkToolButton *toolbutton, gpointer func_data)
   set_color (bar_data, GREEN);
 }
 
-/* Push yellow colour button. */
+/* Push yellow color button. */
 G_MODULE_EXPORT void
 on_bar_yellow_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -974,7 +969,7 @@ on_bar_yellow_activate (GtkToolButton *toolbutton, gpointer func_data)
   set_color (bar_data, YELLOW);
 }
 
-/* Push white colour button. */
+/* Push white color button. */
 G_MODULE_EXPORT void
 on_bar_white_activate (GtkToolButton *toolbutton, gpointer func_data)
 {

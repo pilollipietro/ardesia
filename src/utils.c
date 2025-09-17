@@ -251,7 +251,7 @@ scale_surface (cairo_surface_t *surface, gdouble width, gdouble height)
   return new_surface;
 }
 
-/* Set the cairo surface colour to the RGBA string. */
+/* Set the cairo surface color to the RGBA string. */
 void
 cairo_set_source_color_from_string (cairo_t *cr, gchar *color)
 {

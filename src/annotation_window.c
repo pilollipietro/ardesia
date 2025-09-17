@@ -94,6 +94,7 @@ annotate_get_arrow_direction (AnnotateDeviceData *devdata)
 
   old_point = (AnnotatePoint *) g_slist_nth_data (relevantpoint_list, 1);
   point     = (AnnotatePoint *) g_slist_nth_data (relevantpoint_list, 0);
+
   /* Give the direction using the last two point. */
   ret       = atan2 (point->y - old_point->y, point->x - old_point->x);
 
@@ -106,8 +107,8 @@ annotate_get_arrow_direction (AnnotateDeviceData *devdata)
 }
 
 /* 
- * Colour selector; if eraser than select the transparent colour
- * else allocate the right colour.
+ * Color selector; if eraser than select the transparent color
+ * else allocate the right color.
  */
 static void
 select_color ()
@@ -125,10 +126,10 @@ select_color ()
       /* Pen or arrow tool. */
       if (annotation_data->cur_context->type != ANNOTATE_ERASER)
         {
-          /* Select the colour. */
+          /* Select the color. */
           if (annotation_data->color)
             {
-              g_debug ("Select colour %s\n", annotation_data->color);
+              g_debug ("Select color %s\n", annotation_data->color);
               cairo_set_source_color_from_string (annotation_cairo_context,
                                                   annotation_data->color);
             }
@@ -138,7 +139,7 @@ select_color ()
       else
         {
           /* It is the eraser tool. */
-          g_debug ("Select transparent colour to erase\n");
+          g_debug ("Select transparent color to erase\n");
           cairo_set_operator (annotation_cairo_context, CAIRO_OPERATOR_CLEAR);
         }
     }
@@ -423,6 +424,17 @@ roundify (AnnotateDeviceData *devdata, gboolean closed_path)
   g_slist_free (meaningful_point_list);
 }
 
+/* Splinify the line. */
+static void
+splinify (AnnotateDeviceData *devdata)
+{
+  annotate_restore_surface ();
+  GSList *splined_list = spline (devdata->coord_list);
+  annotate_draw_curve (devdata, splined_list);
+  annotate_coord_dev_list_free (devdata);
+  devdata->coord_list = splined_list;
+}
+
 /* Create the annotation window. */
 GtkWidget *
 create_annotation_window (Workspace *workspace, CommandLine *commandline)
@@ -439,6 +451,7 @@ create_annotation_window (Workspace *workspace, CommandLine *commandline)
     annotation_data->annotation_window_gtk_builder;
 
   annotation_data->is_opaque = commandline->is_opaque;
+  annotation_data->paths = NULL;
   
   /* Load the gtk builder file created with glade. */
   gtk_builder_add_from_file (annotation_window_gtk_builder,
@@ -509,7 +522,7 @@ make_annotation_window_transparent ()
 
 #ifdef _WIN32
       /* @TODO Use RGBA colormap and avoid to use the layered window. */
-      /* I use a layered window that use the black as transparent colour. */
+      /* I use a layered window that use the black as transparent color. */
       setLayeredGdkWindowAttributes (gtk_widget_get_window (annotation_window),
                                      RGB (0, 0, 0), 0, LWA_COLORKEY);
 #endif
@@ -554,7 +567,7 @@ create_savepoint_dir ()
 
   if (g_file_test (ardesia_tmp_dir, G_FILE_TEST_IS_DIR))
     {
-      /* The folder already exist;I delete it. */
+      /* The folder already exist; I delete it. */
       rmdir_recursive (ardesia_tmp_dir);
     }
 
@@ -933,7 +946,7 @@ get_annotation_window ()
   return annotation_data->annotation_window;
 }
 
-/* Set colour. */
+/* Set color. */
 void
 annotate_set_color (gchar *color)
 {
@@ -1020,7 +1033,7 @@ annotate_coord_dev_list_free (AnnotateDeviceData *devdata)
     }
 }
 
-/* Modify colour according to the pressure. */
+/* Modify color according to the pressure. */
 void
 annotate_modify_color (AnnotateDeviceData *devdata,
 		       AnnotateData *data,
@@ -1116,7 +1129,7 @@ annotate_push_context (cairo_t *cr)
 void
 annotate_select_pen ()
 {
-  g_debug ("The pen with colour %s has been selected\n",
+  g_debug ("The pen with color %s has been selected\n",
            annotation_data->color);
 
   if (annotation_data->default_pen)
@@ -1137,7 +1150,7 @@ annotate_select_pen ()
 void
 annotate_select_filler ()
 {
-  g_debug ("Select filler with pen colour %s\n", annotation_data->color);
+  g_debug ("Select filler with pen color %s\n", annotation_data->color);
 
   if (annotation_data->default_pen)
     {
@@ -1146,7 +1159,7 @@ annotate_select_filler ()
 
       disallocate_cursor ();
 
-      set_filler_cursor (&annotation_data->cursor);
+      set_filler_cursor (&annotation_data->cursor, annotation_data->color);
 
       update_cursor ();
     }
@@ -1190,7 +1203,7 @@ annotate_hide_cursor ()
   annotation_data->is_cursor_hidden = TRUE;
 }
 
-/* acquire the grab. */
+/* Acquire the grab. */
 void
 annotate_acquire_grab ()
 {
@@ -1203,7 +1216,8 @@ annotate_acquire_grab ()
     }
 }
 
-/* Draw line from the last point drawn to (x2,y2);
+/* 
+ * Draw line from the last point drawn to (x2,y2);
  * if stroke is false the cairo path is not forgotten
  */
 void
@@ -1313,35 +1327,10 @@ annotate_fill (AnnotateDeviceData *devdata,
 	       gdouble x,
 	       gdouble y)
 {
-  g_debug ("Fill with fill flood algorithm\n");
-  GtkWidget *annotation_window = get_annotation_window ();
+  g_debug ("Fill\n");
   cairo_save (annotation_data->annotation_cairo_context);
-  int width = gtk_widget_get_allocated_width (annotation_window);
-  int height = gtk_widget_get_allocated_width (annotation_window);
-  cairo_surface_t *image_surface;
-  image_surface  = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-		                               width,
-					       height);
-
-  cairo_surface_t *source_surface;
-  source_surface = cairo_get_target (annotation_data->annotation_cairo_context);
-
-  // first we paint a new context with our current window image
-  cairo_t *cr = cairo_create (image_surface);
-  cairo_set_source_surface (cr, source_surface, 0, 0);
-  cairo_paint (cr);
-
   select_color (devdata);
-
-  flood_fill (annotation_data->annotation_cairo_context, image_surface,
-              annotation_data->color, x, y);
-
-  cairo_t *annotation_cr;
-  annotation_cr = annotation_data->annotation_cairo_context;
-  cairo_surface_flush (cairo_get_target (annotation_cr));
-
-  cairo_surface_destroy (image_surface);
-
+  fill (annotation_data, x, y);
   cairo_restore (annotation_data->annotation_cairo_context);
   annotate_add_savepoint ();
 }
@@ -1353,8 +1342,8 @@ annotate_draw_point (AnnotateDeviceData *devdata,
 		     gdouble y,
 		     gdouble pressure)
 {
-  /* Modify a little bit the colour depending on pressure. */
   cairo_save (annotation_data->annotation_cairo_context);
+  /* Modify a little bit the color depending on pressure. */
   annotate_modify_color (devdata, annotation_data, pressure);
   cairo_move_to (annotation_data->annotation_cairo_context, x, y);
   cairo_line_to (annotation_data->annotation_cairo_context, x, y);
@@ -1372,6 +1361,10 @@ annotate_shape_recognize (AnnotateDeviceData *devdata, gboolean closed_path)
   else if (annotation_data->roundify)
     {
       roundify (devdata, closed_path);
+    }
+  else if (closed_path)
+    {
+      splinify(devdata);
     }
 }
 
@@ -1494,6 +1487,13 @@ annotate_quit ()
           g_free (annotation_data->savepoint_dir);
           annotation_data->savepoint_dir = (gchar *) NULL;
         }
+
+      for (GList *l = annotation_data->paths; l != NULL; l = l->next) {
+	cairo_path_t *path = (cairo_path_t *)l->data;
+	cairo_path_destroy(path);
+      }
+      g_list_free(annotation_data->paths);
+      annotation_data->paths = NULL;
 
       if (annotation_data->default_pen)
         {
@@ -1696,8 +1696,9 @@ create_annotation_data ()
   annotation_data->font_window = NULL;
   annotation_data->font        = NULL;
 
-  // we create background data objects at the same time
-  // to be safe
+  /* 
+   * We create background data objects at the same time to be safe
+   */
   background_data = create_background_data ();
 }
 
@@ -1707,7 +1708,7 @@ annotate_init (Monitor *monitor)
 {
   cursors_main ();
 
-  // setup AnnotateData object
+  /* Setup AnnotateData object. */
   create_annotation_data ();
 
   /* Initialize the pen context. */
@@ -1742,7 +1743,6 @@ annotation_window_button_press (GdkEventButton *ev, AnnotateData *data)
 
   if (! annotation_data->is_grabbed)
     {
-      // return FALSE;
       g_debug ("on_button_press: initialising cairo\n");
       initialize_annotation_cairo_context (data);
       if (! annotation_data->is_grabbed)
@@ -1781,7 +1781,7 @@ annotation_window_button_press (GdkEventButton *ev, AnnotateData *data)
 
   annotate_unhide_cursor ();
 
-  // acquires the grab capability
+  /* Acquires the grab capability. */
   initialize_annotation_cairo_context (data);
 
   annotate_configure_pen_options (data);
@@ -1934,6 +1934,12 @@ annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
   return TRUE;
 }
 
+void save_closed_path() {
+    cairo_t *annotation_cr = annotation_data->annotation_cairo_context; 
+    cairo_path_t *path_copy = cairo_copy_path(annotation_cr);
+    annotation_data->paths = g_list_append(annotation_data->paths, path_copy);
+}
+
 gboolean
 annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
 {
@@ -1996,6 +2002,8 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
     {
       annotate_fill (masterdata, data, ev->x, ev->y);
       gtk_widget_queue_draw (annotation_data->annotation_window);
+      take_pen_tool ();
+      annotate_select_pen ();
       return TRUE;
     }
 
@@ -2015,16 +2023,7 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
 				       first_point->y);
 
       /* This is the tolerance to force to close the path in a magnetic way. */
-      gint score = 3;
-
-      /*
-       * If is applied some handled drawing mode then
-       * the tool is more tollerant.
-       */
-      if ((data->rectify || data->roundify))
-        {
-          score = 6;
-        }
+      gint score = 6;
 
       gdouble tollerance = annotate_get_thickness () * score;
 
@@ -2071,6 +2070,11 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
               annotate_draw_arrow (masterdata, distance);
             }
         }
+      if (closed_path) {
+	 cairo_close_path(annotation_data->annotation_cairo_context);
+	 save_closed_path();
+      }
+
     }
 
   cairo_stroke (data->annotation_cairo_context);
@@ -2083,13 +2087,12 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
   return TRUE;
 }
 
-/** during the window configuration and resize callback */
+/*
+ * During the window configuration and resize callback.
+  */
 void
 annotation_window_change (int width, int height)
 {
-  // if ( background_data->cr != NULL ) {
-  //     cairo_destroy( background_data->cr );
-  // }
   if (background_data->cr == NULL)
     {
       background_data->cr = create_new_context (width, height);

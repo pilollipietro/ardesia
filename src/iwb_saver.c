@@ -163,7 +163,7 @@ add_background (gchar *img_dir_path, gchar *background_image)
 	"width=\"%d\" height=\"%d\" "
 	"fill=\"%s\" fill-opacity=\"%d\"/>\n";
 
-      /* If the background type is colour then parse it */
+      /* If the background type is color then parse it */
       if ((color != NULL) && (background_data->type != 0))
         {
           sscanf (color, "%02X%02X%02X%02X", &r, &g, &b, &a);

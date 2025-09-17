@@ -73,7 +73,7 @@ on_image_chooser_button_file_set (GtkButton *buton, gpointer data)
   gtk_toggle_button_set_active (image_tool_button, TRUE);
 }
 
-/* Shot when is pushed the background colour button. */
+/* Shot when is pushed the background color button. */
 G_MODULE_EXPORT void
 on_background_color_button_color_set (GtkButton *buton, gpointer data)
 {
@@ -107,7 +107,7 @@ on_preference_ok_button_clicked (GtkButton *buton, gpointer data)
 
   if (gtk_toggle_button_get_active (color_tool_button))
     {
-      /* background colour */
+      /* background color */
       GObject *bg_color_obj;
       bg_color_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
                                              "backgroundColorButton");

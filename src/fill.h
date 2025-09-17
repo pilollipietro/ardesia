@@ -27,6 +27,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "annotation_window.h"
+
 #ifdef _WIN32
 #include <cairo-win32.h>
 #else
@@ -36,9 +38,6 @@
 #include <cairo-xlib.h>
 #endif
 #endif
-
-/* Stack size used for flood fill algorithm. */
-#define STACKSIZE 10000
 
 /**
  * CAIRO_ARGB32_SET_PIXEL:
@@ -119,67 +118,16 @@
 #define UINT_RGBA_B(x)           ((((guint) (x)) >> 8) & 0xff)
 #define UINT_RGBA_A(x)           (((guint) (x)) & 0xff)
 
-/* Struct used to store the point visited by the flood fill algorithm. */
-struct FillPixelInfo
-{
-  int y, xl, xr, dy;
-};
-
-/* Push macro used by flood fill algorithm. */
-#define PUSH(py, pxl, pxr, pdy)                               \
-  {                                                           \
-    struct FillPixelInfo *p = sp;                             \
-    if (((py) + (pdy) >= 0) && ((py) + (pdy) < info->height)) \
-      {                                                       \
-        p->y  = (py);                                         \
-        p->xl = (pxl);                                        \
-        p->xr = (pxr);                                        \
-        p->dy = (pdy);                                        \
-        sp++;                                                 \
-      }                                                       \
-  }
-
-/* Pop macro used by flood fill algorithm. */
-#define POP(py, pxl, pxr, pdy) \
-  {                            \
-    sp--;                      \
-    (py)  = sp->y + sp->dy;    \
-    (pxl) = sp->xl;            \
-    (pxr) = sp->xr;            \
-    (pdy) = sp->dy;            \
-  }
-
-/* Struct passed to flood fill. */
-struct FillInfo
-{
-
-  /* Cairo surface used to visit the image. */
-  cairo_surface_t *surface;
-
-  /* Surface width. */
-  gint width;
-
-  /* Surface height. */
-  gint height;
-
-  /* Cairo context used to mark pixels. */
-  cairo_t *context;
-
-  /* Color at initial point. */
-  guint32 orig_color;
-
-  /* Color used to fill. */
-  guint32 filled_color;
-
-  /* Pixels of image. */
-  guchar *pixels;
-
-  /* Stride of image. */
-  gint stride;
-};
-
 /*
- * Perform the flood fill algorithm.
+ * Perform a fill operation starting from the specified point (x, y)
+ * within a closed path in the provided annotation data.
+ *
+ * Parameters:
+ *   annotation_data - pointer to the annotation data containing the path
+ *   x, y            - coordinates of the starting point for the fill
+ *
+ * This function fills the interior of a closed shape starting at the given point.
  */
-void flood_fill (cairo_t *annotation_cairo_context, cairo_surface_t *surface,
-                 gchar *filled_color, gdouble x, gdouble y);
+void fill (AnnotateData *annotation_data,
+           gdouble x,
+           gdouble y);

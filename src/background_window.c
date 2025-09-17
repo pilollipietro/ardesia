@@ -96,7 +96,7 @@ update_background_image (gchar *name)
   gtk_widget_queue_draw (annotation_data->annotation_window);
 }
 
-/* Update the background colour. */
+/* Update the background color. */
 void
 update_background_color (gchar *rgba)
 {

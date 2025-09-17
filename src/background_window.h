@@ -35,14 +35,11 @@ typedef struct
   /* 0 no background, 1 color, 1 image*/
   gint type;
 
-  /* Background colour selected. */
+  /* Background color selected. */
   gchar *color;
 
   /* Background image selected. */
   gchar *image;
-
-  /* The background widget that represent the full window. */
-  //  GtkWidget *background_window;
 
   /* cairo context to draw on the background window. */
   cairo_t *cr;
@@ -60,7 +57,7 @@ void clear_background_context ();
 /* Update the background image. */
 void update_background_image (gchar *name);
 
-/* Update the background colour. */
+/* Update the background color. */
 void update_background_color (gchar *rgba);
 
 #endif

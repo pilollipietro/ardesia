@@ -21,6 +21,7 @@
  *
  */
 
+#include <glib.h>
 #include <librsvg/rsvg.h>
 
 #include "cursors.h"
@@ -60,7 +61,83 @@ cairo_image_surface_create_from_svg (const gchar *file)
   cr = cairo_create (surface);
   rsvg_handle_render_document (handle, cr, &viewport, NULL);
   cairo_destroy (cr);
+  g_object_unref(handle);
   return surface;
+}
+
+static gchar* svg_replace_color(const gchar *svg_data,
+                                const gchar *old_color,
+                                const gchar *new_color)
+{
+    if (!svg_data || !old_color || !new_color)
+        return NULL;
+    GString *gstr = g_string_new(svg_data);
+    g_string_replace(gstr, old_color, new_color, 0);
+    return gstr->str;
+}
+
+
+/*
+ * Read svg file and replace old_color with new_color and return
+ * cairo_surface_t.
+ */
+static cairo_surface_t *
+cairo_image_surface_create_from_svg_repl(const gchar *file,
+                                         const gchar *old_color,
+                                         const gchar *new_color)
+{
+    cairo_surface_t *surface;
+    cairo_t         *cr;
+    RsvgHandle      *handle;
+    gchar           *svg_text = NULL;
+    GError          *error = NULL;
+
+    /* Read svg file. */
+    if (!g_file_get_contents(file, &svg_text, NULL, &error)) {
+        g_printerr("Cannot read file %s: %s\n", file, error->message);
+        g_error_free(error);
+        return NULL;
+    }
+
+    /* Replace color. */
+    gchar *new_svg = svg_replace_color(svg_text, old_color, new_color);
+    g_free(svg_text);
+
+    /* Read svg from memory. */
+    GInputStream *stream = g_memory_input_stream_new_from_data(new_svg,
+                                                              strlen(new_svg),
+                                                              NULL);
+    handle = rsvg_handle_new_from_stream_sync(stream,
+                                              NULL,
+                                              RSVG_HANDLE_FLAGS_NONE,
+                                              NULL,   // cancellable
+                                              &error); // GError**
+
+    g_object_unref(stream);
+    g_free(new_svg);
+
+    if (!handle) {
+        g_printerr("Cannot parse SVG: %s\n", error->message);
+        g_error_free(error);
+        return NULL;
+    }
+
+    /* Get size. */
+    RsvgRectangle viewport = {0.0, 0.0, 0.0, 0.0};
+    rsvg_handle_get_intrinsic_size_in_pixels(handle,
+                                             &viewport.width,
+                                             &viewport.height);
+
+    /* Build cairo surface. */
+    surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32,
+                                         round(viewport.width),
+                                         round(viewport.height));
+    cr = cairo_create(surface);
+    rsvg_handle_render_document(handle, cr, &viewport, NULL);
+    cairo_destroy(cr);
+    g_object_unref(handle);
+    
+    return surface;
 }
 
 /* Get the eraser image surface. */
@@ -78,55 +155,61 @@ get_eraser_image_surface ()
 
 /* Get the highlighter image surface. */
 static cairo_surface_t *
-get_highlighter_image_surface ()
+get_highlighter_image_surface (const gchar *old_color,
+                               const gchar *new_color)
 {
   if (highlighter_image_surface)
     {
-      return highlighter_image_surface;
+      cairo_surface_destroy(highlighter_image_surface);
     }
 
   highlighter_image_surface =
-    cairo_image_surface_create_from_svg (HIGHLIGHTER_ICON);
-
+    cairo_image_surface_create_from_svg_repl (HIGHLIGHTER_ICON, old_color, new_color);
   return highlighter_image_surface;
 }
 
 /* Get the arrow image surface. */
 static cairo_surface_t *
-get_arrow_image_surface ()
+get_arrow_image_surface (const gchar *old_color, char *new_color)
 {
   if (arrow_image_surface)
     {
-      return arrow_image_surface;
+      cairo_surface_destroy(arrow_image_surface);
     }
 
-  arrow_image_surface = cairo_image_surface_create_from_svg (ARROW_ICON);
+  arrow_image_surface = cairo_image_surface_create_from_svg_repl (ARROW_ICON,
+		                                                  old_color,
+								  new_color);
   return arrow_image_surface;
 }
 
 /* Get the filler image surface. */
 static cairo_surface_t *
-get_filler_image_surface ()
+get_filler_image_surface (const gchar *old_color,
+		          const gchar *new_color)
 {
   if (filler_image_surface)
     {
-      return filler_image_surface;
+      cairo_surface_destroy(filler_image_surface);
     }
 
-  filler_image_surface = cairo_image_surface_create_from_svg (FILLER_ICON);
+  filler_image_surface = cairo_image_surface_create_from_svg_repl (FILLER_ICON,
+		                                                   old_color,
+								   new_color);
   return filler_image_surface;
 }
 
 /* Get the pen image surface. */
 static cairo_surface_t *
-get_pen_image_surface ()
+get_pen_image_surface (const gchar *old_color,
+                       const gchar *new_color)
 {
   if (pen_image_surface)
     {
-      return pen_image_surface;
+      cairo_surface_destroy(pen_image_surface);
     }
 
-  pen_image_surface = cairo_image_surface_create_from_svg (PENCIL_ICON);
+  pen_image_surface = cairo_image_surface_create_from_svg_repl (PENCIL_ICON, old_color, new_color);
   return pen_image_surface;
 }
 
@@ -253,7 +336,7 @@ get_eraser_pixbuf (gdouble thickness, GdkPixbuf **pixbuf, gdouble circle_width)
 
 /* Create pixmap and mask for the eraser cursor. */
 static void
-get_filler_pixbuf (GdkPixbuf **pixbuf)
+get_filler_pixbuf (GdkPixbuf **pixbuf, gchar* color)
 {
   cairo_surface_t *image_surface = (cairo_surface_t *) NULL;
   cairo_surface_t *surface       = (cairo_surface_t *) NULL;
@@ -262,7 +345,10 @@ get_filler_pixbuf (GdkPixbuf **pixbuf)
   gint image_width;
   gint image_height;
 
-  image_surface = get_filler_image_surface ();
+  gchar *rgb = g_strndup(color, 6);
+  image_surface = get_filler_image_surface ("ff0000", rgb);
+  g_free(rgb);
+
   image_width   = cairo_image_surface_get_width (image_surface);
   image_height  = cairo_image_surface_get_height (image_surface);
 
@@ -306,9 +392,10 @@ get_pen_pixbuf (GdkPixbuf **pixbuf, gchar *color, gdouble thickness,
   gint             cursor_width;
   gint             cursor_height;
 
+  gchar *rgb = g_strndup(color, 6);
   if (arrow)
     { /* load the arrow icon. */
-      image_surface = get_arrow_image_surface ();
+      image_surface = get_arrow_image_surface ("ff0000", rgb);
     }
   else
     {
@@ -322,15 +409,17 @@ get_pen_pixbuf (GdkPixbuf **pixbuf, gchar *color, gdouble thickness,
       if (g_strcmp0 (alpha, "FF") == 0)
         {
           /* load the pencil icon. */
-          image_surface = get_pen_image_surface ();
+          image_surface = get_pen_image_surface ("ffff00", rgb);
+
         }
       else
         {
           /* load the highlighter icon. */
-          image_surface = get_highlighter_image_surface ();
+          image_surface = get_highlighter_image_surface ("ffff00", rgb);
         }
       g_free (alpha);
     }
+  g_free(rgb);
 
   icon_width  = cairo_image_surface_get_width (image_surface);
   icon_height = cairo_image_surface_get_height (image_surface);
@@ -353,7 +442,7 @@ get_pen_pixbuf (GdkPixbuf **pixbuf, gchar *color, gdouble thickness,
 
   cairo_set_line_width (pen_cr, circle_width);
 
-  /* Add a circle that respect the width and the selected colour. */
+  /* Add a circle that respect the width and the selected color. */
   cairo_set_source_color_from_string (pen_cr, color);
 
   cairo_arc (pen_cr, thickness / 2 + circle_width,
@@ -435,10 +524,10 @@ set_eraser_cursor (GdkCursor **cursor, gint size)
 
 /* Set the filler cursor. */
 void
-set_filler_cursor (GdkCursor **cursor)
+set_filler_cursor (GdkCursor **cursor, gchar* color)
 {
   GdkPixbuf *pixbuf = (GdkPixbuf *) NULL;
-  get_filler_pixbuf (&pixbuf);
+  get_filler_pixbuf (&pixbuf, color);
 
   *cursor = gdk_cursor_new_from_pixbuf (gdk_display_get_default (), pixbuf,
                                         gdk_pixbuf_get_width (pixbuf) - 1,

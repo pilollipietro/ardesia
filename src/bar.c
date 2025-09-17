@@ -133,11 +133,11 @@ init_bar_data ()
   bar_data->screenshot_callback         = NULL;
   bar_data->screenshot_saved_location_x = -1;
   bar_data->screenshot_saved_location_y = -1;
-  bar_data->saved_x = 0;
-  bar_data->saved_y = 0;
   bar_data->snapshot_surface = NULL;
+  // default to yellow highlighter
   activate_tool_button ("buttonHighlighter");
-  set_color (bar_data, "FFFF0088"); // default to yellow
+  activate_tool_button ("buttonYellow");
+  set_color (bar_data, "FFFF0088");
   return bar_data;
 }
 
@@ -391,7 +391,7 @@ add_alpha (BarData *bar_data)
     {
       memcpy (&bar_data->color[6], SEMI_OPAQUE_ALPHA, 2);
     }
-  else
+  else if (is_pen_toggle_tool_button_active ())
     {
       memcpy (&bar_data->color[6], OPAQUE_ALPHA, 2);
     }
@@ -405,7 +405,6 @@ take_pen_tool ()
                                                             "buttonPencil");
   GtkToggleToolButton *pencil_tool_button = GTK_TOGGLE_TOOL_BUTTON (pencil_obj);
 
-  /* Select the pen as default tool. */
   if (is_eraser_toggle_tool_button_active ())
     {
       GObject *eraser_obj = gtk_builder_get_object (bar_gtk_builder,
@@ -428,6 +427,12 @@ take_pen_tool ()
 
   if (is_filler_toggle_tool_button_active ())
     {
+      if (strcmp(annotation_data->color + 6, "FF") != 0)
+        {
+          pencil_obj = gtk_builder_get_object (bar_gtk_builder,
+                                               "buttonHighlighter");
+          pencil_tool_button = GTK_TOGGLE_TOOL_BUTTON (pencil_obj);
+	}
       GObject *filler_obj = gtk_builder_get_object (bar_gtk_builder,
                                                     "buttonFiller");
       GtkToggleToolButton *filler_tool_button = NULL;
@@ -510,6 +515,7 @@ set_color (BarData *bar_data, gchar *selected_color)
   lock (bar_data);
   bar_data->color = g_strdup_printf ("%s", selected_color);
   annotate_set_color (bar_data->color);
+  add_alpha (bar_data);
 }
 
 /* Pass the options to the annotation window. */

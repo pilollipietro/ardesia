@@ -68,7 +68,7 @@ typedef struct
   /* rounder flag. */
   gboolean rounder;
 
-  /* selected colour in RGBA format. */
+  /* selected color in RGBA format. */
   gchar *color;
 
   /* selected line thickness. */
@@ -114,12 +114,20 @@ gboolean is_pen_toggle_tool_button_active ();
 gboolean is_pointer_toggle_tool_button_active ();
 
 gboolean is_arrow_toggle_tool_button_active ();
+
 void     add_alpha (BarData *bar_data);
+
 void     take_pen_tool ();
+
 void     release_lock (BarData *bar_data);
+
 void     lock (BarData *bar_data);
+
 void     set_color (BarData *bar_data,
 		    gchar *selected_color);
+
 void     set_options (BarData *bar_data);
+
 void     start_tool (BarData *bar_data);
+
 void     begin_clapperboard_countdown ();
