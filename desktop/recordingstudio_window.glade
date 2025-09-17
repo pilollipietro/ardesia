@@ -15,12 +15,12 @@
   <object class="GtkImage" id="image3">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="pixbuf">icons/clapperboard-32.png</property>
+    <property name="pixbuf">icons/clapperboard.svg</property>
   </object>
   <object class="GtkImage" id="image4">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="pixbuf">icons/mouse_pointer_1.png</property>
+    <property name="pixbuf">icons/red_cursor.png</property>
   </object>
   <object class="GtkImage" id="image5">
     <property name="visible">True</property>

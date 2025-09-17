@@ -92,7 +92,7 @@
     <property name="can_focus">False</property>
     <property name="halign">center</property>
     <property name="valign">center</property>
-    <property name="pixbuf">icons/pointer.svg</property>
+    <property name="pixbuf">icons/cursor.svg</property>
   </object>
   <object class="GtkImage" id="rectifier">
     <property name="visible">True</property>
