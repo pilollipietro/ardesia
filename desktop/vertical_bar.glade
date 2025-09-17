@@ -23,11 +23,6 @@
     <property name="valign">center</property>
     <property name="pixbuf">icons/blue.svg</property>
   </object>
-  <object class="GtkImage" id="clearIcon">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="pixbuf">icons/clear_16x16.png</property>
-  </object>
   <object class="GtkImage" id="eraser">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -67,20 +62,6 @@
     <property name="halign">center</property>
     <property name="valign">center</property>
     <property name="pixbuf">icons/highlighter.svg</property>
-  </object>
-  <object class="GtkImage" id="media-record">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="halign">center</property>
-    <property name="valign">center</property>
-    <property name="pixbuf">icons/media-record.svg</property>
-  </object>
-  <object class="GtkImage" id="media-record1">
-    <property name="visible">True</property>
-    <property name="can_focus">False</property>
-    <property name="halign">center</property>
-    <property name="valign">center</property>
-    <property name="pixbuf">icons/media-record.svg</property>
   </object>
   <object class="GtkImage" id="media-recorder-unavailable">
     <property name="visible">True</property>
@@ -175,7 +156,7 @@
   </object>
   <object class="GtkWindow" id="ArdesiaBar">
     <property name="width_request">18</property>
-    <property name="height_request">780</property>
+    <property name="height_request">720</property>
     <property name="can_focus">True</property>
     <property name="has_focus">True</property>
     <property name="is_focus">True</property>
@@ -307,7 +288,7 @@
                 <property name="halign">center</property>
                 <property name="valign">center</property>
                 <property name="label" translatable="yes">Clear</property>
-                <property name="icon_widget">clearIcon</property>
+                <property name="stock_id">gtk-clear</property>
                 <signal name="clicked" handler="on_bar_clear_activate" swapped="no"/>
               </object>
               <packing>
@@ -343,8 +324,7 @@
                 <property name="label" translatable="yes">Default Pointer</property>
                 <property name="use_underline">True</property>
                 <property name="icon_widget">pointer</property>
-                <property name="active">True</property>
-                <property name="group">buttonPointer</property>
+                <property name="group">buttonHighlighter</property>
                 <signal name="clicked" handler="on_bar_pointer_activate" swapped="no"/>
               </object>
               <packing>
@@ -363,7 +343,7 @@
                 <property name="label" translatable="yes">Pencil</property>
                 <property name="use_underline">True</property>
                 <property name="icon_widget">pencil</property>
-                <property name="group">buttonPointer</property>
+                <property name="group">buttonHighlighter</property>
                 <signal name="clicked" handler="on_bar_pencil_activate" swapped="no"/>
               </object>
               <packing>
@@ -382,7 +362,8 @@
                 <property name="label" translatable="yes">Highlighter</property>
                 <property name="use_underline">True</property>
                 <property name="icon_widget">highlighter</property>
-                <property name="group">buttonPointer</property>
+                <property name="group">buttonHighlighter</property>
+                <property name="active">True</property>
                 <signal name="clicked" handler="on_bar_highlighter_activate" swapped="no"/>
               </object>
               <packing>
@@ -401,7 +382,7 @@
                 <property name="label" translatable="yes">Text</property>
                 <property name="use_underline">True</property>
                 <property name="icon_widget">text</property>
-                <property name="group">buttonPointer</property>
+                <property name="group">buttonHighlighter</property>
                 <signal name="clicked" handler="on_bar_text_activate" swapped="no"/>
               </object>
               <packing>
@@ -420,7 +401,7 @@
                 <property name="label" translatable="yes">Arrow</property>
                 <property name="use_underline">True</property>
                 <property name="icon_widget">arrow</property>
-                <property name="group">buttonPointer</property>
+                <property name="group">buttonHighlighter</property>
                 <signal name="clicked" handler="on_bar_arrow_activate" swapped="no"/>
               </object>
               <packing>
@@ -439,7 +420,7 @@
                 <property name="label" translatable="yes">Bucket Fill</property>
                 <property name="use_underline">True</property>
                 <property name="icon_widget">filler</property>
-                <property name="group">buttonPointer</property>
+                <property name="group">buttonHighlighter</property>
                 <signal name="clicked" handler="on_bar_filler_activate" swapped="no"/>
               </object>
               <packing>
@@ -458,7 +439,7 @@
                 <property name="label" translatable="yes">Eraser</property>
                 <property name="use_underline">True</property>
                 <property name="icon_widget">eraser</property>
-                <property name="group">buttonPointer</property>
+                <property name="group">buttonHighlighter</property>
                 <signal name="clicked" handler="on_bar_eraser_activate" swapped="no"/>
               </object>
               <packing>
@@ -605,7 +586,7 @@
                 <property name="use_underline">True</property>
                 <property name="icon_widget">yellow</property>
                 <property name="active">True</property>
-                <property name="group">buttonRed</property>
+                <property name="group">buttonYellow</property>
                 <signal name="clicked" handler="on_bar_yellow_activate" swapped="no"/>
               </object>
               <packing>
@@ -641,7 +622,7 @@
                 <property name="halign">center</property>
                 <property name="valign">center</property>
                 <property name="label" translatable="yes">Select Color</property>
-                <property name="stock_id">gtk-select-color</property>
+                <property name="stock_id">gtk-color-picker</property>
                 <property name="group">buttonYellow</property>
                 <signal name="clicked" handler="on_bar_color_activate" swapped="no"/>
               </object>
@@ -695,7 +676,7 @@
                 <property name="valign">center</property>
                 <property name="label" translatable="yes">Capture Screen</property>
                 <property name="use_underline">True</property>
-                <property name="icon_name">media-record</property>
+                <property name="stock_id">gtk-media-record</property>
                 <signal name="clicked" handler="on_bar_recorder_activate" swapped="no"/>
               </object>
               <packing>
