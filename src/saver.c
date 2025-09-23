@@ -40,8 +40,6 @@ show_override_dialog (GtkWindow *parent)
                                        GTK_MESSAGE_WARNING, GTK_BUTTONS_YES_NO,
                                        gettext ("File Exists. Overwrite"));
 
-  // gtk_window_set_keep_above (GTK_WINDOW (msg_dialog), TRUE);
-
   result = gtk_dialog_run (GTK_DIALOG (msg_dialog));
   if (msg_dialog)
     {

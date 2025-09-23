@@ -84,32 +84,7 @@ G_MODULE_EXPORT gboolean
 on_bar_configure_event (GtkWidget *widget, GdkEvent *event, gpointer func_data)
 {
   g_debug ("bar configure event (%d)\n", bar_data->screenshot_pending);
-  if (bar_data->screenshot_pending == TRUE)
-    {
-      // we tried 2 methods:
-      //  1. hide causing a hide event or a configure event
-      //  2. moving window off screen first and then triggering the hide event
-      // both appear to have occurred, but image still captures the window -
-      // perhaps a double buffering artifact somewhere.
-      //
-      // we have to give it some time for the animation to play out
-      // otherwise the window will still be visible in our snapshot
-      // 2 seconds appears to work, 1 second sometimes works.
-      sleep (2);
-      g_debug ("found a screenshot pending\n");
-
-      GdkPixbuf *buffer            = take_screenshot_now ();
-      bar_data->screenshot_pending = FALSE;
-      gdk_window_move (gtk_widget_get_window (get_bar_widget ()),
-                       bar_data->screenshot_saved_location_x,
-                       bar_data->screenshot_saved_location_y);
-      bar_data->screenshot_saved_location_x = -1;
-      bar_data->screenshot_saved_location_y = -1;
-      gtk_widget_show (get_bar_widget ());
-      bar_data->screenshot_callback (buffer);
-      bar_data->screenshot_callback = NULL;
-    }
-  else
+  if ( ! bar_data->screenshot_pending)
     {
       set_options (bar_data);
     }

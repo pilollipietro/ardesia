@@ -325,14 +325,23 @@ GdkPixbuf *
 take_screenshot_now ()
 {
   GtkWidget *widget    = annotation_data->annotation_window;
+
+  GtkWidget *bar_widget = GTK_WIDGET (get_bar_widget ());
+  gdouble opacity = gtk_widget_get_opacity(bar_widget);
+  gtk_widget_set_opacity (bar_widget, 0.0);
+
   gint       ann_width = 0, ann_height = 0, ann_x = 0, ann_y = 0;
   gtk_window_get_position (GTK_WINDOW (widget), &ann_x, &ann_y);
   gtk_window_get_size (GTK_WINDOW (widget), &ann_width, &ann_height);
 
   GdkWindow *root_window = gdk_get_default_root_window ();
 
-  GdkPixbuf *snapshot = gdk_pixbuf_get_from_window (root_window, ann_x, ann_y,
-                                                    ann_width, ann_height);
+  GdkPixbuf *snapshot = gdk_pixbuf_get_from_window (root_window,
+		                                    ann_x,
+						    ann_y,
+                                                    ann_width,
+						    ann_height);
+  gtk_widget_set_opacity (bar_widget, opacity);
   return snapshot;
 }
 
@@ -341,29 +350,8 @@ void
 grab_screenshot (void (*screenshot_callback) (GdkPixbuf *))
 {
   g_debug ("grab screenshot\n");
-  // check if tool bar and annotation bar intersect
-  if (is_bar_window_over_annotation_window ())
-    {
-      // this generates a window state change once the window has been hidden
-      bar_data->screenshot_pending  = TRUE;
-      bar_data->screenshot_callback = screenshot_callback;
-      int x = 0, y = 0;
-      gdk_window_get_root_origin (gtk_widget_get_window (get_bar_widget ()),
-		                  &x,
-				  &y);
-      bar_data->screenshot_saved_location_x = x;
-      bar_data->screenshot_saved_location_y = y;
-      int width = gtk_widget_get_allocated_width (get_bar_widget ());
-      gdk_window_move (gtk_widget_get_window (get_bar_widget ()),
-		       -width - 500,
-		       0);
-      gtk_widget_hide (get_bar_widget ());
-    }
-  else
-    {
-      GdkPixbuf *buffer = take_screenshot_now ();
-      screenshot_callback (buffer);
-    }
+  GdkPixbuf *buffer = take_screenshot_now ();
+  screenshot_callback (buffer);
 }
 
 /*
