@@ -168,9 +168,13 @@ is_recorder_available ()
     }
 #endif
 
-  return g_spawn_async (NULL /*working_directory*/, argv, NULL /*envp*/,
-                        G_SPAWN_SEARCH_PATH, NULL /*child_setup*/,
-                        NULL /*user_data*/, NULL /*child_pid*/, NULL /*error*/);
+  return g_spawn_async (NULL /*working_directory*/,
+                        argv, NULL /*envp*/,
+                        G_SPAWN_SEARCH_PATH,
+                        NULL /*child_setup*/,
+                        NULL /*user_data*/,
+                        NULL /*child_pid*/,
+                        NULL /*error*/);
 }
 
 /* Return if the recording is started. */
