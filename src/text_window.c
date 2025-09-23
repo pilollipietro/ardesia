@@ -71,7 +71,7 @@ stop_timer ()
 void
 start_blink_cursor ()
 {
-  // start blink cursor every second
+  /* Start blink cursor every second. */
   text_data->blink_show = TRUE;
   blink_cursor (NULL);
   text_data->timer = g_timeout_add (750, blink_cursor, NULL);
@@ -224,7 +224,7 @@ assign_text_cursor_to_window (GtkWidget *window)
   return TRUE;
 }
 
-/* Add a save-point with the text. Called from stop_text_widget*/
+/* Add a save-point with the text. Called from stop_text_widget. */
 void
 save_text ()
 {
@@ -264,9 +264,11 @@ set_cursor_height (GtkWidget *widget)
   int width  = gtk_widget_get_allocated_width (widget);
   int height = gtk_widget_get_allocated_width (widget);
 
-  // this is to find out what size we should make the cursor
-  // we don't need the window cairo context for this
-  // so we just create a blank surface
+  /*
+   * Determine the appropriate size for the cursor.
+   * We do not need an actual window Cairo context for this,
+   * so we simply create a blank surface for the calculation.
+   */
   cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
 		                                         width,
 							 height);
@@ -277,7 +279,7 @@ set_cursor_height (GtkWidget *widget)
   cairo_set_source_color_from_string (cr, text_data->color);
   cairo_set_font_size (cr, text_data->pen_width * 5);
 
-  /* Select the font */
+  /* Select the font. */
   cairo_select_font_face (cr,
 		          text_config->fontfamily,
 			  CAIRO_FONT_SLANT_NORMAL,
@@ -292,7 +294,7 @@ set_cursor_height (GtkWidget *widget)
   cairo_destroy (cr);
 }
 
-/* Initialization routine. Called on text expose*/
+/* Initialization routine. Called on text expose. */
 void
 init_text_widget (GtkWidget *widget)
 {
@@ -331,7 +333,8 @@ create_text_data ()
     }
 }
 
-/* Start the widget for the text insertion.
+/*
+ * Start the widget for the text insertion.
  * Triggered by the leaving of the mouse of the tool bar.
  * @param widget        window that called function (generally bar_window)
  * @param color         user selected color for text
@@ -350,7 +353,7 @@ start_text_widget (GtkWidget *widget, gchar *color, gint thickness)
   annotation_data->is_text_editor_visible = TRUE;
 }
 
-/* Stop the text insertion widget. Triggered when mouse enters the bar again */
+/* Stop the text insertion widget. Triggered when mouse enters the bar again. */
 void
 stop_text_widget ()
 {

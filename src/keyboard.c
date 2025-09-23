@@ -51,7 +51,7 @@ stop_virtual_keyboard ()
   if (virtual_keyboard_pid > 0)
     {
       /* @TODO replace this with the cross platform g_pid_terminate
-       * when it will available
+       * when it will available.
        */
       HWND hwnd = FindWindow (VIRTUALKEYBOARD_WINDOW_NAME, NULL);
       SendMessage (hwnd, WM_SYSCOMMAND, SC_CLOSE, 0);

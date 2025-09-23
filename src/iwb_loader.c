@@ -274,8 +274,9 @@ load_savepoints_by_iwb (GSList *savepoint_list,
         {
           /* Follow the ref and take xlink href filename. */
           savepoint_list = load_savepoint_by_reference (savepoint_list,
-			                                project_tmp_dir,
-                                                        context, ref);
+                                                        project_tmp_dir,
+                                                        context,
+                                                        ref);
         }
       xmlFree (ref);
     }
@@ -297,7 +298,8 @@ load_iwb (gchar *iwbfile)
 		                             project_name,
 					     (gchar *) 0);
   gchar *content_filename = "content.xml";
-  gchar *content_filepath = g_build_filename (project_tmp_dir, content_filename,
+  gchar *content_filepath = g_build_filename (project_tmp_dir,
+                                              content_filename,
                                               (gchar *) 0);
   xmlDocPtr          doc  = (xmlDocPtr) NULL; // the resulting document tree
   xmlXPathContextPtr context = (xmlXPathContextPtr) NULL;
@@ -337,8 +339,8 @@ load_iwb (gchar *iwbfile)
   context = register_namespaces (context);
 
   savepoint_list = load_savepoints_by_iwb (savepoint_list,
-		                           project_tmp_dir,
-					   context);
+                                           project_tmp_dir,
+                                           context);
 
   g_remove (content_filepath);
 

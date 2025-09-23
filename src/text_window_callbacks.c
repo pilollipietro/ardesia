@@ -186,7 +186,6 @@ draw_character (cairo_t *cr, CharInfo *char_info)
       cairo_set_line_width (cr, char_info->pen_width);
       cairo_set_source_color_from_string (cr, char_info->color);
 
-      // uses the Pango Layout interface
       PangoLayout *layout = pango_cairo_create_layout (cr);
 
       pango_layout_set_font_description (layout,
@@ -194,7 +193,6 @@ draw_character (cairo_t *cr, CharInfo *char_info)
 
       pango_layout_set_text (layout, char_info->character, -1);
 
-      // match the pango layout with the cairo object and any transformation
       pango_cairo_update_layout (cr, layout);
 
       gint text_width, text_height;
@@ -202,7 +200,6 @@ draw_character (cairo_t *cr, CharInfo *char_info)
       gint baseline = pango_layout_get_baseline (layout);
       cairo_move_to (cr, char_info->x, char_info->y - (baseline / PANGO_SCALE));
 
-      // draw layout on cairo context
       pango_cairo_show_layout (cr, layout);
       char_info->text_width  = text_width;
       char_info->text_height = text_height;
@@ -363,7 +360,7 @@ handle_return_char ()
     {
       last = (CharInfo *) (g_slist_last (text_data->letterlist)->data);
     }
-  // move down and to underneath where user started this bit of text
+  /* Move down and to underneath where user started this bit of text. */
   text_data->pos->x = text_config->start_x + text_config->leftmargin;
   if (last != NULL)
     {

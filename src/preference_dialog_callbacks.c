@@ -156,9 +156,9 @@ on_preference_ok_button_clicked (GtkButton *buton, gpointer data)
               else
                 {
                   /*
-		   * Cut out filename (without extension)
-		   * from absolute file path.
-		   */
+                   * Cut out filename (without extension)
+                   * from absolute file path.
+                   */
                   int start = g_substrlastpos (filename, G_DIR_SEPARATOR_S) + 1;
                   if (start < 0)
                     {

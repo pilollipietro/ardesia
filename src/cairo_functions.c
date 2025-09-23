@@ -24,8 +24,8 @@
 #include "cairo_functions.h"
 #include "utils.h"
 
-/**
- * Paint from one context to another
+/*
+ * Paint from one context to another.
  * @param source the context on which we want to paint
  * @param dest   the context which has our pattern on it
  */
@@ -162,17 +162,16 @@ create_copy_of_context (cairo_t *current_context)
 void
 draw_test_text (cairo_t *cr, gchar *text)
 {
-  // test text
   cairo_save (cr);
 
   cairo_set_source_rgb (cr, 1, 1, 1);
   cairo_paint (cr);
 
-  // write near black text
   cairo_select_font_face (cr,
-		          "monospace",
-			  CAIRO_FONT_SLANT_NORMAL,
-			  CAIRO_FONT_WEIGHT_BOLD);
+                          "monospace",
+                          CAIRO_FONT_SLANT_NORMAL,
+                          CAIRO_FONT_WEIGHT_BOLD);
+                          
   cairo_set_font_size (cr, 32.0);
   cairo_set_source_rgb (cr, 0.1, 0.1, 0.1);
   cairo_move_to (cr, 10.0, 50.0);

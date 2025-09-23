@@ -226,7 +226,8 @@ create_bar_window (CommandLine *commandline,
 
   /* 
    * Load the bar_gtk_builder file with the definition
-   * of the ardesia bar gui. */
+   * of the ardesia bar gui.
+   */
   g_debug ("Bar ui file: %s\n", file);
   gtk_builder_add_from_file (bar_gtk_builder, file, &error);
   if (error)
@@ -586,10 +587,10 @@ end_clapperboad_countdown (gpointer user_data)
   bar_data->grab      = FALSE;
   annotate_release_grab ();
 
-  /* ideally we want to go back to our background settings that we had before */
+  /* Ideally we want to go back to our background settings that we had before. */
   annotation_data->is_clapperboard_visible = FALSE;
 
-  /* make the screen black and then go back to what it was before */
+  /* Make the screen black and then go back to what it was before. */
   bar_data->grab = grab_value;
   start_tool (bar_data);
   gtk_widget_queue_draw (annotation_data->annotation_window);

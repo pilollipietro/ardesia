@@ -87,9 +87,19 @@ destroy_workspace (Workspace *workspace)
   g_free (workspace);
 }
 
-/* Create a shorcut to the workspace on the desktop.
-gchar *workspace_dir
-*/
+/*
+ * Create_workspace_shortcut:
+ * @workspace: a #Workspace structure containing at least the workspace_dir.
+ *
+ * Creates a shortcut (link) to the given workspace directory on the user’s
+ * desktop. The shortcut filename will be “<PACKAGE_NAME>_workspace”.
+ *
+ * On Windows it calls windows_create_link() using a stock folder icon,
+ * on Unix-like systems it calls xdg_create_link() with the “folder-documents” icon.
+ *
+ * Example:
+ *   create_workspace_shortcut (my_workspace);
+ */
 static void
 create_workspace_shortcut (Workspace *workspace)
 {
@@ -108,10 +118,20 @@ create_workspace_shortcut (Workspace *workspace)
   g_free (desktop_entry_filename);
 }
 
-/* Create the default project dir under the workspace_dir.
-gchar  *workspace_dir,
-gchar  *project_name
-*/
+/*
+ * create_default_project_dir:
+ * @workspace: a #Workspace structure containing workspace_dir and project_name.
+ *
+ * Ensures that the default project directory exists under the workspace’s
+ * base directory.
+ *
+ * It builds the full path from workspace_dir + project_name, updates
+ * workspace->project_dir accordingly (freeing any previous value),
+ * and creates the directory on disk with mode 0700 if it does not exist.
+ *
+ * Example:
+ *   create_default_project_dir (my_workspace);
+ */
 static void
 create_default_project_dir (Workspace *workspace)
 {
@@ -135,9 +155,20 @@ create_default_project_dir (Workspace *workspace)
     }
 }
 
-/* Configure the workspace.
-gchar *project_name)
-*/
+/*
+ * Configure_workspace:
+ * @workspace: a #Workspace to configure (its workspace_dir will be set).
+ *
+ * Configures the workspace by assigning its default directory path.
+ *
+ * Any existing workspace_dir string is freed. Then the function builds
+ * a new path consisting of the user’s Documents directory plus the
+ * application’s package name (e.g. “~/Documents/<PACKAGE_NAME>”)
+ * and stores it in workspace->workspace_dir.
+ *
+ * Example:
+ *   configure_workspace (my_workspace);
+ */
 void
 configure_workspace (Workspace *workspace)
 {
@@ -147,7 +178,6 @@ configure_workspace (Workspace *workspace)
       g_free (workspace->workspace_dir);
       workspace->workspace_dir = NULL;
     }
-  // why is this const?
   const gchar *documents_dir = get_documents_dir ();
 
   /* The workspace directory is in the documents ardesia folder. */

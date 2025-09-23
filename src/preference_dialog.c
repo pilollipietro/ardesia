@@ -81,7 +81,7 @@ start_preference_dialog (GtkWindow *parent)
   /* Load the gtk builder file created with glade. */
   gtk_builder_add_from_file (preference_dialog_gtk_builder,
                              PREFERENCE_UI_FILE,
-			     NULL);
+                             NULL);
 
   /* Take the preference object. */
   preference_obj = gtk_builder_get_object (preference_dialog_gtk_builder,

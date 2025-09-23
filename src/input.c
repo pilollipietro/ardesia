@@ -75,7 +75,7 @@ select_input_device_mode (GdkDevice *device)
     }
 }
 
-/* Remove all the devices . */
+/* Remove all the devices. */
 void
 remove_input_devices (AnnotateData *data)
 {
@@ -124,7 +124,8 @@ print_device_info (GdkDevice *device)
   deviceIndex++;
 }
 
-/* Set-up input devices.
+/*
+ * Set-up input devices.
  * Entry point from annotation_window::annotate_init
  */
 void
@@ -230,7 +231,8 @@ ungrab_pointer (GdkDisplay *display)
   gdk_display_flush (display);
   if (gdk_x11_display_error_trap_pop (display))
     {
-      /* this probably means the device table is outdated,
+      /*
+       * This probably means the device table is outdated,
        * e.g. this device doesn't exist anymore.
        */
       g_printerr ("Ungrab pointer device error\n");

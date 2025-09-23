@@ -148,7 +148,7 @@ on_expose (GtkWidget *widget, cairo_t *cr, gpointer user_data)
 
   if (annotation_data->is_background_visible)
     {
-      /* draw background layer on context cr */
+      /* Draw background layer on context cr. */
       if (background_data->cr)
         {
           draw_cairo_context (cr, background_data->cr, use_paint);
@@ -158,7 +158,7 @@ on_expose (GtkWidget *widget, cairo_t *cr, gpointer user_data)
   if (annotation_data->is_annotation_visible)
     {
       g_debug ("annotation_window_callbacks\n");
-      /* draw annotation layer on context cr */
+      /* Draw annotation layer on context cr. */
       initialize_annotation_cairo_context (annotation_data);
       draw_cairo_context (cr,
 		          annotation_data->annotation_cairo_context,
@@ -174,7 +174,7 @@ on_expose (GtkWidget *widget, cairo_t *cr, gpointer user_data)
         }
     }
 
-  /* draw clapperboard on top of everything else */
+  /* Draw clapperboard on top of everything else. */
   if (annotation_data->is_clapperboard_visible)
     {
       if (annotation_data->clapperboard_cairo_context)

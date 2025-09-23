@@ -46,7 +46,7 @@ countPointsAlongHorizontal (GSList *list, gdouble x, gdouble pixel_tollerance)
   guint i      = 0;
   guint length = g_slist_length (list);
   guint cnt    = 0;
-  /* Search the min and max coordinates */
+  /* Search the min and max coordinates. */
   for (i = 1; i < length; i++)
     {
       AnnotatePoint *cur_point = (AnnotatePoint *) g_slist_nth_data (list, i);
@@ -64,7 +64,7 @@ countPointsAlongVertical (GSList *list, gdouble y, gdouble pixel_tollerance)
   guint i      = 0;
   guint length = g_slist_length (list);
   guint cnt    = 0;
-  /* Search the min and max coordinates */
+  /* Search the min and max coordinates. */
   for (i = 1; i < length; i++)
     {
       AnnotatePoint *cur_point = (AnnotatePoint *) g_slist_nth_data (list, i);
@@ -86,7 +86,7 @@ found_min_and_max (GSList *list,
 {
   guint i = 0;
 
-  /* Initialize the min and max to the first point coordinates */
+  /* Initialize the min and max to the first point coordinates. */
   AnnotatePoint *first_point = (AnnotatePoint *) g_slist_nth_data (list, i);
   *minx                      = first_point->x;
   *miny                      = first_point->y;
@@ -95,7 +95,7 @@ found_min_and_max (GSList *list,
 
   guint length = g_slist_length (list);
 
-  /* Search the min and max coordinates */
+  /* Search the min and max coordinates. */
   for (i = 1; i < length; i++)
     {
       AnnotatePoint *cur_point = (AnnotatePoint *) g_slist_nth_data (list, i);
@@ -167,12 +167,8 @@ is_a_triangle (GSList *list, gdouble pixel_tollerance)
   msg = g_strdup_printf (format, top, left, bottom, right);
   replace_status_message (msg);
 
-  // if one of the axis only has one point in it we will regard as a triangle
+  /* if one of the axis only has one point in it we will regard as a triangle */
   return (top == 1 || bottom == 1 || left == 1 || right == 1);
-
-  //
-  // /* Postcondition: it is a triangle. */
-  // return FALSE;
 }
 
 /* Calculate the media of the point pression. */
@@ -206,8 +202,12 @@ is_similar_to_a_regular_polygon (GSList *list, gdouble pixel_tollerance)
   for (i = 1; i < length; i++)
     {
       AnnotatePoint *point = (AnnotatePoint *) g_slist_nth_data (list, i);
-      gdouble distance     = get_distance (old_point->x, old_point->y, point->x,
+
+      gdouble distance     = get_distance (old_point->x,
+		                           old_point->y,
+					   point->x,
                                            point->y);
+
       total_distance       = total_distance + distance;
       old_point            = point;
     }
@@ -224,7 +224,10 @@ is_similar_to_a_regular_polygon (GSList *list, gdouble pixel_tollerance)
       AnnotatePoint *point     = (AnnotatePoint *) g_slist_nth_data (list, i);
       /* I have seen that a good compromise allow around 33% of error. */
       gdouble        threshold = ideal_distance / 3 + pixel_tollerance;
-      gdouble        distance  = get_distance (point->x, point->y, old_point->x,
+
+      gdouble        distance  = get_distance (point->x,
+		                               point->y,
+					       old_point->x,
                                                old_point->y);
 
       if (! (is_similar (distance, ideal_distance, threshold)))
@@ -331,8 +334,12 @@ straighten (GSList *list)
 
   /* Copy the first one point; it is a good point. */
   inp_point   = (AnnotatePoint *) g_slist_nth_data (list, 0);
-  first_point = allocate_point (inp_point->x, inp_point->y, inp_point->width,
+
+  first_point = allocate_point (inp_point->x,
+		                inp_point->y,
+				inp_point->width,
                                 inp_point->pressure);
+
   list_out    = g_slist_prepend (list_out, first_point);
 
   for (i = 0; i < length - 2; i++)
@@ -340,6 +347,7 @@ straighten (GSList *list)
       AnnotatePoint *point_a = (AnnotatePoint *) g_slist_nth_data (list, i);
       AnnotatePoint *point_b = (AnnotatePoint *) g_slist_nth_data (list, i + 1);
       AnnotatePoint *point_c = (AnnotatePoint *) g_slist_nth_data (list, i + 2);
+
       gdouble        direction_ab = calculate_edge_degree (point_a, point_b);
       gdouble        direction_bc = calculate_edge_degree (point_b, point_c);
       gdouble        delta_degree = fabs (direction_ab - direction_bc);
@@ -384,7 +392,7 @@ straighten (GSList *list)
   /* It is a segment! */
   direction = calculate_edge_degree (first_point, last_point);
 
-  /* is it is closed to 0 degree I draw an horizontal line. */
+  /* Is it is closed to 0 degree I draw an horizontal line. */
   if ((0 - degree_threshold <= direction) &&
       (direction <= 0 + degree_threshold))
     {
@@ -407,7 +415,8 @@ straighten (GSList *list)
   return list_out;
 }
 
-/* Return a new list containing a sub-path of list_inp that contains
+/*
+ * Return a new list containing a sub-path of list_inp that contains
  * the meaningful points using the standard deviation algorithm.
  */
 GSList *
@@ -438,7 +447,7 @@ build_meaningful_point_list (GSList *list_inp,
   GSList *list_out = (GSList *) NULL;
 
   AnnotatePoint *first_point = allocate_point (a_x, a_y, a_width, pressure);
-  /* add a point with the coordinates of point_a. */
+  /* Add a point with the coordinates of point_a. */
   list_out                   = g_slist_prepend (list_out, first_point);
 
   if (length == 2)
@@ -448,7 +457,7 @@ build_meaningful_point_list (GSList *list_inp,
 						    b_width,
 						    pressure);
 
-      /* add a point with the coordinates of point_a. */
+      /* Add a point with the coordinates of point_a. */
       list_out = g_slist_prepend (list_out, second_point);
     }
   else
@@ -483,7 +492,7 @@ build_meaningful_point_list (GSList *list_inp,
 
           if (fabs (h) >= (pixel_tollerance))
             {
-              /* Add  a point with the B coordinates. */
+              /* Add a point with the B coordinates. */
               AnnotatePoint *new_point = allocate_point (b_x,
 			                                 b_y,
 							 b_width,
@@ -559,7 +568,7 @@ build_outbounded_rectangle (GSList *list)
 
   ret_list = g_slist_prepend (ret_list, point0);
 
-  // added in return point to close off
+  /* added in return point to close off. */
   AnnotatePoint *point4 = allocate_point (minx,
 		                          maxy,
 					  point->width,
@@ -570,7 +579,7 @@ build_outbounded_rectangle (GSList *list)
   return ret_list;
 }
 
-/* try to build a triangle out of the points */
+/* Try to build a triangle out of the points. */
 GSList *
 build_outbounded_triangle (GSList *list, gdouble pixel_tollerance)
 {
@@ -735,7 +744,7 @@ build_outbounded_triangle (GSList *list, gdouble pixel_tollerance)
     }
   else
     {
-      // copy over the list, cannot return as it will be freed
+      /* Copy over the list, cannot return as it will be freed. */
       for (guint i = 0; i < length; i++)
         {
           point = (AnnotatePoint *) g_slist_nth_data (list, i);
@@ -816,20 +825,20 @@ is_similar_to_an_ellipse (GSList *list, gdouble pixel_tollerance)
   if (aq > bq)
     {
       c   = sqrt (aq - bq);
-      // F1 (x0-c,y0)
+      /* F1 (x0-c,y0) */
       f1x = originx - c;
       f1y = originy;
-      // F2 (x0+c,y0)
+      /* F2 (x0+c,y0) */
       f2x = originx + c;
       f2y = originy;
     }
   else
     {
       c   = sqrt (bq - aq);
-      // F1 (x0, y0-c)
+      /* F1 (x0, y0-c) */
       f1x = originx;
       f1y = originy - c;
-      // F2 (x0, y0+c)
+      /* F2 (x0, y0+c) */
       f2x = originx;
       f2y = originy + c;
     }
@@ -854,7 +863,7 @@ is_similar_to_an_ellipse (GSList *list, gdouble pixel_tollerance)
       if (difference > tollerance)
         {
           /*
-	   * The sum is too different from the ideal one;
+           * The sum is too different from the ideal one;
            * I do not approximate the shape to an ellipse.
            */
           return FALSE;
@@ -877,7 +886,7 @@ build_rectified_list (GSList *list_inp,
       guint length = g_slist_length (list_inp);
       guint i      = 0;
 
-      /* Copy the input list */
+      /* Copy the input list. */
       for (i = 0; i < length; i++)
         {
           AnnotatePoint *point = (AnnotatePoint *) g_slist_nth_data (list_inp,
@@ -894,7 +903,7 @@ build_rectified_list (GSList *list_inp,
       /* I reverse the list to preserve the initial order. */
       ret_list = g_slist_reverse (ret_list);
 
-      /* jump the algorithm and return the list as is */
+      /* Jump the algorithm and return the list as is. */
       if (g_slist_length (ret_list) <= 3)
         {
           return ret_list;
@@ -940,7 +949,7 @@ build_rectified_list (GSList *list_inp,
 		   * assume this is the most meaningful point for the user.
 		   * We also look for the furthest vertical point as that
 		   * will be meaningful for the user we then take these and
-		   * add corner points, removing the rest
+		   * add corner points, removing the rest.
 		   */
                   GSList *rect_list = build_outbounded_rectangle (ret_list);
                   g_slist_foreach (ret_list, (GFunc) g_free, NULL);

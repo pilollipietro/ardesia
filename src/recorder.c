@@ -87,9 +87,13 @@ call_recorder (gchar *filename, gchar *option)
   g_debug ("call_recorder: %s %s %s %s %s %s %s\n", logfilename, argv[3],
            argv[4], argv[5], argv[6], argv[7], argv[8]);
 
-  if (g_spawn_async (NULL /*working_directory*/, argv, NULL /*envp*/,
-                     G_SPAWN_SEARCH_PATH, NULL /*child_setup*/,
-                     NULL /*user_data*/, &pid /*child_pid*/, NULL /*error*/))
+  if (g_spawn_async (NULL /*working_directory*/,
+                     argv, NULL /*envp*/,
+                     G_SPAWN_SEARCH_PATH,
+                     NULL /*child_setup*/,
+                     NULL /*user_data*/,
+                     &pid /*child_pid*/,
+                     NULL /*error*/))
     {
       started = TRUE;
     }

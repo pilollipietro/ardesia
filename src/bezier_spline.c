@@ -119,7 +119,8 @@ spline (GSList *list)
   /* Solve for bx. */
   x = gsl_vector_calloc (2 * (lenght - 1));
   gsl_linalg_LU_solve (m, perm, bx, x);
-  /* copy solution (@FIXME: should be avoided!) */
+
+  /* Copy solution (@FIXME: should be avoided!) */
   for (i = 0; i < lenght - 1; i++)
     {
       mp[i][0] = gsl_vector_get (x, i);
@@ -130,7 +131,7 @@ spline (GSList *list)
   /* Solve for by. */
   x = gsl_vector_calloc (2 * (lenght - 1));
   gsl_linalg_LU_solve (m, perm, by, x);
-  /* copy solution (@FIXME: should be avoided!) */
+  /* Copy solution (@FIXME: should be avoided!) */
   for (i = 0; i < lenght - 1; i++)
     {
       mp[i][1] = gsl_vector_get (x, i);
@@ -149,18 +150,29 @@ spline (GSList *list)
   /* Now paint the smoothed line. */
   for (i = 0; i < lenght - 1; i++)
     {
+      /*
+       * B-spline second derivatives:
+       *
+       * printf ("%d: Bx'' (0) = %lf\n",
+       *         i+1,
+       *         6*mx[i][0] - 12*mp[i][0] + 6*mq[i][0]);
+       *
+       * printf ("%d: Bx'' (1) = %lf\n\n",
+       *         i+1,
+       *         6*mp[i][0] - 12*mq[i][0] + 6*mx[i+1][0]);
+       */
 
-      /* B second derivates */
-      // printf ("%d: Bx'' (0) = %lf\n",
-      //         i+1,
-      //         6*mx[i][0]-12*mp[i][0]+6*mq[i][0]);
-      // printf ("%d: Bx'' (1) = %lf\n\n",
-      //         i+1,
-      //         6*mp[i][0]-12*mq[i][0]+6*mx[i+1][0]);
-
-      /* B first derivates */
-      // printf ("%d: Bx' (0) = %lf\n", i+1, -3*mx[i][0]+3*mp[i][0]);
-      // printf ("%d: Bx' (1) = %lf\n", i+1, -3*mq[i][0]+3*mx[i+1][0]);
+      /*
+       * B-spline first derivatives:
+       *
+       * printf ("%d: Bx' (0) = %lf\n",
+       *         i+1,
+       *         -3*mx[i][0] + 3*mp[i][0]);
+       *
+       * printf ("%d: Bx' (1) = %lf\n",
+       *         i+1,
+       *         -3*mq[i][0] + 3*mx[i+1][0]);
+       */
 
       AnnotatePoint *first_point = allocate_point (mp[i][0], mp[i][1],
 		                                   width, pressure);

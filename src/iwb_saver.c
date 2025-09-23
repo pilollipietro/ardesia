@@ -129,10 +129,10 @@ add_background (gchar *img_dir_path, gchar *background_image)
       /* if the background is oupdated */
       if (g_strcmp0 (background_image, image_destination_path) != 0)
         {
-          /* 
-	   * Copy the file in ardesia_0_vellum.png
-	   * under image_path overriding it
-	   * */
+          /*
+           * Copy the file in ardesia_0_vellum.png
+           * under image_path overriding it.
+           */
           GFile *image_destination = NULL;
 	  image_destination = g_file_new_for_path (image_destination_path);
           GFile *image_source = g_file_new_for_path (background_image);
@@ -153,7 +153,7 @@ add_background (gchar *img_dir_path, gchar *background_image)
   else
     {
       gchar *color = background_data->color;
-      /* Initialize the rgba components to transparent */
+      /* Initialize the rgba components to transparent. */
       guint  r     = 0;
       guint  g     = 0;
       guint  b     = 0;
@@ -163,7 +163,7 @@ add_background (gchar *img_dir_path, gchar *background_image)
 	"width=\"%d\" height=\"%d\" "
 	"fill=\"%s\" fill-opacity=\"%d\"/>\n";
 
-      /* If the background type is color then parse it */
+      /* If the background type is color then parse it. */
       if ((color != NULL) && (background_data->type != 0))
         {
           sscanf (color, "%02X%02X%02X%02X", &r, &g, &b, &a);

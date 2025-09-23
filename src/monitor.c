@@ -35,7 +35,7 @@ const guint DRAW_ON_FULLDESKTOP = 2;
 GList *
 create_monitor_list ()
 {
-  // lets get some information about the displays first
+  /* Lets get some information about the displays first. */
   GdkDisplay *display      = gdk_display_get_default ();
   int         monitorCount = gdk_display_get_n_monitors (display);
   g_debug ("Number of monitors: %d\n", monitorCount);
@@ -63,7 +63,7 @@ create_monitor_list ()
       m->monitor_index = ii;
       m->rect          = rect;
 
-      // place monitors in order
+      /* Place monitors in order. */
       monitors =
         g_list_insert_sorted_with_data (monitors,
 			                m,

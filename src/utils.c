@@ -218,7 +218,7 @@ clear_cairo_context (cairo_t *cr)
     }
 }
 
-/* Scale the surface with the width and height requested */
+/* Scale the surface with the width and height requested. */
 cairo_surface_t *
 scale_surface (cairo_surface_t *surface, gdouble width, gdouble height)
 {
@@ -240,10 +240,10 @@ scale_surface (cairo_surface_t *surface, gdouble width, gdouble height)
    */
   cairo_pattern_set_extend (cairo_get_source (cr), CAIRO_EXTEND_REFLECT);
 
-  /* Replace the destination with the source instead of overlaying */
+  /* Replace the destination with the source instead of overlaying. */
   cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
 
-  /* Do the actual drawing */
+  /* Do the actual drawing. */
   cairo_paint (cr);
 
   cairo_destroy (cr);
@@ -742,7 +742,24 @@ get_context_size (cairo_t *cr, int *width, int *height)
   *height = y2 - y1;
 }
 
-// e.g. save_cairo_context( text_data->cr, "/tmp", "text", 1);
+/**
+ * save_cairo_context:
+ * @cr:         The Cairo drawing context to capture.
+ * @savedir:    Directory path where the PNG will be saved.
+ * @category:   Logical category name used in the output filename.
+ * @index:      Index number used in the output filename.
+ *
+ * Takes a snapshot of the current Cairo drawing context @cr,
+ * copies its content into a new ARGB32 surface and writes that
+ * surface as a PNG file named:
+ *
+ *     <PACKAGE_NAME>_<category>_<index>_vellum.png
+ *
+ * inside the @savedir directory.
+ *
+ * Example:
+ *     save_cairo_context (text_data->cr, "/tmp", "text", 1);
+ */
 void
 save_cairo_context (cairo_t *cr, gchar *savedir, gchar *category, int index)
 {

@@ -50,7 +50,7 @@ show_override_dialog (GtkWindow *parent)
   return result;
 }
 
-/* Show the could not write the file */
+/* Show the could not write the file. */
 void
 show_could_not_write_dialog (GtkWindow *parent_window)
 {

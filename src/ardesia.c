@@ -244,7 +244,7 @@ main (int argc, char *argv[])
   text_config->leftmargin = commandline->text_leftmargin;
   text_config->tabsize    = commandline->text_tabsize;
 
-  // handle workspace
+  /* Handle workspace. */
   workspace = create_workspace ();
   if (commandline->iwb_filename)
     {
@@ -252,7 +252,7 @@ main (int argc, char *argv[])
     }
   build_workspace_filesystem (workspace);
 
-  // create windows, one for the drawing and one for the toolbar
+  /* Create windows, one for the drawing and one for the toolbar. */
   build_annotation_window ();
   build_toolbar_window ();
 

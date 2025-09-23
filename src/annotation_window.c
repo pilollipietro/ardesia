@@ -892,7 +892,7 @@ annotate_restore_surface ()
       guint i = annotation_data->current_save_index;
       if (g_slist_length (annotation_data->savepoint_list) == i)
         {
-	  /* clear path and current point */
+	      /* clear path and current point */
           cairo_new_path (annotation_cr);
           clear_cairo_context (annotation_cr);
           return;

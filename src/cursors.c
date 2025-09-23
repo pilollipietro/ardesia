@@ -186,7 +186,7 @@ get_arrow_image_surface (const gchar *old_color, char *new_color)
 /* Get the filler image surface. */
 static cairo_surface_t *
 get_filler_image_surface (const gchar *old_color,
-		          const gchar *new_color)
+                          const gchar *new_color)
 {
   if (filler_image_surface)
     {
@@ -283,7 +283,9 @@ gdk_pixbuf_swap_blue_with_red (GdkPixbuf **pixbuf)
 
 /* Create pixmap and mask for the eraser cursor. */
 static void
-get_eraser_pixbuf (gdouble thickness, GdkPixbuf **pixbuf, gdouble circle_width)
+get_eraser_pixbuf (gdouble thickness,
+                   GdkPixbuf **pixbuf,
+                   gdouble circle_width)
 {
   cairo_t         *eraser_cr     = (cairo_t *) NULL;
   cairo_surface_t *image_surface = get_eraser_image_surface ();
@@ -336,7 +338,8 @@ get_eraser_pixbuf (gdouble thickness, GdkPixbuf **pixbuf, gdouble circle_width)
 
 /* Create pixmap and mask for the eraser cursor. */
 static void
-get_filler_pixbuf (GdkPixbuf **pixbuf, gchar* color)
+get_filler_pixbuf (GdkPixbuf **pixbuf,
+                   gchar* color)
 {
   cairo_surface_t *image_surface = (cairo_surface_t *) NULL;
   cairo_surface_t *surface       = (cairo_surface_t *) NULL;
@@ -381,8 +384,11 @@ get_filler_pixbuf (GdkPixbuf **pixbuf, gchar* color)
 
 /* Create pixmap and mask for the pen cursor. */
 static void
-get_pen_pixbuf (GdkPixbuf **pixbuf, gchar *color, gdouble thickness,
-                gdouble arrow, gdouble circle_width)
+get_pen_pixbuf (GdkPixbuf **pixbuf,
+                gchar *color,
+                gdouble thickness,
+                gdouble arrow,
+                gdouble circle_width)
 {
   cairo_t         *pen_cr        = (cairo_t *) NULL;
   cairo_surface_t *surface       = (cairo_surface_t *) NULL;

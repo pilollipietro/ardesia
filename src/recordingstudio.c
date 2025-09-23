@@ -36,9 +36,15 @@
 #include "recordingstudio.h"
 #include "utils.h"
 
-// As the toggle button fires the event when we reset the button during
-// on_stop_recording_click, we set this global to be picked up by
-// on_record_click and if TRUE then we ignore that event.
+/*
+ * This global flag is used to suppress a spurious toggle-button event.
+ *
+ * When we reset the button inside on_stop_recording_click(),
+ * the toggle fires its “clicked” event again.
+ * By setting on_stop_recording_called = TRUE here,
+ * on_record_click() can detect that it was triggered by the reset
+ * and safely ignore the event.
+ */
 static gboolean on_stop_recording_called = FALSE;
 
 /**
@@ -57,7 +63,6 @@ on_stop_recording_click (GtkButton *toolbutton, gpointer func_data)
   bar_data->grab = FALSE;
   stop_recorder ();
 
-  // reset icon on record button
   GtkToggleButton *recordButton = GTK_TOGGLE_BUTTON (gtk_builder_get_object (
       annotation_data->recordingstudio_window_gtk_builder, "record"));
   gtk_toggle_button_set_active (recordButton, FALSE);
@@ -106,8 +111,10 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
           pause_recorder ();
 
           /* Put the record icon. */
-          GtkWidget *imageWidget = GTK_WIDGET (gtk_builder_get_object (
-              recordingstudio_window_gtk_builder, "media-record"));
+          GtkWidget *imageWidget = GTK_WIDGET (
+	    gtk_builder_get_object (recordingstudio_window_gtk_builder,
+		                    "media-record"));
+
           gtk_button_set_image ((GtkButton *) toolbutton, imageWidget);
           gtk_button_set_label ((GtkButton *) toolbutton, "Record");
 
@@ -122,6 +129,7 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
           GtkWidget *imageWidget = GTK_WIDGET (
               gtk_builder_get_object (recordingstudio_window_gtk_builder,
                                       "media-recorder-unavailable"));
+
           gtk_button_set_image ((GtkButton *) toolbutton, imageWidget);
           gtk_button_set_label ((GtkButton *) toolbutton, "Unavailable");
 
@@ -231,7 +239,7 @@ setup_transparency (GtkWidget *win)
     }
 }
 
-/**
+/*
  * Manual creation of cursor window of 32x32 px size
  * @return [description]
  */
@@ -270,7 +278,7 @@ create_cursor_window ()
   return window;
 }
 
-/**
+/*
  * Draw the cursor as per the current step
  * @param cr     [description]
  * @param widget [description]
@@ -302,9 +310,9 @@ draw_video_cursor (cairo_t *cr, GtkWidget *widget)
   gdk_cairo_set_source_pixbuf (desktop, pb, 0, 0);
   cairo_paint (desktop);
 
-  // average over all pixels
+  /* average over all pixels */
   unsigned char *pixels = cairo_image_surface_get_data (surface);
-  // gives back 128 = 32 pixels * 4 bytes each
+  /* gives back 128 = 32 pixels * 4 bytes each */
   int stride = cairo_image_surface_get_stride (surface);
   gint avg_pixel = 0;
   for (int ii = 0; ii < 32; ii++)
@@ -407,7 +415,7 @@ on_cursor_click (GtkToggleButton *toolbutton, gpointer func_data)
    */
   if (annotation_data->is_cursor_visible == TRUE)
     {
-      // hide cursor window
+      /* Hide cursor window. */
       annotation_data->is_cursor_visible = FALSE;
       gtk_widget_hide (annotation_data->cursor_window);
       annotation_data->cursor_timer = 0;
@@ -416,7 +424,7 @@ on_cursor_click (GtkToggleButton *toolbutton, gpointer func_data)
     {
       if (annotation_data->cursor_window_gtk_builder == NULL)
         {
-          // build cursor window
+          /* Build cursor window. */
           g_debug ("Building cursor window\n");
           annotation_data->cursor_window = create_cursor_window ();
           gtk_widget_input_shape_combine_region (annotation_data->cursor_window,
@@ -459,7 +467,7 @@ on_clapperboard_click (GtkToolButton *toolbutton, gpointer func_data)
 
   annotation_data->is_clapperboard_visible = TRUE;
 
-  // make the screen black and then go back to what it was before
+  /* Make the screen black and then go back to what it was before. */
   bar_data->grab = grab_value;
   start_tool (bar_data);
   gtk_widget_queue_draw (annotation_window);
@@ -470,8 +478,6 @@ G_MODULE_EXPORT void
 on_new_click (GtkToolButton *toolbutton, gpointer func_data)
 {
   g_debug ("on_new_click");
-
-  // restart video
   stop_recorder ();
   GtkWidget *beginRecordingButton = GTK_WIDGET (gtk_builder_get_object (
       annotation_data->recordingstudio_window_gtk_builder, "record"));

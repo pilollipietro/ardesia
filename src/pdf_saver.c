@@ -168,7 +168,7 @@ pdf_save ()
       current_filename  =
        (gchar *) g_slist_nth_data (pdf_data->input_filelist, i);
 
-      /* load the file name content */
+      /* Load the file name content. */
       GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file (current_filename, NULL);
       gdk_cairo_set_source_pixbuf (pdf_cr, pixbuf, 0, 0);
       cairo_paint (pdf_cr);
