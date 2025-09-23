@@ -104,9 +104,10 @@ on_window_state_event (GtkWidget *widget, GdkEvent *event, gpointer user_data)
   return FALSE;
 }
 
-/* On screen changed.
+/*
+ * On screen changed.
  * Required to make window transparent
- **/
+ */
 G_MODULE_EXPORT void
 on_screen_changed (GtkWidget *widget,
 		   GdkScreen *previous_screen,
@@ -125,7 +126,8 @@ on_screen_changed (GtkWidget *widget,
   gtk_widget_set_visual (widget, visual);
 }
 
-/* Expose event: this occurs when the window is shown.
+/*
+ * Expose event: this occurs when the window is shown.
  */
 G_MODULE_EXPORT gboolean
 on_expose (GtkWidget *widget, cairo_t *cr, gpointer user_data)
@@ -144,36 +146,36 @@ on_expose (GtkWidget *widget, cairo_t *cr, gpointer user_data)
   cairo_rectangle (cr, ann_x, ann_y, ann_width, ann_height);
   use_paint = TRUE;
 
-  if (annotation_data->is_background_visible == TRUE)
+  if (annotation_data->is_background_visible)
     {
-      // draw background layer on context cr
+      /* draw background layer on context cr */
       if (background_data->cr)
         {
           draw_cairo_context (cr, background_data->cr, use_paint);
         }
     }
 
-  if (annotation_data->is_annotation_visible == TRUE)
+  if (annotation_data->is_annotation_visible)
     {
       g_debug ("annotation_window_callbacks\n");
-      // draw annotation layer on context cr
+      /* draw annotation layer on context cr */
       initialize_annotation_cairo_context (annotation_data);
       draw_cairo_context (cr,
 		          annotation_data->annotation_cairo_context,
 			  use_paint);
     }
 
-  if (annotation_data->is_text_editor_visible == TRUE)
+  if (annotation_data->is_text_editor_visible)
     {
       if (text_data->cr)
         {
-          // draw the text editor layer
+          /* draw the text editor layer */
           draw_cairo_context (cr, text_data->cr, use_paint);
         }
     }
 
-  // draw clapperboard on top of everything else
-  if (annotation_data->is_clapperboard_visible == TRUE)
+  /* draw clapperboard on top of everything else */
+  if (annotation_data->is_clapperboard_visible)
     {
       if (annotation_data->clapperboard_cairo_context)
         {

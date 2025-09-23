@@ -134,7 +134,8 @@ init_bar_data ()
   bar_data->screenshot_saved_location_x = -1;
   bar_data->screenshot_saved_location_y = -1;
   bar_data->snapshot_surface = NULL;
-  // default to yellow highlighter
+
+  /* default to yellow highlighter */
   activate_tool_button ("buttonHighlighter");
   activate_tool_button ("buttonYellow");
   set_color (bar_data, "FFFF0088");
@@ -258,7 +259,8 @@ create_bar_window (CommandLine *commandline,
   calculate_initial_position (bar_window, &x, &y, width, height, rect,
                               commandline->position);
 
-  /* The position is calculated respect the top left corner
+  /*
+   * The position is calculated respect the top left corner
    * and then I set the north west gravity.
    */
   gtk_window_set_gravity (GTK_WINDOW (bar_window), GDK_GRAVITY_NORTH_WEST);
@@ -297,7 +299,8 @@ setStatusbarLabel (gchar *message)
   gtk_label_set_label (label, gettext (message));
 }
 
-/* Try to up-rise the window;
+/*
+ * Try to up-rise the window;
  * this is used for the window manager
  * that does not support the stay above directive.
  */
@@ -481,7 +484,7 @@ lock (BarData *bar_data)
 {
   if (! bar_data->grab)
     {
-      // Unlock
+      /* Unlock */
       bar_data->grab = TRUE;
 
       /* delete the old timer */
@@ -550,9 +553,9 @@ start_tool (BarData *bar_data)
 {
   if (bar_data->grab)
     {
-      // release the old cursor
+      /* release the old cursor */
       annotate_release_grab ();
-      // grab the pointer again so that button release will respond
+      /* grab the pointer again so that button release will respond */
       annotate_acquire_grab ();
 
       if (is_text_toggle_tool_button_active ())
@@ -564,8 +567,10 @@ start_tool (BarData *bar_data)
       else
         {
           g_debug ("start_tool (non-text tool selected)\n");
-          // this call is required as the leave event for the bar occurs
-          // when we enter the toolbar object
+          /*
+	   * This call is required as the leave event for the bar occurs
+	   * when we enter the toolbar object
+	   */
           stop_text_widget ();
           /* Is an other tool for paint or erase. */
           set_options (bar_data);
@@ -581,10 +586,10 @@ end_clapperboad_countdown (gpointer user_data)
   bar_data->grab      = FALSE;
   annotate_release_grab ();
 
-  // ideally we want to go back to our background settings that we had before
+  /* ideally we want to go back to our background settings that we had before */
   annotation_data->is_clapperboard_visible = FALSE;
 
-  // make the screen black and then go back to what it was before
+  /* make the screen black and then go back to what it was before */
   bar_data->grab = grab_value;
   start_tool (bar_data);
   gtk_widget_queue_draw (annotation_data->annotation_window);

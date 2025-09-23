@@ -371,9 +371,10 @@ roundify (AnnotateDeviceData *devdata, gboolean closed_path)
 
       if (rect_list)
         {
-          // rewrote this algorithm into a much simpler one that identifies
-          // the bounding rectangle of all the points and draws the appropriate
-          // ellipse/circle.
+          /*
+	   * Identify the bounding rectangle of all the points and draws
+	   * the appropriate ellipse/circle.
+	   */
           gint n    = g_slist_length (rect_list);
           gint left = 0, right = 0, top = 0, bottom = 0;
           AnnotatePoint *point1 = NULL;
@@ -891,7 +892,7 @@ annotate_restore_surface ()
       guint i = annotation_data->current_save_index;
       if (g_slist_length (annotation_data->savepoint_list) == i)
         {
-	  // clears path and current point
+	  /* clear path and current point */
           cairo_new_path (annotation_cr);
           clear_cairo_context (annotation_cr);
           return;
@@ -1103,22 +1104,24 @@ annotate_push_context (cairo_t *cr)
   g_debug ("The text window content has been painted over the "
            "annotation window\n");
 
-  // this clears the current path from the cairo context
+  /* this clears the current path from the cairo context */
   cairo_new_path (annotation_data->annotation_cairo_context);
-  // this gets the target surface for the cairo context
+  /* this gets the target surface for the cairo context */
   source_surface = cairo_get_target (cr);
 
   cairo_set_operator (annotation_data->annotation_cairo_context,
 		      CAIRO_OPERATOR_ADD);
 
-  // creates a pattern from surface at x,y on the context
-  // at 0, left screen -> right screen, right screen disappears
-  // at -1920, left screen -> disappears, right screen is good
+  /* 
+   * Creates a pattern from surface at x,y on the context
+   * at 0, left screen -> right screen, right screen disappears
+   * at -1920, left screen -> disappears, right screen is good
+   */
   cairo_set_source_surface (annotation_data->annotation_cairo_context,
                             source_surface, 0, 0);
-  // paints the current source everywhere in clip region
+  /* paints the current source everywhere in clip region. */
   cairo_paint (annotation_data->annotation_cairo_context);
-  // strokes the current path according to current line settings
+  /* strokes the current path according to current line settings. */
   cairo_stroke (annotation_data->annotation_cairo_context);
 
   cairo_restore (annotation_data->annotation_cairo_context);
@@ -1218,7 +1221,7 @@ annotate_acquire_grab ()
 
 /* 
  * Draw line from the last point drawn to (x2,y2);
- * if stroke is false the cairo path is not forgotten
+ * if stroke is false the cairo path is not forgotten.
  */
 void
 annotate_draw_line (AnnotateDeviceData *devdata,
@@ -1427,7 +1430,7 @@ annotate_paint_context_free (AnnotatePaintContext *context)
 void
 annotate_quit ()
 {
-  // destroy data structures of other contexts
+  /* destroy data structures of other contexts. */
   if (background_data)
     {
       destroy_background_data ();
@@ -1987,8 +1990,10 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
     }
 #endif
 
-  // this was required to stop if from permanently holding on the screen
-  // over the ardesia bar
+  /* 
+   * This was required to stop if from permanently holding on the screen
+   * over the ardesia bar.
+   */
   if (inside_bar_window (ev->x_root, ev->y_root))
     /* Point is in the ardesia bar. */
     {
@@ -2089,7 +2094,7 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
 
 /*
  * During the window configuration and resize callback.
-  */
+ */
 void
 annotation_window_change (int width, int height)
 {
@@ -2106,17 +2111,19 @@ initialize_font (CommandLine *commandline)
   if (commandline->fontfamily != NULL) {
     gchar *font_string;
 
-    // Create a font description string in the format "Family Size".
-    // For example, "Cantarell 32".
+    /* 
+     * Create a font description string in the format "Family Size".
+     * For example, "Cantarell 32".
+     */
     font_string = g_strdup_printf("%s %d", commandline->fontfamily, 32);
 
-    // Create the PangoFontDescription object from the string.
+    /* Create the PangoFontDescription object from the string. */
     annotation_data->font = pango_font_description_from_string(font_string);
 
-    // Free the temporary string.
+    /* Free the temporary string. */
     g_free(font_string);
   } else {
-    // If no font family was provided, set a default font.
+    /* If no font family was provided, set a default font. */
     annotation_data->font = pango_font_description_new();
     pango_font_description_set_size(annotation_data->font, 32 * PANGO_SCALE);
   }
