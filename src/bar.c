@@ -283,6 +283,7 @@ getStatusbar ()
 void
 replace_status_message (gchar *message)
 {
+  g_debug(message);
   GtkStatusbar *bar = getStatusbar ();
   if (bar != NULL)
     {
