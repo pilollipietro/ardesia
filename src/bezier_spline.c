@@ -25,169 +25,136 @@
 #include "bezier_spline.h"
 #include "utils.h"
 
-/* Spline the lines with a bezier curves. */
+/* 
+ * Smooth a polyline with cubic Bézier curves.
+ *
+ * Given a list of AnnotatePoint (x,y,width,pressure), compute for each
+ * segment (Xi, Xi+1) the two control points Pi and Qi that ensure C¹
+ * continuity of the whole curve. The resulting GSList contains the control
+ * points and end points to draw the smoothed curve.
+ */
 GSList *
 spline (GSList *list)
 {
-  GSList *ret    = NULL;
-  guint   i      = 0;
-  guint   lenght = g_slist_length (list);
-  gdouble mx[lenght][2];
-  gdouble width    = 12;
-  gdouble pressure = 1;
+    GSList *ret    = NULL;
+    guint   i;
+    guint   length = g_slist_length (list);
 
-  /* Pi, Qi are control points for curve (Xi, Xi+1). */
-  gdouble mp[lenght - 1][2];
-  gdouble mq[lenght - 1][2];
+    if (length < 2)
+        return NULL;
 
-  gint             s, eq = 0;
-  gsl_matrix      *m;
-  gsl_vector      *bx, *by, *x;
-  gsl_permutation *perm;
+    /* Extract input coordinates from the GSList */
+    gdouble mx[length][2]; /* input points */
+    gdouble width    = 12.0;
+    gdouble pressure = 1.0;
 
-  for (i = 0; i < lenght; i++)
-    {
-      AnnotatePoint *point = (AnnotatePoint *) g_slist_nth_data (list, i);
-      mx[i][0]             = point->x;
-      mx[i][1]             = point->y;
-      if (i == 0)
-        {
-          width    = point->width;
-          pressure = point->pressure;
+    for (i = 0; i < length; i++) {
+        AnnotatePoint *point = (AnnotatePoint *) g_slist_nth_data (list, i);
+        mx[i][0] = point->x;
+        mx[i][1] = point->y;
+        if (i == 0) {
+            width    = point->width;
+            pressure = point->pressure;
         }
     }
 
-  /*****************************************************************************
+    /**************************************************************************
+     * Build the linear system for the Bézier control points.
+     *
+     * For each segment (Xi, Xi+1) we want control points Pi and Qi such that
+     * the composite Bézier curve is C¹–continuous. This leads to a block-
+     * matrix system A·x = b of the form:
+     *
+     *     |    1              1           |   |P0  |      |  2*X1|
+     *     | 1  2             -2 -1        |   |P1  |      |     0|
+     *     |       1              1        |   |P2  |      |  2*X2|
+     *     |    1  2             -2 -1     | * |Pn-1|   =  |     0|
+     *     |          1              1     |   |Q0  |      |2*Xn-1|
+     *     |       1  2             -2 -1  |   |Q1  |      |     0|
+     *     | 1                             |   |Q2  |      |    X0|
+     *     \                             1 /   \Qn-1/      \    Xn/
+     *
+     * where:
+     *   – Xi are the input points,
+     *   – Pi, Qi are the unknown control points,
+     *   – the right-hand side b contains the coordinates of the Xi.
+     *
+     * Solving A·x = b separately for x and y gives the control points.
+     **************************************************************************/
 
-   Bezier control points system matrix
- 1
-    P0 P1 P2 Pn-1 ... Q0 Q1 Q2 Qn-1
-   /    1              1           \   /P0  \      /  2*X1\ Pi+1 + Qi = 2*Xi+1
-   | 1  2             -2 -1        |   |P1  |      |     0|
-   |       1              1        |   |P2  |      |  2*X2|
-   |    1  2             -2 -1     | * |Pn-1|   =  |     0| Pi + 2*Pi+1
-   |          1              1     |   |Q0  |      |2*Xn-1|    - Qi+1 - 2*Qi = 0
-   |       1  2             -2 -1  |   |Q1  |      |     0|
-   | 1                             |   |Q2  |      |    X0| P0   = X0
-   \                             1 /   \Qn-1/      \    Xn/ Qn-1 = Xn
+    /* Allocate matrix and RHS vectors */
+    guint dim = 2 * (length - 1);
+    gsl_matrix      *m  = gsl_matrix_calloc (dim, dim);
+    gsl_vector      *bx = gsl_vector_calloc (dim);
+    gsl_vector      *by = gsl_vector_calloc (dim);
 
-                A*x = b
-              x = inv (A)*b
+    /* Fill the coefficient matrix A */
+    guint eq = 0;
+    for (i = 0; i < length - 2; i++) {
+        /* Pi+1 + Qi = 2 Xi+1 */
+        gsl_matrix_set (m, eq, i + 1, 1.0);
+        gsl_matrix_set (m, eq, (length - 1) + i, 1.0);
+        eq++;
 
-       Pi, Qi and Xi are (x,y) pairs!
-
-  *****************************************************************************/
-
-  /* Allocate matrix and vectors. */
-  m  = gsl_matrix_calloc (2 * (lenght - 1), 2 * (lenght - 1));
-  bx = gsl_vector_calloc (2 * (lenght - 1));
-  by = gsl_vector_calloc (2 * (lenght - 1));
-
-  /* Fill-in matrix. */
-  for (i = 0; i < lenght - 2; i++)
-    {
-      gsl_matrix_set (m, eq, i + 1, 1);            // Pi+1
-      gsl_matrix_set (m, eq, (lenght - 1) + i, 1); // + Qi
-      eq++;                                        // = 2Xi+1
-
-      gsl_matrix_set (m, eq, i, 1);                     // Pi
-      gsl_matrix_set (m, eq, i + 1, 2);                 // + 2*Pi+1
-      gsl_matrix_set (m, eq, (lenght - 1) + i + 1, -1); // - Qi+1
-      gsl_matrix_set (m, eq, (lenght - 1) + i, -2);     // - 2*Qi
-      eq++;                                             // = 0
+        /* Pi + 2Pi+1 - Qi+1 - 2Qi = 0 */
+        gsl_matrix_set (m, eq, i, 1.0);
+        gsl_matrix_set (m, eq, i + 1, 2.0);
+        gsl_matrix_set (m, eq, (length - 1) + i + 1, -1.0);
+        gsl_matrix_set (m, eq, (length - 1) + i, -2.0);
+        eq++;
     }
 
-  gsl_matrix_set (m, eq++, 0, 1);                    // P0   = X0
-  gsl_matrix_set (m, eq++, 2 * (lenght - 1) - 1, 1); // Qn-1 = Xn
+    /* Boundary conditions: P0 = X0, Qn-1 = Xn */
+    gsl_matrix_set (m, eq++, 0, 1.0);
+    gsl_matrix_set (m, eq++, dim - 1, 1.0);
 
-  /* Fill-in vectors. */
-  for (i = 0; i < lenght - 2; i++)
-    {
-      gsl_vector_set (bx, 2 * i, 2 * mx[i + 1][0]);
-      gsl_vector_set (by, 2 * i, 2 * mx[i + 1][1]);
+    /* Fill RHS vectors b */
+    for (i = 0; i < length - 2; i++) {
+        gsl_vector_set (bx, 2 * i, 2.0 * mx[i + 1][0]);
+        gsl_vector_set (by, 2 * i, 2.0 * mx[i + 1][1]);
     }
-  gsl_vector_set (bx, 2 * (lenght - 1) - 2, mx[0][0]);
-  gsl_vector_set (bx, 2 * (lenght - 1) - 1, mx[lenght - 1][0]);
+    gsl_vector_set (bx, dim - 2, mx[0][0]);
+    gsl_vector_set (bx, dim - 1, mx[length - 1][0]);
+    gsl_vector_set (by, dim - 2, mx[0][1]);
+    gsl_vector_set (by, dim - 1, mx[length - 1][1]);
 
-  gsl_vector_set (by, 2 * (lenght - 1) - 2, mx[0][1]);
-  gsl_vector_set (by, 2 * (lenght - 1) - 1, mx[lenght - 1][1]);
+    /* Solve the system for x and y separately */
+    gsl_permutation *perm = gsl_permutation_alloc (dim);
+    int s;
+    gsl_linalg_LU_decomp (m, perm, &s);
 
-  /* Calculate LU decomposition, solve lin. systems... */
-  perm = gsl_permutation_alloc (2 * (lenght - 1));
-  gsl_linalg_LU_decomp (m, perm, &s);
+    gsl_vector *solx = gsl_vector_calloc (dim);
+    gsl_linalg_LU_solve (m, perm, bx, solx);
 
-  /* Solve for bx. */
-  x = gsl_vector_calloc (2 * (lenght - 1));
-  gsl_linalg_LU_solve (m, perm, bx, x);
+    gsl_vector *soly = gsl_vector_calloc (dim);
+    gsl_linalg_LU_solve (m, perm, by, soly);
 
-  /* Copy solution (@FIXME: should be avoided!) */
-  for (i = 0; i < lenght - 1; i++)
-    {
-      mp[i][0] = gsl_vector_get (x, i);
-      mq[i][0] = gsl_vector_get (x, i + (lenght - 1));
-    }
-  gsl_vector_free (x);
+    /* Free the linear system objects */
+    gsl_matrix_free (m);
+    gsl_vector_free (bx);
+    gsl_vector_free (by);
+    gsl_permutation_free (perm);
 
-  /* Solve for by. */
-  x = gsl_vector_calloc (2 * (lenght - 1));
-  gsl_linalg_LU_solve (m, perm, by, x);
-  /* Copy solution (@FIXME: should be avoided!) */
-  for (i = 0; i < lenght - 1; i++)
-    {
-      mp[i][1] = gsl_vector_get (x, i);
-      mq[i][1] = gsl_vector_get (x, i + (lenght - 1));
-    }
+    /* Generate smoothed points directly from solx/soly */
+    for (i = 0; i < length - 1; i++) {
+        gdouble px = gsl_vector_get (solx, i);
+        gdouble qx = gsl_vector_get (solx, i + (length - 1));
+        gdouble py = gsl_vector_get (soly, i);
+        gdouble qy = gsl_vector_get (soly, i + (length - 1));
 
-  gsl_vector_free (x);
+        AnnotatePoint *first_point  = allocate_point (px, py, width, pressure);
+        AnnotatePoint *second_point = allocate_point (qx, qy, width, pressure);
+        AnnotatePoint *third_point  = allocate_point (mx[i + 1][0], mx[i + 1][1],
+                                                      width, pressure);
 
-  gsl_permutation_free (perm);
-
-  /* Free matrix and vectors. */
-  gsl_matrix_free (m);
-  gsl_vector_free (bx);
-  gsl_vector_free (by);
-
-  /* Now paint the smoothed line. */
-  for (i = 0; i < lenght - 1; i++)
-    {
-      /*
-       * B-spline second derivatives:
-       *
-       * printf ("%d: Bx'' (0) = %lf\n",
-       *         i+1,
-       *         6*mx[i][0] - 12*mp[i][0] + 6*mq[i][0]);
-       *
-       * printf ("%d: Bx'' (1) = %lf\n\n",
-       *         i+1,
-       *         6*mp[i][0] - 12*mq[i][0] + 6*mx[i+1][0]);
-       */
-
-      /*
-       * B-spline first derivatives:
-       *
-       * printf ("%d: Bx' (0) = %lf\n",
-       *         i+1,
-       *         -3*mx[i][0] + 3*mp[i][0]);
-       *
-       * printf ("%d: Bx' (1) = %lf\n",
-       *         i+1,
-       *         -3*mq[i][0] + 3*mx[i+1][0]);
-       */
-
-      AnnotatePoint *first_point = allocate_point (mp[i][0], mp[i][1],
-		                                   width, pressure);
-
-      AnnotatePoint *second_point = allocate_point (mq[i][0], mq[i][1],
-		                                    width, pressure);
-
-      AnnotatePoint *third_point = allocate_point (mx[i + 1][0], mx[i + 1][1],
-		                                   width, pressure);
-
-      ret = g_slist_prepend (ret, first_point);
-      ret = g_slist_prepend (ret, second_point);
-      ret = g_slist_prepend (ret, third_point);
+        ret = g_slist_prepend (ret, first_point);
+        ret = g_slist_prepend (ret, second_point);
+        ret = g_slist_prepend (ret, third_point);
     }
 
-  ret = g_slist_reverse (ret);
-  return ret;
+    gsl_vector_free (solx);
+    gsl_vector_free (soly);
+
+    ret = g_slist_reverse (ret);
+    return ret;
 }
