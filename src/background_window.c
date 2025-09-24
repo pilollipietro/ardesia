@@ -63,12 +63,8 @@ destroy_background_data ()
           g_free (background_data->color);
           background_data->color = (gchar *) NULL;
         }
-
-      if (background_data)
-        {
-          g_free (background_data);
-          background_data = (BackgroundData *) NULL;
-        }
+      g_free (background_data);
+      background_data = (BackgroundData *) NULL;
     }
 }
 
