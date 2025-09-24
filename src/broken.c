@@ -188,10 +188,64 @@ calculate_medium_pression (GSList *list)
   return total_pressure / i;
 }
 
+/*
+ * Check if a closed polygon (points in order) is convex.
+ *
+ * Returns TRUE if all cross products have the same sign (ignoring near-zero),
+ * otherwise FALSE. This prevents star-shaped / self-intersecting polygons
+ * from being misclassified as regular polygons.
+ */
+static gboolean
+is_polygon_convex (GSList *points)
+{
+    guint n = g_slist_length (points);
+    if (n < 3)
+        return FALSE;
+
+    gint sign = 0; /* +1 or -1 when we detect a non-zero turn */
+    const gdouble EPS = 1e-9;
+
+    for (guint i = 0; i < n; i++)
+    {
+        AnnotatePoint *A = g_slist_nth_data (points, i);
+        AnnotatePoint *B = g_slist_nth_data (points, (i + 1) % n);
+        AnnotatePoint *C = g_slist_nth_data (points, (i + 2) % n);
+
+        gdouble v1x = B->x - A->x;
+        gdouble v1y = B->y - A->y;
+        gdouble v2x = C->x - B->x;
+        gdouble v2y = C->y - B->y;
+
+        /* cross product z-component */
+        gdouble cross = v1x * v2y - v1y * v2x;
+
+        if (fabs (cross) <= EPS)
+            continue; /* collinear or tiny - ignore */
+
+        if (cross > 0)
+        {
+            if (sign < 0) return FALSE;
+            sign = 1;
+        }
+        else /* cross < 0 */
+        {
+            if (sign > 0) return FALSE;
+            sign = -1;
+        }
+    }
+
+    /* If sign never set (all collinear) consider it non-convex for our use */
+    return (sign != 0);
+}
+
 /* The path described in list is similar to a regular polygon. */
 static gboolean
 is_similar_to_a_regular_polygon (GSList *list, gdouble pixel_tollerance)
 {
+  if (! is_polygon_convex (list))
+    {
+      return FALSE;
+    }
   guint   i              = 0;
   gdouble ideal_distance = -1;
   gdouble total_distance = 0;
@@ -316,7 +370,25 @@ calculate_edge_degree (AnnotatePoint *point_a, AnnotatePoint *point_b)
   return direction_ab;
 }
 
-/* Straight the line. */
+/*
+ * straighten:
+ *
+ * Takes a list of AnnotatePoint structures and returns a new list
+ * where minor deviations in direction are smoothed out. 
+ * Only significant points that exceed the degree threshold are kept, 
+ * and nearly horizontal or vertical lines are adjusted to exact 
+ * horizontal or vertical alignment.
+ *
+ * Parameters:
+ *   list - a GSList of AnnotatePoint* representing the input points.
+ *
+ * Returns:
+ *   A new GSList of AnnotatePoint* containing the straightened points.
+ *
+ * Note:
+ *   The original list is not modified. The returned list must be freed
+ *   by the caller when no longer needed.
+ */
 static GSList *
 straighten (GSList *list)
 {
@@ -373,7 +445,7 @@ straighten (GSList *list)
   last_point     = (AnnotatePoint *) g_slist_nth_data (list, length - 1);
 
   last_out_point = allocate_point (last_point->x,
-		                   last_point->y,
+                                   last_point->y,
                                    last_point->width,
 				   last_point->pressure);
 
@@ -873,102 +945,86 @@ is_similar_to_an_ellipse (GSList *list, gdouble pixel_tollerance)
   return TRUE;
 }
 
-/* Return a list rectified */
+
+/*
+ * build_rectified_list:
+ * @list_inp:        input GSList of AnnotatePoint (assumed ordered subpath)
+ * @close_path:      TRUE if the subpath is closed (shape), FALSE for open strokes
+ * @pixel_tollerance: tolerance in pixels used by detectors / simplification
+ *
+ * Returns a new GSList with rectified points. The function copies input points
+ * (so returned list elements are newly allocated via allocate_point()) and
+ * either:
+ *  - recognizes and returns a geometric shape (rectangle, triangle, polygon)
+ *  - or returns a straightened / simplified polyline.
+ *
+ * Important: this function does NOT try to be overly aggressive. Regular
+ * polygon extraction is only performed for convex shapes (prevents stars
+ * being forced into regular polygons).
+ */
 GSList *
 build_rectified_list (GSList *list_inp,
 		      gboolean close_path,
 		      gdouble pixel_tollerance)
 {
   GSList *ret_list = (GSList *) NULL;
-  if (close_path)
-    {
-
-      guint length = g_slist_length (list_inp);
-      guint i      = 0;
-
-      /* Copy the input list. */
-      for (i = 0; i < length; i++)
-        {
-          AnnotatePoint *point = (AnnotatePoint *) g_slist_nth_data (list_inp,
-			                                             i);
-
-          AnnotatePoint *point_copy = allocate_point (point->x,
-			                              point->y,
-                                                      point->width,
-						      point->pressure);
-
-          ret_list = g_slist_prepend (ret_list, point_copy);
-        }
-
-      /* I reverse the list to preserve the initial order. */
-      ret_list = g_slist_reverse (ret_list);
-
-      /* Jump the algorithm and return the list as is. */
-      if (g_slist_length (ret_list) <= 3)
-        {
-          return ret_list;
-        }
-
-      /* It is similar to regular a polygon. */
-      if (is_similar_to_a_regular_polygon (ret_list, pixel_tollerance))
-        {
-          replace_status_message (gettext ("extracted as polygon"));
-          ret_list = extract_polygon (ret_list);
-        }
-      else
-        {
-          if (is_a_rectangle (ret_list, pixel_tollerance))
-            {
-              replace_status_message (gettext ("detected rectangle"));
-              /* It is a rectangle. */
-              GSList *rect_list = build_outbounded_rectangle (ret_list);
-              g_slist_foreach (ret_list, (GFunc) g_free, NULL);
-              g_slist_free (ret_list);
-              ret_list = rect_list;
-            }
-          else
-            {
-              ret_list      = straighten (ret_list);
-              guint npoints = g_slist_length (ret_list);
-              if (is_a_triangle (ret_list, pixel_tollerance))
-                {
-                  replace_status_message (gettext ("straightening triangle"));
-                  ret_list = straighten (ret_list);
-                }
-              else if (npoints > 8)
-                {
-                  // circle time
-                  ret_list = extract_polygon (ret_list);
-                }
-              else
-                {
-	          /*
-		   * Here we force into a rectangle as it makes more sense
-		   * than wiggly rubbish we know the point list is greater
-		   * than 3 so we want to look for the first point as we
-		   * assume this is the most meaningful point for the user.
-		   * We also look for the furthest vertical point as that
-		   * will be meaningful for the user we then take these and
-		   * add corner points, removing the rest.
-		   */
-                  GSList *rect_list = build_outbounded_rectangle (ret_list);
-                  g_slist_foreach (ret_list, (GFunc) g_free, NULL);
-                  g_slist_free (ret_list);
-                  ret_list = rect_list;
-                  replace_status_message (g_strdup_printf (
-                      "forcing %d points into rectangle (%d pts)", npoints,
-                      g_slist_length (ret_list)));
-                }
-            }
-        }
-    }
-  else
+  if (! close_path || g_slist_length (list_inp) <= 3)
     {
       replace_status_message (gettext ("straightening"));
       /* Try to make straighten. */
       ret_list = straighten (list_inp);
+      return ret_list;
+    }
+  guint length = g_slist_length (list_inp);
+  guint i      = 0;
+
+  /* Copy the input list. */
+  for (i = 0; i < length; i++)
+    {
+      AnnotatePoint *point = (AnnotatePoint *) g_slist_nth_data (list_inp,
+			                                          i);
+
+      AnnotatePoint *point_copy = allocate_point (point->x,
+			                          point->y,
+                                                  point->width,
+						  point->pressure);
+
+      ret_list = g_slist_prepend (ret_list, point_copy);
     }
 
+  /* I reverse the list to preserve the initial order. */
+  ret_list = g_slist_reverse (ret_list);
+
+  /* It is similar to regular a polygon. */
+  if (is_similar_to_a_regular_polygon (ret_list, pixel_tollerance))
+    {
+      replace_status_message (gettext ("extracted as polygon"));
+      ret_list = extract_polygon (ret_list);
+      return ret_list;
+    }
+  ret_list = straighten (ret_list);
+  guint npoints = g_slist_length (ret_list);
+  if (is_a_rectangle (ret_list, pixel_tollerance))
+    {
+      /* It is a rectangle. */
+      GSList *rect_list = build_outbounded_rectangle (ret_list);
+      g_slist_foreach (ret_list, (GFunc) g_free, NULL);
+      g_slist_free (ret_list);
+      ret_list = rect_list;
+      return ret_list;
+    }
+  if (is_a_triangle (ret_list, pixel_tollerance))
+    {
+      replace_status_message (gettext ("straightening triangle"));
+      ret_list = straighten (ret_list);
+      return ret_list;
+    }
+  if (npoints > 8 && ! is_polygon_convex (ret_list))
+    {
+      // circle time
+      ret_list = extract_polygon (ret_list);
+      return ret_list;
+    }
   return ret_list;
 }
 
@@ -983,22 +1039,18 @@ broken (GSList *list_inp,
 		                                           close_path,
                                                            pixel_tollerance);
 
-  if (meaningful_points)
+  if (meaningful_points && rectify)
     {
-
-      if (rectify)
-        {
-          GSList *rectified_list = build_rectified_list (meaningful_points,
+        GSList *rectified_list = build_rectified_list (meaningful_points,
                                                          close_path,
-							 pixel_tollerance);
+                                                         pixel_tollerance);
 
-          /* Free the meaningful_point_list. */
-          g_slist_foreach (meaningful_points, (GFunc) g_free, NULL);
-          g_slist_free (meaningful_points);
+        /* Free the meaningful_point_list after it's been processed. */
+        g_slist_foreach (meaningful_points, (GFunc) g_free, NULL);
+        g_slist_free (meaningful_points);
 
-          return rectified_list;
-        }
+        return rectified_list;
     }
 
-  return meaningful_points;
+    return meaningful_points;
 }
