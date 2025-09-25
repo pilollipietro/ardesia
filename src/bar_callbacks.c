@@ -831,7 +831,13 @@ void create_bar_preference_window (GtkWindow *parent)
 			 PAPER_BACKGROUND_FILE,
 			 NULL);
 
-  button = gtk_tool_button_new (NULL, gettext ("Add"));
+  GtkWidget *add_image = gtk_image_new_from_icon_name ("list-add",
+                                                     GTK_ICON_SIZE_LARGE_TOOLBAR);
+  button = gtk_tool_button_new (add_image, NULL);
+
+  /* Tooltip: in GTK3 puoi passare una stringa normale */
+  gtk_tool_item_set_tooltip_text (GTK_TOOL_ITEM (button), gettext ("Add background"));
+
   gtk_box_pack_start (box, GTK_WIDGET (button), TRUE, TRUE, 0);
 
   /* 
