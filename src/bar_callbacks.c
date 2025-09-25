@@ -728,6 +728,26 @@ add_background_button (gchar *label, gint mode, gchar *filename, gchar *color)
 		      TRUE,
 		      0);
 
+  /*
+   * If an 'Add' button was stored on the container,
+   * move the new button right before it so the Add button stays last.
+   * This preserves all the existing logic that runs before/after packing the button.
+   */
+  GtkWidget *add_btn = g_object_get_data (G_OBJECT (annotation_data->background_selection_container),
+                                          "background_add_button");
+  if (add_btn != NULL)
+    {
+      GList *children = gtk_container_get_children (GTK_CONTAINER (annotation_data->background_selection_container));
+      gint pos = g_list_index (children, add_btn);
+      if (pos >= 0)
+        {
+          gtk_box_reorder_child (GTK_BOX (annotation_data->background_selection_container),
+                                 GTK_WIDGET (button),
+                                 pos);
+        }
+      g_list_free (children);
+    }
+
   BackgroundButtonData *data = g_new (BackgroundButtonData, 1);
   data->mode                 = mode;
   data->filename             = filename;
@@ -813,6 +833,13 @@ void create_bar_preference_window (GtkWindow *parent)
 
   button = gtk_tool_button_new (NULL, gettext ("Add"));
   gtk_box_pack_start (box, GTK_WIDGET (button), TRUE, TRUE, 0);
+
+  /* 
+   * Store a pointer to Add on the container so new backgrounds
+   * can be inserted right before it.
+   */
+  g_object_set_data (G_OBJECT (box), "background_add_button", GTK_WIDGET (button));
+
   gtk_window_set_transient_for (GTK_WINDOW (window), parent);
 
   g_signal_connect (button,
