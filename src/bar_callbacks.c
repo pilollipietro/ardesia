@@ -28,6 +28,7 @@
 #endif
 
 #include "annotation_window.h"
+#include "background_config.h"
 #include "background_window.h"
 #include "bar.h"
 #include "bar_callbacks.h"
@@ -501,7 +502,16 @@ gboolean
 on_remove_background_button (GtkMenuItem *menuitem, gpointer user_data)
 {
   GtkWidget *widget = GTK_WIDGET (user_data);
-  gint       width  = gtk_widget_get_allocated_width (widget);
+  gint width = gtk_widget_get_allocated_width (widget);
+  GObject *obj = G_OBJECT (widget);
+  const gchar *background_key_name;
+  background_key_name = g_object_get_data (obj, "background-label");
+  
+  if (background_key_name)
+  {
+    background_config_remove_key (background_key_name);
+  }
+
   gtk_widget_destroy (widget);
   GtkWidget *background_selection_window;
   gint       cwidth;
@@ -509,9 +519,10 @@ on_remove_background_button (GtkMenuItem *menuitem, gpointer user_data)
   background_selection_window = annotation_data->background_selection_window;
   cwidth = gtk_widget_get_allocated_width (background_selection_window);
   cheight = gtk_widget_get_allocated_height (background_selection_window);
+  
   gtk_window_resize (GTK_WINDOW (annotation_data->background_selection_window),
                      cwidth - width,
-		     cheight);
+                     cheight);
   return TRUE;
 }
 
@@ -548,8 +559,8 @@ background_selection_on_toggled (GtkToggleToolButton *toggle_tool_button,
 
 gboolean
 background_selection_on_button_press (GtkWidget *widget,
-		                      GdkEvent *event,
-				      gpointer userdata)
+                                      GdkEvent *event,
+                                      gpointer userdata)
 {
   GdkEventButton *event_button;
   if (event->type == GDK_BUTTON_PRESS)
@@ -563,12 +574,13 @@ background_selection_on_button_press (GtkWidget *widget,
               // create a popup for delete
               GtkWidget *menu, *menuitem;
               menu     = gtk_menu_new ();
-              menuitem = gtk_menu_item_new_with_label ("Remove");
+              menuitem = gtk_menu_item_new_with_label (gettext ("Remove"));
               gtk_menu_attach (GTK_MENU (menu), menuitem, 0, 1, 0, 1);
 
-              g_signal_connect (menuitem, "activate",
+              g_signal_connect (menuitem,
+                                "activate",
                                 (GCallback) on_remove_background_button,
-				widget);
+                                widget);
 
               gtk_widget_show_all (menu);
               gtk_menu_popup_at_pointer (GTK_MENU (menu), NULL);
@@ -640,36 +652,39 @@ resize_image_to_button (BackgroundButtonData *data, gint size)
   data->size = size;
 
   gtk_tool_button_set_icon_widget (GTK_TOOL_BUTTON (data->button),
-		                   GTK_WIDGET (image));
+                                   GTK_WIDGET (image));
 
   cairo_surface_destroy (surface);
   cairo_destroy (cr);
 }
 
+
 gboolean
 on_background_selection_window_configure_event (GtkWidget *widget,
-		                                GdkEvent *event,
+                                                GdkEvent *event,
                                                 gpointer user_data)
 {
   if (widget == annotation_data->background_selection_window &&
       event->type == GDK_CONFIGURE)
     {
       gint elements = g_slist_length (annotation_data->background_button_data);
-      gint h        = gtk_widget_get_allocated_height (
-          GTK_WIDGET (annotation_data->background_selection_window));
+      GtkWidget *window = GTK_WIDGET(annotation_data->background_selection_window);
+      gint h = gtk_widget_get_allocated_height(window);
       gint m = (int) log2 ((double) h);
       m      = (int) pow (2.0, m);
 
       for (gint ii = 0; ii < elements; ii++)
         {
-	  GSList *node;
-	  BackgroundButtonData *data;
-	  
-	  node = g_slist_nth (annotation_data->background_button_data, ii);
-	  data = (BackgroundButtonData *) node->data;
-
-          GtkImage *image = GTK_IMAGE (
-              gtk_tool_button_get_icon_widget (GTK_TOOL_BUTTON (data->button)));
+          GSList *node;
+          BackgroundButtonData *data;
+          node = g_slist_nth (annotation_data->background_button_data, ii);
+          data = (BackgroundButtonData *) node->data;
+          GtkToolButton *tool_button;
+          GtkWidget     *icon_widget;
+          GtkImage      *image;
+          tool_button = GTK_TOOL_BUTTON (data->button);
+          icon_widget = gtk_tool_button_get_icon_widget (tool_button);
+          image = GTK_IMAGE (icon_widget);
           if (image == NULL || data->size != m)
             {
               g_debug ("redrawing image (%d)\n", m);
@@ -687,7 +702,7 @@ void
 add_background_button (gchar *label, gint mode, gchar *filename, gchar *color)
 {
   GtkToolItem *button = NULL;
-
+  
   if (annotation_data->background_button_data == NULL)
     {
       button = gtk_radio_tool_button_new (NULL);
@@ -703,6 +718,10 @@ add_background_button (gchar *label, gint mode, gchar *filename, gchar *color)
       radio_button = GTK_RADIO_TOOL_BUTTON (data->button);
       button = gtk_radio_tool_button_new_from_widget (radio_button);
     }
+  g_object_set_data_full (G_OBJECT (button),
+                        "background-label",      /* key */
+                        g_strdup (label),        /* value */
+                        g_free);                 /* destroy notify */
   if (label == NULL)
     {
       label = "No Label";
@@ -710,16 +729,12 @@ add_background_button (gchar *label, gint mode, gchar *filename, gchar *color)
   if (g_slist_length (annotation_data->background_button_data) == 0)
     {
       gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON (button),
-		                         TRUE);
+                                         TRUE);
     }
   else
     {
       gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON (button),
-		                         FALSE);
-    }
-  if (label != NULL)
-    {
-      gtk_tool_item_set_tooltip_text (GTK_TOOL_ITEM (button), label);
+                                         FALSE);
     }
 
   GtkWidget *background_selection_container;
@@ -728,9 +743,9 @@ add_background_button (gchar *label, gint mode, gchar *filename, gchar *color)
 
   gtk_box_pack_start (GTK_BOX (background_selection_container),
                       GTK_WIDGET (button),
-		      TRUE,
-		      TRUE,
-		      0);
+                      TRUE,
+                      TRUE,
+                      0);
 
   /*
    * If an 'Add' button was stored on the container,
@@ -761,23 +776,24 @@ add_background_button (gchar *label, gint mode, gchar *filename, gchar *color)
   data->mode                 = mode;
   data->filename             = filename;
   data->color                = color;
-  data->button               = button;
   data->index = g_slist_length (annotation_data->background_button_data);
   data->size  = 32;
-
+  data->button               = button;
+  
   annotation_data->background_button_data =
     g_slist_append (annotation_data->background_button_data,
                     data);
 
   // used added button
   g_signal_connect (button,
-		    "toggled",
-		    (GCallback) background_selection_on_toggled,
-		    data);
+                    "toggled",
+                    (GCallback) background_selection_on_toggled,
+                    data);
 
-  g_signal_connect (button, "button_press_event",
+  g_signal_connect (button,
+                    "button_press_event",
                     (GCallback) background_selection_on_button_press,
-		    data);
+                    data);
 
   if (g_slist_length (annotation_data->background_button_data) > 3)
     {
@@ -805,66 +821,49 @@ on_background_selection_size_allocate (GtkWidget *widget,
 
 /* Load colors and images from config file. */
 static void
-load_backgrounds_from_config (void)
+load_backgrounds_from_config ()
 {
-    GKeyFile *kf = g_key_file_new ();
+  gsize n_colors = 0;
+  gchar **color_keys = background_config_get_color_keys (&n_colors);
 
-    /* user config overrides */
-    gchar *usrfile = g_build_filename (g_get_user_config_dir (),
-		                       "ardesiarc",
-				       NULL);
-
-    if (g_file_test (usrfile, G_FILE_TEST_IS_REGULAR))
-      {
-        g_key_file_load_from_file (kf, usrfile, G_KEY_FILE_NONE, NULL);
-      }
-    else
-      {
-        g_debug ("User config file %s not found", usrfile);
-	/* system config */
-	gchar *sysfile = g_build_filename (ARDESIA_SYSCONFDIR,
-			                   "ardesia.conf",
-					   NULL);
-
-	if (! g_file_test (sysfile, G_FILE_TEST_IS_REGULAR))
-	  {
-            g_warning ("System configuration file %s not found", sysfile);
-          }
-	g_key_file_load_from_file (kf, sysfile, G_KEY_FILE_NONE, NULL);
-	g_free (sysfile);
-      }
-    g_free (usrfile);
-
-    /* Colors */
-    gsize n_colors = 0;
-    gchar **color_keys = g_key_file_get_keys (kf, "colors", &n_colors, NULL);
-    for (gsize i = 0; i < n_colors; i++) {
-        gchar *hex = g_key_file_get_string (kf, "colors", color_keys[i], NULL);
-	g_debug ("Load background color %s in preference", hex);
-        add_background_button (gettext (color_keys[i]),
-                               BACKGROUND_MODE_COLOR,
-                               NULL,
-                               g_strdup (hex));
-        g_free (hex);
+  if (color_keys)
+    {
+      for (gsize i = 0; i < n_colors; i++)
+        {
+          gchar *hex = background_config_get_color (color_keys[i]);
+          if (hex)
+            {
+              g_debug ("Load background color %s in preference", hex);
+              add_background_button (color_keys[i],
+                                     BACKGROUND_MODE_COLOR,
+                                     NULL,
+                                     g_strdup(hex));
+            }
+        }
+      g_strfreev (color_keys);
     }
-    g_strfreev (color_keys);
 
 
-    /* Images */
-    gsize n_images = 0;
-    gchar **image_keys = g_key_file_get_keys (kf, "images", &n_images, NULL);
-    for (gsize i = 0; i < n_images; i++) {
-        gchar *path = g_key_file_get_string (kf, "images", image_keys[i], NULL);
-	g_debug ("Load background image %s in preference", path);
-        add_background_button (gettext (image_keys[i]),
-                               BACKGROUND_MODE_FILE,
-                               g_strdup (path),
-                               NULL);
-        g_free (path);
+  gsize n_images = 0;
+  gchar **image_keys = background_config_get_image_keys (&n_images);
+  
+  if (image_keys)
+    {
+      for (gsize i = 0; i < n_images; i++)
+        {
+          gchar *path = background_config_get_image (image_keys[i]);
+          if (path)
+            {
+              g_debug ("Load background image %s in preference", path);
+              add_background_button (image_keys[i],
+                                     BACKGROUND_MODE_FILE,
+                                     g_strdup (path),
+                                     NULL);
+              g_free(path);
+            }
+        }
+      g_strfreev (image_keys);
     }
-    g_strfreev (image_keys);
-
-    g_key_file_unref (kf);
 }
 
 void create_bar_preference_window (GtkWindow *parent)
@@ -884,10 +883,10 @@ void create_bar_preference_window (GtkWindow *parent)
   annotation_data->background_selection_window    = window;
   annotation_data->background_selection_container = GTK_WIDGET (box);
 
-  add_background_button (gettext ("Transparent"),
-		         BACKGROUND_MODE_NONE,
+  add_background_button ("transparent",
+                         BACKGROUND_MODE_NONE,
                          TRANSPARENT_BACKGROUND_FILE,
-			 NULL);
+                         NULL);
 
   load_backgrounds_from_config ();
 
@@ -898,7 +897,7 @@ void create_bar_preference_window (GtkWindow *parent)
   button = gtk_tool_button_new (add_image, NULL);
 
   gtk_tool_item_set_tooltip_text (GTK_TOOL_ITEM (button),
-		                  gettext ("Add background"));
+                                  gettext ("Add background"));
 
   gtk_box_pack_start (box, GTK_WIDGET (button), TRUE, TRUE, 0);
 
@@ -917,16 +916,20 @@ void create_bar_preference_window (GtkWindow *parent)
 		    (GCallback) on_add_new_background,
 		    window);
 
-  g_signal_connect (window, "destroy",
+  g_signal_connect (window,
+                    "destroy",
                     (GCallback) on_background_selection_window_destroy,
-		    NULL);
+                    NULL);
 
-  g_signal_connect (window, "configure-event",
+  g_signal_connect (window,
+                    "configure-event",
                     (GCallback) on_background_selection_window_configure_event,
-		    NULL);
+                    NULL);
 
-  g_signal_connect (window, "size-allocate",
-                    (GCallback) on_background_selection_size_allocate, NULL);
+  g_signal_connect (window,
+                    "size-allocate",
+                    (GCallback) on_background_selection_size_allocate,
+                    NULL);
 
   gtk_widget_show_all (window);
 }

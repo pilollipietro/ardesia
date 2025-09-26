@@ -22,6 +22,7 @@
  */
 
 #include "annotation_window.h"
+#include "background_config.h"
 #include "background_window.h"
 #include "bar_callbacks.h"
 #include "preference_dialog.h"
@@ -90,89 +91,6 @@ on_background_color_button_color_set (GtkButton *buton, gpointer data)
   gtk_toggle_button_set_active (color_tool_button, TRUE);
 }
 
-/* Save a color entry to the user configuration file */
-static void
-save_color_to_user_config (const gchar *name, const gchar *rgba)
-{
-  gchar *user_conf = g_build_filename (g_get_user_config_dir (), "ardesiarc", NULL);
-  g_mkdir_with_parents (g_get_user_config_dir (), 0700);
-  GKeyFile *kf = g_key_file_new ();
-  /* Load existing file if present */
-  g_key_file_load_from_file (kf, user_conf, G_KEY_FILE_NONE, NULL);
-  g_key_file_set_string (kf, "colors", name, rgba);
-  if (!g_key_file_save_to_file (kf, user_conf, NULL)) {
-    g_warning ("Unable to save user configuration %s", user_conf);
-  }
-  g_key_file_unref (kf);
-  g_free (user_conf);
-}
-
-/* Save an image entry to the user configuration file */
-static void
-save_image_to_user_config (const gchar *name, const gchar *path)
-{
-  gchar *user_conf = g_build_filename (g_get_user_config_dir (), "ardesiarc", NULL);
-  g_mkdir_with_parents (g_get_user_config_dir (), 0700);
-  GKeyFile *kf = g_key_file_new ();
-  /* Load existing file if present */
-  g_key_file_load_from_file (kf, user_conf, G_KEY_FILE_NONE, NULL);
-  g_key_file_set_string (kf, "images", name, path);
-  if (!g_key_file_save_to_file (kf, user_conf, NULL)) {
-    g_warning ("Unable to save user configuration %s", user_conf);
-  }
-  g_key_file_unref (kf);
-  g_free (user_conf);
-}
-
-/**
- * Ensure that the user configuration file exists by copying
- * the system-wide configuration file to the user's config dir
- * if it does not already exist.
- */
-static void
-ensure_user_config_file (void)
-{
-    gchar *user_conf_path = g_build_filename (g_get_user_config_dir (), "ardesiarc", NULL);
-
-    if (!g_file_test (user_conf_path, G_FILE_TEST_IS_REGULAR))
-    {
-        /* Make sure the config directory exists */
-        g_mkdir_with_parents (g_get_user_config_dir (), 0700);
-
-        /* Build system-wide config file path */
-        gchar *sys_conf_path = g_build_filename (ARDESIA_SYSCONFDIR, "ardesia.conf", NULL);
-
-        if (g_file_test (sys_conf_path, G_FILE_TEST_IS_REGULAR))
-        {
-            /* Create GFile objects */
-            GFile *source = g_file_new_for_path (sys_conf_path);
-            GFile *dest   = g_file_new_for_path (user_conf_path);
-
-            /* Copy system config to user config */
-            GError *error = NULL;
-            if (!g_file_copy (source,
-                              dest,
-                              G_FILE_COPY_OVERWRITE,
-                              NULL, NULL, NULL, &error))
-            {
-                g_warning ("Unable to copy system config %s to %s: %s",
-                           sys_conf_path, user_conf_path,
-                           error ? error->message : "unknown error");
-                if (error) g_error_free (error);
-            }
-
-            g_object_unref (source);
-            g_object_unref (dest);
-        }
-        else
-        {
-            g_warning ("System configuration file %s not found", sys_conf_path);
-        }
-        g_free (sys_conf_path);
-    }
-    g_free (user_conf_path);
-}
-
 /* Shot when the ok button in preference dialog is pushed. */
 G_MODULE_EXPORT void
 on_preference_ok_button_clicked (GtkButton *buton, gpointer data)
@@ -184,7 +102,7 @@ on_preference_ok_button_clicked (GtkButton *buton, gpointer data)
     preference_data->preference_dialog_gtk_builder;
     
   /* Ensure that the user config file exists before we modify it */
-  ensure_user_config_file();
+  background_config_ensure_user_file ();
 
   GObject *color_tool_obj;
   color_tool_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
@@ -205,8 +123,8 @@ on_preference_ok_button_clicked (GtkButton *buton, gpointer data)
 
       add_background_button (rgba, BACKGROUND_MODE_COLOR, NULL, rgba);
       
-      /* Save chosen color to user configuration */
-      save_color_to_user_config (rgba, rgba);
+      /* Add chosen color to user configuration */
+      background_config_add_color (rgba, rgba);
 
       g_free (gdkcolor);
     }
@@ -222,7 +140,7 @@ on_preference_ok_button_clicked (GtkButton *buton, gpointer data)
           image_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
                                               "imageChooserButton");
           GtkFileChooserButton *image_chooser_button = NULL;
-	  image_chooser_button = GTK_FILE_CHOOSER_BUTTON (image_obj);
+          image_chooser_button = GTK_FILE_CHOOSER_BUTTON (image_obj);
           gchar *filename = NULL;
 
 	  GtkFileChooser *chooser;
@@ -265,7 +183,7 @@ on_preference_ok_button_clicked (GtkButton *buton, gpointer data)
 					 filename,
 					 NULL);
 				  /* Save chosen image to user configuration */
-				  save_image_to_user_config (name, filename);
+				  background_config_add_image (name, filename);
                   fclose (stream);
                 }
             }
