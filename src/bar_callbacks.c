@@ -794,6 +794,70 @@ on_background_selection_size_allocate (GtkWidget *widget,
   // g_printf("size allocate %d %d\n", allocation->width, allocation->height);
 }
 
+/* Carica colori e immagini dal file di configurazione */
+static void
+load_backgrounds_from_config (void)
+{
+    GKeyFile *kf = g_key_file_new();
+
+    /* user config overrides */
+    gchar *usrfile = g_build_filename (g_get_user_config_dir (),
+		                       "ardesiarc",
+				       NULL);
+
+    if (g_file_test (usrfile, G_FILE_TEST_IS_REGULAR))
+      {
+        g_key_file_load_from_file (kf, usrfile, G_KEY_FILE_NONE, NULL);
+      }
+    else
+      {
+        g_debug ("User config file %s not found", usrfile);
+	/* system config */
+	gchar *sysfile = g_build_filename (ARDESIA_SYSCONFDIR,
+			                   "ardesia.conf",
+					   NULL);
+
+	if (! g_file_test (sysfile, G_FILE_TEST_IS_REGULAR))
+	  {
+            g_warning ("System configuration file %s not found", sysfile);
+          }
+	g_key_file_load_from_file (kf, sysfile, G_KEY_FILE_NONE, NULL);
+	g_free (sysfile);
+      }
+    g_free (usrfile);
+
+    /* COLORS */
+    gsize n_colors = 0;
+    gchar **color_keys = g_key_file_get_keys (kf, "colors", &n_colors, NULL);
+    for (gsize i = 0; i < n_colors; i++) {
+        gchar *hex = g_key_file_get_string (kf, "colors", color_keys[i], NULL);
+	g_debug("Load background color %s in preference", hex);
+        add_background_button (gettext (color_keys[i]),
+                               BACKGROUND_MODE_COLOR,
+                               NULL,
+                               g_strdup(hex));
+        g_free (hex);
+    }
+    g_strfreev (color_keys);
+
+
+    /* IMAGES */
+    gsize n_images = 0;
+    gchar **image_keys = g_key_file_get_keys (kf, "images", &n_images, NULL);
+    for (gsize i = 0; i < n_images; i++) {
+        gchar *path = g_key_file_get_string (kf, "images", image_keys[i], NULL);
+	g_debug("Load background image %s in preference", path);
+        add_background_button (gettext (image_keys[i]),
+                               BACKGROUND_MODE_FILE,
+                               g_strdup(path),
+                               NULL);
+        g_free (path);
+    }
+    g_strfreev (image_keys);
+
+    g_key_file_unref (kf);
+}
+
 void create_bar_preference_window (GtkWindow *parent)
 {
   GtkWidget   *window = NULL;
@@ -816,20 +880,7 @@ void create_bar_preference_window (GtkWindow *parent)
                          TRANSPARENT_BACKGROUND_FILE,
 			 NULL);
 
-  add_background_button (gettext ("Blackboard"),
-		         BACKGROUND_MODE_COLOR,
-			 NULL,
-			 BLACK);
-
-  add_background_button (gettext ("Whiteboard"),
-		         BACKGROUND_MODE_COLOR,
-			 NULL,
-			 WHITE);
-
-  add_background_button (gettext ("Paper"),
-		         BACKGROUND_MODE_FILE,
-			 PAPER_BACKGROUND_FILE,
-			 NULL);
+  load_backgrounds_from_config ();
 
   GtkWidget *add_image = gtk_image_new_from_icon_name ("list-add",
                                                      GTK_ICON_SIZE_LARGE_TOOLBAR);

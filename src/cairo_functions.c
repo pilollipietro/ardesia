@@ -72,7 +72,7 @@ scale_image (gchar *image, gint new_width, gint new_height)
 void
 load_file_onto_context (gchar *image_filename, cairo_t *cr)
 {
-  g_debug ("attempting to load file\n");
+  g_debug ("attempting to load file %s\n", image_filename);
   if (cr)
     {
       gint new_height = 0;

@@ -6,6 +6,7 @@ SUBDIRS = \
 	po                             \
 	src 
 
+sysconf_DATA = ardesia.conf
 ardesiadocdir = ${prefix}/share/doc/ardesia
 ardesiadoc_DATA =                      \
 	README                         \

@@ -116,6 +116,9 @@ src/Makefile
 desktop/Makefile
 win32/ardesia.iss
 win32/build_installer
+ardesia.conf
 ])
+
+AC_DEFINE_UNQUOTED([ARDESIA_SYSCONFDIR], ["$sysconfdir"], [System configuration dir])
 
 AC_OUTPUT
