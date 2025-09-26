@@ -679,13 +679,7 @@ on_background_selection_window_configure_event (GtkWidget *widget,
           BackgroundButtonData *data;
           node = g_slist_nth (annotation_data->background_button_data, ii);
           data = (BackgroundButtonData *) node->data;
-          GtkToolButton *tool_button;
-          GtkWidget     *icon_widget;
-          GtkImage      *image;
-          tool_button = GTK_TOOL_BUTTON (data->button);
-          icon_widget = gtk_tool_button_get_icon_widget (tool_button);
-          image = GTK_IMAGE (icon_widget);
-          if (image == NULL || data->size != m)
+          if (data->size != m)
             {
               g_debug ("redrawing image (%d)\n", m);
               resize_image_to_button (data, m);
