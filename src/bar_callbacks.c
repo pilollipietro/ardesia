@@ -803,7 +803,7 @@ on_background_selection_size_allocate (GtkWidget *widget,
   // g_printf("size allocate %d %d\n", allocation->width, allocation->height);
 }
 
-/* Carica colori e immagini dal file di configurazione */
+/* Load colors and images from config file. */
 static void
 load_backgrounds_from_config (void)
 {
