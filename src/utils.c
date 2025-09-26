@@ -46,8 +46,10 @@ GtkBuilder *bar_gtk_builder = NULL;
 gboolean
 intersect (GdkRectangle *a, GdkRectangle *b)
 {
-  return ! (a->x + a->width < b->x || a->x > b->x + b->width ||
-            a->y + a->height < b->y || a->y > b->y + b->height);
+  return !(a->x + a->width < b->x  ||
+	   a->x > b->x + b->width  ||
+           a->y + a->height < b->y ||
+	   a->y > b->y + b->height);
 }
 
 void
@@ -327,7 +329,7 @@ take_screenshot_now ()
   GtkWidget *widget    = annotation_data->annotation_window;
 
   GtkWidget *bar_widget = GTK_WIDGET (get_bar_widget ());
-  gdouble opacity = gtk_widget_get_opacity(bar_widget);
+  gdouble opacity = gtk_widget_get_opacity (bar_widget);
   gtk_widget_set_opacity (bar_widget, 0.0);
 
   gint       ann_width = 0, ann_height = 0, ann_x = 0, ann_y = 0;
@@ -591,7 +593,8 @@ send_artifacts_with_email (GSList *attachment_list)
 {
   gchar *to      = "ardesia-developer@googlegroups.com";
   gchar *subject = "ardesia-contribution";
-  gchar *body = g_strdup_printf ("%s,\n%s,%s.", "Dear ardesia developer group",
+  gchar *body = g_strdup_printf ("%s,\n%s,%s.",
+		                 "Dear ardesia developer group",
                                  "I want share my work created with Ardesia "
                                  "with you",
                                  "please for details see the attachment");
@@ -608,7 +611,8 @@ send_trace_with_email (gchar *attachment)
   gchar  *to              = "ardesia-developer@googlegroups.com";
   gchar  *subject         = "ardesia-bug-report";
 
-  gchar *body = g_strdup_printf ("%s,\n%s,%s.", "Dear ardesia developer group",
+  gchar *body = g_strdup_printf ("%s,\n%s,%s.",
+		                 "Dear ardesia developer group",
                                  "An application error occurred",
                                  "please for details see the attachment with "
                                  "the stack trace");

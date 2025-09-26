@@ -69,6 +69,7 @@ on_image_chooser_button_file_set (GtkButton *buton, gpointer data)
 
   GObject *file_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
 		                              "file");
+
   GtkToggleButton *image_tool_button = GTK_TOGGLE_BUTTON (file_obj);
   gtk_toggle_button_set_active (image_tool_button, TRUE);
 }

@@ -55,8 +55,12 @@ create_monitor_list ()
           g_debug ("Monitor %d is not primary\n", ii);
         }
       gdk_monitor_get_geometry (monitor, rect);
-      g_debug ("Monitor %d Geometry: %d %d %d %d\n", ii, rect->x, rect->y,
-                rect->width, rect->height);
+      g_debug ("Monitor %d Geometry: %d %d %d %d\n",
+	       ii,
+	       rect->x,
+	       rect->y,
+	       rect->width,
+	       rect->height);
 
       Monitor *m       = g_new (Monitor, 1);
       m->primary       = primary;
@@ -118,8 +122,12 @@ void
 debug_monitor_struct (gpointer data, gpointer userdata)
 {
   Monitor *m = (Monitor *) data;
-  g_debug ("Monitor %d: %d %d %d %d\n", m->monitor_index, m->rect->x,
-            m->rect->y, m->rect->width, m->rect->height);
+  g_debug ("Monitor %d: %d %d %d %d\n",
+	   m->monitor_index,
+	   m->rect->x,
+	   m->rect->y,
+	   m->rect->width,
+	   m->rect->height);
 }
 
 int

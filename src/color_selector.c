@@ -78,6 +78,7 @@ start_color_selector_dialog (GtkToolButton *toolbutton,
         case GTK_RESPONSE_OK:
           gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER (color_dialog),
 			              gdkcolor);
+
           ret_color = gdkrgba_to_rgba (gdkcolor);
 
           /* Reset previously picked color. */

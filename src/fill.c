@@ -37,7 +37,8 @@
  *   annotation_data - pointer to the annotation data containing the path
  *   x, y            - coordinates of the starting point for the fill
  *
- * This function fills the interior of a closed shape starting at the given point.
+ * This function fills the interior of a closed shape starting at the
+ * given point.
  */
 
 void
@@ -46,14 +47,13 @@ fill(AnnotateData *annotation_data,
            gdouble y)
 {
     if (!annotation_data || !annotation_data->color) return;
-	    g_debug("FLODD FIRST");
 
     cairo_t *cr = annotation_data->annotation_cairo_context;
 
     guint r, g, b, a;
-    if (sscanf(annotation_data->color, "%02X%02X%02X%02X", &r, &g, &b, &a) != 4) {
-        g_debug("Invalid color format: %s", annotation_data->color);
-        cairo_destroy(cr);
+    if (sscanf (annotation_data->color, "%02X%02X%02X%02X", &r, &g, &b, &a) != 4) {
+        g_debug ("Invalid color format: %s", annotation_data->color);
+        cairo_destroy (cr);
         return;
     }
 
@@ -65,17 +65,17 @@ fill(AnnotateData *annotation_data,
     for (GList *l = annotation_data->paths; l != NULL; l = l->next) {
         cairo_path_t *path = (cairo_path_t*)l->data;
 
-        cairo_new_path(cr);
-        cairo_append_path(cr, path);
+        cairo_new_path (cr);
+        cairo_append_path (cr, path);
 
-        if (cairo_in_fill(cr, x, y)) {
-	    g_debug("FOUND A PATH");
-            cairo_set_source_rgba(cr, fr, fg, fb, fa);
-            cairo_fill(cr);
+        if (cairo_in_fill (cr, x, y)) {
+	    g_debug ("found closed path to fill");
+            cairo_set_source_rgba (cr, fr, fg, fb, fa);
+            cairo_fill (cr);
 
             return;
         }
     }
 
-    g_debug("No path contains point (%f,%f)", x, y);
+    g_debug ("No path contains point (%f,%f)", x, y);
 }

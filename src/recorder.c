@@ -84,8 +84,14 @@ call_recorder (gchar *filename, gchar *option)
   argv[6] = g_strdup_printf (
       "%d", gtk_widget_get_allocated_height (annotation_window));
 
-  g_debug ("call_recorder: %s %s %s %s %s %s %s\n", logfilename, argv[3],
-           argv[4], argv[5], argv[6], argv[7], argv[8]);
+  g_debug ("call_recorder: %s %s %s %s %s %s %s\n",
+	   logfilename,
+	   argv[3],
+           argv[4],
+	   argv[5],
+	   argv[6],
+	   argv[7],
+	   argv[8]);
 
   if (g_spawn_async (NULL /*working_directory*/,
                      argv, NULL /*envp*/,
@@ -263,9 +269,15 @@ start_save_video_dialog (GtkButton *toolbutton, GtkWindow *parent)
 
   gchar *filename = g_strdup_printf ("%s", get_project_name ());
 
-  GtkWidget *chooser = gtk_file_chooser_dialog_new (
-      gettext ("Save video as ogv"), parent, GTK_FILE_CHOOSER_ACTION_SAVE,
-      "_Cancel", GTK_RESPONSE_CANCEL, "Save _As", GTK_RESPONSE_ACCEPT, NULL);
+  GtkWidget *chooser;
+  chooser = gtk_file_chooser_dialog_new (gettext ("Save video as ogv"),
+		                         parent,
+					 GTK_FILE_CHOOSER_ACTION_SAVE,
+					 "_Cancel",
+					 GTK_RESPONSE_CANCEL,
+					 "Save _As",
+					 GTK_RESPONSE_ACCEPT,
+					 NULL);
 
   gtk_window_set_modal (GTK_WINDOW (chooser), TRUE);
   gtk_window_set_keep_above (GTK_WINDOW (chooser), TRUE);

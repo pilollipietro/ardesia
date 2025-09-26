@@ -469,7 +469,7 @@ create_annotation_window (Workspace *workspace, CommandLine *commandline)
   annotation_obj = gtk_builder_get_object (annotation_window_gtk_builder,
 		                           "annotationWindow");
   widget = GTK_WIDGET (annotation_obj);
-  gtk_window_set_keep_above(GTK_WINDOW (widget), TRUE);
+  gtk_window_set_keep_above (GTK_WINDOW (widget), TRUE);
 
   annotation_data->annotation_window = widget;
   if (annotation_data->annotation_window == NULL)
@@ -573,7 +573,9 @@ create_savepoint_dir ()
     }
 
   annotation_data->savepoint_dir = g_build_filename (project_tmp_dir,
-		                                     images, (gchar *) 0);
+		                                     images,
+						     (gchar *) 0);
+
   g_mkdir_with_parents (annotation_data->savepoint_dir, 0777);
   g_free (ardesia_tmp_dir);
   g_free (project_tmp_dir);
@@ -1058,14 +1060,14 @@ annotate_modify_color (AnnotateDeviceData *devdata,
         return;
     }
 
-    assert(strlen(annotation_data->color) == 8);
+    assert (strlen (annotation_data->color) == 8);
     sscanf(annotation_data->color, "%02X%02X%02X%02X", &r, &g, &b, &a);
 
     if (devdata->coord_list != NULL) {
         AnnotatePoint *last_point;
 
-        last_point = (AnnotatePoint *) g_slist_nth_data(devdata->coord_list,
-			                                0);
+        last_point = (AnnotatePoint *) g_slist_nth_data (devdata->coord_list,
+			                                 0);
 
         old_pressure = last_point->pressure;
     }
@@ -1076,7 +1078,7 @@ annotate_modify_color (AnnotateDeviceData *devdata,
      * making the stroke more visible at the start and end.
      */
     gdouble smoothed_pressure = (3 * pressure + old_pressure) / 4;
-    gdouble curved_pressure = sqrt(smoothed_pressure);
+    gdouble curved_pressure = sqrt (smoothed_pressure);
 
     /*
      * Calculate the final alpha value by combining the curved pressure
@@ -1089,10 +1091,12 @@ annotate_modify_color (AnnotateDeviceData *devdata,
         new_alpha = 1.0;
     }
 
-    g_debug("pressure %f, new_alpha %f", pressure, new_alpha);
-    cairo_set_source_rgba(annotation_cr,
-                          (gdouble)r / 255.0, (gdouble)g / 255.0,
-                          (gdouble)b / 255.0, new_alpha * (gdouble)a / 255.0);
+    g_debug ("pressure %f, new_alpha %f", pressure, new_alpha);
+    cairo_set_source_rgba (annotation_cr,
+                           (gdouble)r / 255.0,
+			   (gdouble)g / 255.0,
+                           (gdouble)b / 255.0,
+			   new_alpha * (gdouble)a / 255.0);
 }
 
 /* Paint the context over the annotation window. */
@@ -1118,9 +1122,13 @@ annotate_push_context (cairo_t *cr)
    * at -1920, left screen -> disappears, right screen is good
    */
   cairo_set_source_surface (annotation_data->annotation_cairo_context,
-                            source_surface, 0, 0);
+                            source_surface,
+			    0,
+			    0);
+
   /* paints the current source everywhere in clip region. */
   cairo_paint (annotation_data->annotation_cairo_context);
+
   /* strokes the current path according to current line settings. */
   cairo_stroke (annotation_data->annotation_cairo_context);
 
@@ -1939,8 +1947,9 @@ annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
 
 void save_closed_path() {
     cairo_t *annotation_cr = annotation_data->annotation_cairo_context; 
-    cairo_path_t *path_copy = cairo_copy_path(annotation_cr);
-    annotation_data->paths = g_list_append(annotation_data->paths, path_copy);
+    cairo_path_t *path_copy = cairo_copy_path (annotation_cr);
+    annotation_data->paths = g_list_append (annotation_data->paths,
+		                            path_copy);
 }
 
 gboolean
@@ -1966,7 +1975,8 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
   if (! ev)
     {
       g_error ("Device '%s': Invalid event; I ungrab all\n",
-                  gdk_device_get_name (master));
+	       gdk_device_get_name (master));
+
       annotate_release_grab ();
       gtk_widget_queue_draw (annotation_data->annotation_window);
       return FALSE;
@@ -2076,8 +2086,8 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
             }
         }
       if (closed_path) {
-	 cairo_close_path(annotation_data->annotation_cairo_context);
-	 save_closed_path();
+	 cairo_close_path (annotation_data->annotation_cairo_context);
+	 save_closed_path ();
       }
 
     }
@@ -2108,24 +2118,27 @@ annotation_window_change (int width, int height)
 void
 initialize_font (CommandLine *commandline)
 {
-  if (commandline->fontfamily != NULL) {
-    gchar *font_string;
+  if (commandline->fontfamily != NULL)
+    {
+      gchar *font_string;
 
-    /* 
-     * Create a font description string in the format "Family Size".
-     * For example, "Cantarell 32".
-     */
-    font_string = g_strdup_printf("%s %d", commandline->fontfamily, 32);
+      /* 
+       * Create a font description string in the format "Family Size".
+       * For example, "Cantarell 32".
+       */
+      font_string = g_strdup_printf ("%s %d", commandline->fontfamily, 32);
 
-    /* Create the PangoFontDescription object from the string. */
-    annotation_data->font = pango_font_description_from_string(font_string);
+      /* Create the PangoFontDescription object from the string. */
+      annotation_data->font = pango_font_description_from_string (font_string);
 
-    /* Free the temporary string. */
-    g_free(font_string);
-  } else {
-    /* If no font family was provided, set a default font. */
-    annotation_data->font = pango_font_description_new();
-    pango_font_description_set_size(annotation_data->font, 32 * PANGO_SCALE);
-  }
+      /* Free the temporary string. */
+      g_free(font_string);
+    }
+  else
+    {
+      /* If no font family was provided, set a default font. */
+      annotation_data->font = pango_font_description_new();
+      pango_font_description_set_size(annotation_data->font, 32 * PANGO_SCALE);
+    }
 }
 

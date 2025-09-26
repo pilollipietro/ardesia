@@ -39,9 +39,12 @@ BarData *bar_data = NULL;
  */
 static void
 calculate_position (GtkWidget *ardesia_bar_window,
-		    gint d_width, gint d_height,
-                    gint *x, gint *y,
-		    gint w_width, gint w_height,
+		    gint d_width,
+		    gint d_height,
+                    gint *x,
+		    gint *y,
+		    gint w_width,
+		    gint w_height,
 		    gint position)
 {
   *y = ((d_height - w_height - SPACE_FROM_BORDER) / 2);
@@ -273,7 +276,7 @@ create_bar_window (CommandLine *commandline,
 }
 
 GtkStatusbar *
-getStatusbar ()
+get_statusbar ()
 {
   GObject *g_object = gtk_builder_get_object (bar_gtk_builder,
                                               gettext ("statusbar"));
@@ -283,8 +286,7 @@ getStatusbar ()
 void
 replace_status_message (gchar *message)
 {
-  g_debug(message);
-  GtkStatusbar *bar = getStatusbar ();
+  GtkStatusbar *bar = get_statusbar ();
   if (bar != NULL)
     {
       gtk_statusbar_pop (bar, 0);
@@ -293,7 +295,7 @@ replace_status_message (gchar *message)
 }
 
 void
-setStatusbarLabel (gchar *message)
+set_statusbar_label (gchar *message)
 {
   GObject *g_object = gtk_builder_get_object (
       bar_gtk_builder, gettext ("labelCurrentSelection"));
@@ -564,7 +566,8 @@ start_tool (BarData *bar_data)
         {
           /* Text button then start the text widget. */
           start_text_widget (annotation_data->annotation_window,
-                             bar_data->color, bar_data->thickness);
+                             bar_data->color,
+			     bar_data->thickness);
         }
       else
         {
@@ -588,7 +591,10 @@ end_clapperboad_countdown (gpointer user_data)
   bar_data->grab      = FALSE;
   annotate_release_grab ();
 
-  /* Ideally we want to go back to our background settings that we had before. */
+  /* 
+   * Ideally we want to go back to our background
+   * settings that we had before.
+   */
   annotation_data->is_clapperboard_visible = FALSE;
 
   /* Make the screen black and then go back to what it was before. */

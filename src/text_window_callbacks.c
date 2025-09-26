@@ -96,15 +96,21 @@ on_text_window_button_release (GtkWidget *win,
     {
       g_debug ("on_text_window_button_release MOVE CURSOR\n");
       save_text (); // @TODO is this required?
-      g_debug ("on_text_window_button_release: %f %f %f %f\n", ev->x, ev->y,
-               ev->x_root, ev->y_root);
+      g_debug ("on_text_window_button_release: %f %f %f %f\n",
+	       ev->x,
+	       ev->y,
+               ev->x_root,
+	       ev->y_root);
       text_data->pos->x    = ev->x; // x_root
       text_data->pos->y    = ev->y; // y_root
       text_config->start_x = ev->x;
-      replace_status_message (g_strdup_printf ("on_text_window_button_release: "
-                                               "text pos: %f %f",
-                                               text_data->pos->x,
-					       text_data->pos->y));
+
+      const gchar *message_format = "on_text_window_button_release: text pos: %f %f";
+      gchar *status_message = g_strdup_printf(message_format,
+		                              text_data->pos->x,
+					      text_data->pos->y);
+      replace_status_message(status_message);
+      g_free(status_message);
 
       /* This present the ardesia bar and the panels. */
       gtk_window_present (GTK_WINDOW (get_bar_widget ()));
@@ -178,8 +184,11 @@ draw_character (cairo_t *cr, CharInfo *char_info)
         }
 
       cairo_save (cr);
-      g_debug ("[DRAW] Drawing character at %f %f %s %s\n", char_info->x,
-                char_info->y, char_info->color, char_info->font_family);
+      g_debug ("[DRAW] Drawing character at %f %f %s %s\n",
+	       char_info->x,
+	       char_info->y,
+	       char_info->color,
+	       char_info->font_family);
 
       cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
 
@@ -424,9 +433,9 @@ on_text_window_key_press_event (GtkWidget *widget,
     }
 
   stop_blink_cursor ();
-  gboolean closed_to_bar = inside_bar_window (
-      text_data->pos->x + text_data->extents.x_advance,
-      text_data->pos->y - text_data->max_font_height / 2);
+  gdouble point_x = text_data->pos->x + text_data->extents.x_advance;
+  gdouble point_y = text_data->pos->y - text_data->max_font_height / 2;
+  gboolean closed_to_bar = inside_bar_window (point_x, point_y);
   GtkWidget *annotation_window = get_annotation_window ();
   int width = gtk_widget_get_allocated_width (GTK_WIDGET (annotation_window));
   // int height = gtk_widget_get_allocated_width(text_data->window);

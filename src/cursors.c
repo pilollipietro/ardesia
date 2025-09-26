@@ -52,16 +52,19 @@ cairo_image_surface_create_from_svg (const gchar *file)
 
   handle                 = rsvg_handle_new_from_file (file, NULL);
   RsvgRectangle viewport = { 0.0, 0.0, 0.0, 0.0 };
+
   rsvg_handle_get_intrinsic_size_in_pixels (handle,
 		                            &viewport.width,
 					    &viewport.height);
+
   surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
 		                        round (viewport.width),
                                         round (viewport.height));
+
   cr = cairo_create (surface);
   rsvg_handle_render_document (handle, cr, &viewport, NULL);
   cairo_destroy (cr);
-  g_object_unref(handle);
+  g_object_unref (handle);
   return surface;
 }
 
@@ -69,10 +72,10 @@ static gchar* svg_replace_color(const gchar *svg_data,
                                 const gchar *old_color,
                                 const gchar *new_color)
 {
-    if (!svg_data || !old_color || !new_color)
+    if (! svg_data || ! old_color || ! new_color)
         return NULL;
-    GString *gstr = g_string_new(svg_data);
-    g_string_replace(gstr, old_color, new_color, 0);
+    GString *gstr = g_string_new (svg_data);
+    g_string_replace (gstr, old_color, new_color, 0);
     return gstr->str;
 }
 
@@ -93,49 +96,51 @@ cairo_image_surface_create_from_svg_repl(const gchar *file,
     GError          *error = NULL;
 
     /* Read svg file. */
-    if (!g_file_get_contents(file, &svg_text, NULL, &error)) {
-        g_printerr("Cannot read file %s: %s\n", file, error->message);
-        g_error_free(error);
+    if (! g_file_get_contents (file, &svg_text, NULL, &error)) {
+        g_printerr ("Cannot read file %s: %s\n", file, error->message);
+        g_error_free (error);
         return NULL;
     }
 
     /* Replace color. */
-    gchar *new_svg = svg_replace_color(svg_text, old_color, new_color);
-    g_free(svg_text);
+    gchar *new_svg = svg_replace_color (svg_text, old_color, new_color);
+    g_free (svg_text);
 
     /* Read svg from memory. */
-    GInputStream *stream = g_memory_input_stream_new_from_data(new_svg,
-                                                              strlen(new_svg),
-                                                              NULL);
-    handle = rsvg_handle_new_from_stream_sync(stream,
-                                              NULL,
-                                              RSVG_HANDLE_FLAGS_NONE,
-                                              NULL,   // cancellable
-                                              &error); // GError**
+    GInputStream *stream;
+    stream = g_memory_input_stream_new_from_data (new_svg,
+                                                  strlen(new_svg),
+						  NULL);
 
-    g_object_unref(stream);
-    g_free(new_svg);
+    handle = rsvg_handle_new_from_stream_sync (stream,
+                                               NULL,
+                                               RSVG_HANDLE_FLAGS_NONE,
+                                               NULL,   // cancellable
+                                               &error); // GError**
 
-    if (!handle) {
-        g_printerr("Cannot parse SVG: %s\n", error->message);
-        g_error_free(error);
+    g_object_unref (stream);
+    g_free (new_svg);
+
+    if (! handle) {
+        g_printerr ("Cannot parse SVG: %s\n", error->message);
+        g_error_free (error);
         return NULL;
     }
 
     /* Get size. */
     RsvgRectangle viewport = {0.0, 0.0, 0.0, 0.0};
-    rsvg_handle_get_intrinsic_size_in_pixels(handle,
-                                             &viewport.width,
-                                             &viewport.height);
+    rsvg_handle_get_intrinsic_size_in_pixels (handle,
+                                              &viewport.width,
+                                              &viewport.height);
 
     /* Build cairo surface. */
-    surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32,
-                                         round(viewport.width),
-                                         round(viewport.height));
-    cr = cairo_create(surface);
-    rsvg_handle_render_document(handle, cr, &viewport, NULL);
-    cairo_destroy(cr);
-    g_object_unref(handle);
+    surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+                                          round(viewport.width),
+                                          round(viewport.height));
+    cr = cairo_create (surface);
+    rsvg_handle_render_document (handle, cr, &viewport, NULL);
+    cairo_destroy (cr);
+    g_object_unref (handle);
     
     return surface;
 }
@@ -160,11 +165,14 @@ get_highlighter_image_surface (const gchar *old_color,
 {
   if (highlighter_image_surface)
     {
-      cairo_surface_destroy(highlighter_image_surface);
+      cairo_surface_destroy (highlighter_image_surface);
     }
 
   highlighter_image_surface =
-    cairo_image_surface_create_from_svg_repl (HIGHLIGHTER_ICON, old_color, new_color);
+    cairo_image_surface_create_from_svg_repl (HIGHLIGHTER_ICON,
+		                              old_color,
+					      new_color);
+
   return highlighter_image_surface;
 }
 
@@ -174,7 +182,7 @@ get_arrow_image_surface (const gchar *old_color, char *new_color)
 {
   if (arrow_image_surface)
     {
-      cairo_surface_destroy(arrow_image_surface);
+      cairo_surface_destroy (arrow_image_surface);
     }
 
   arrow_image_surface = cairo_image_surface_create_from_svg_repl (ARROW_ICON,
@@ -190,7 +198,7 @@ get_filler_image_surface (const gchar *old_color,
 {
   if (filler_image_surface)
     {
-      cairo_surface_destroy(filler_image_surface);
+      cairo_surface_destroy (filler_image_surface);
     }
 
   filler_image_surface = cairo_image_surface_create_from_svg_repl (FILLER_ICON,
@@ -206,10 +214,13 @@ get_pen_image_surface (const gchar *old_color,
 {
   if (pen_image_surface)
     {
-      cairo_surface_destroy(pen_image_surface);
+      cairo_surface_destroy (pen_image_surface);
     }
 
-  pen_image_surface = cairo_image_surface_create_from_svg_repl (PENCIL_ICON, old_color, new_color);
+  pen_image_surface = cairo_image_surface_create_from_svg_repl (PENCIL_ICON,
+		                                                old_color,
+								new_color);
+
   return pen_image_surface;
 }
 
@@ -300,10 +311,14 @@ get_eraser_pixbuf (gdouble thickness,
 
   cairo_surface_t *surface = (cairo_surface_t *) NULL;
 
-  *pixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB, TRUE, 8,
+  *pixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB,
+		            TRUE,
+			    8,
 		            cursor_width,
 			    cursor_height);
-  guchar *pixels = gdk_pixbuf_get_pixels(*pixbuf);
+
+  guchar *pixels = gdk_pixbuf_get_pixels (*pixbuf);
+
   surface = cairo_image_surface_create_for_data (pixels,
 		                                 CAIRO_FORMAT_RGB24,
 						 gdk_pixbuf_get_width (*pixbuf),
@@ -355,9 +370,14 @@ get_filler_pixbuf (GdkPixbuf **pixbuf,
   image_width   = cairo_image_surface_get_width (image_surface);
   image_height  = cairo_image_surface_get_height (image_surface);
 
-  *pixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB, TRUE, 8,
-		            image_width, image_height);
+  *pixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB,
+		            TRUE,
+			    8,
+		            image_width,
+			    image_height);
+
   guchar *pixels = gdk_pixbuf_get_pixels (*pixbuf);
+
   surface = cairo_image_surface_create_for_data (pixels,
 		                                 CAIRO_FORMAT_RGB24,
 						 gdk_pixbuf_get_width (*pixbuf),
@@ -505,9 +525,14 @@ set_pen_cursor (GdkCursor **cursor,
 
   get_pen_pixbuf (&pixbuf, color, thickness, arrow, circle_width);
 
-  *cursor = gdk_cursor_new_from_pixbuf (
-      gdk_display_get_default (), pixbuf, thickness / 2 + circle_width,
-      gdk_pixbuf_get_height (pixbuf) - thickness / 2 - circle_width);
+  gdouble hotspot_x       = thickness / 2 + circle_width;
+  gdouble hotspot_y       =
+    gdk_pixbuf_get_height(pixbuf) - thickness / 2 - circle_width;
+
+  *cursor = gdk_cursor_new_from_pixbuf (gdk_display_get_default (),
+		                        pixbuf,
+					hotspot_x,
+					hotspot_y);
 
   g_object_unref (pixbuf);
 }
@@ -521,9 +546,14 @@ set_eraser_cursor (GdkCursor **cursor, gint size)
 
   get_eraser_pixbuf (size, &pixbuf, circle_width);
 
-  *cursor = gdk_cursor_new_from_pixbuf (
-      gdk_display_get_default (), pixbuf, size / 2 + circle_width,
-      gdk_pixbuf_get_height (pixbuf) - size / 2 - circle_width);
+  gdouble hotspot_x       = size / 2 + circle_width;
+  gdouble hotspot_y       =
+    gdk_pixbuf_get_height(pixbuf) - size / 2 - circle_width;
+
+  *cursor = gdk_cursor_new_from_pixbuf (gdk_display_get_default (),
+		                        pixbuf,
+					hotspot_x,
+					hotspot_y);
 
   g_object_unref (pixbuf);
 }
@@ -535,7 +565,8 @@ set_filler_cursor (GdkCursor **cursor, gchar* color)
   GdkPixbuf *pixbuf = (GdkPixbuf *) NULL;
   get_filler_pixbuf (&pixbuf, color);
 
-  *cursor = gdk_cursor_new_from_pixbuf (gdk_display_get_default (), pixbuf,
+  *cursor = gdk_cursor_new_from_pixbuf (gdk_display_get_default (),
+		                        pixbuf,
                                         gdk_pixbuf_get_width (pixbuf) - 1,
                                         gdk_pixbuf_get_height (pixbuf) - 1);
 }

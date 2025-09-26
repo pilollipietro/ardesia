@@ -95,14 +95,17 @@ print_device_info (GdkDevice *device)
   g_debug ("Device %d: Name : %s\n", deviceIndex, gdk_device_get_name (device));
   if (gdk_device_get_device_type (device) != GDK_DEVICE_TYPE_MASTER)
     {
-      g_debug ("Device %d: Vendor ID : %s\n", deviceIndex,
+      g_debug ("Device %d: Vendor ID : %s\n",
+	       deviceIndex,
                gdk_device_get_vendor_id (device));
-      g_debug ("Device %d: Product ID : %s\n", deviceIndex,
+      g_debug ("Device %d: Product ID : %s\n",
+	       deviceIndex,
                gdk_device_get_product_id (device));
     }
   if (gdk_device_get_source (device) != GDK_SOURCE_KEYBOARD)
     {
-      g_debug ("Device %d: Number of Axes : %d\n", deviceIndex,
+      g_debug ("Device %d: Number of Axes : %d\n",
+	       deviceIndex,
                gdk_device_get_n_axes (device));
     }
   g_debug ("Device %d: Source : %d\n",
@@ -111,13 +114,19 @@ print_device_info (GdkDevice *device)
   switch (gdk_device_get_source (device))
     {
     case 0:
-      g_debug ("Device %d: Source Type : %s\n", deviceIndex, "Mouse");
+      g_debug ("Device %d: Source Type : %s\n",
+	       deviceIndex,
+	       "Mouse");
       break;
     case 4:
-      g_debug ("Device %d: Source Type : %s\n", deviceIndex, "Keyboard");
+      g_debug ("Device %d: Source Type : %s\n",
+	       deviceIndex,
+	       "Keyboard");
       break;
     default:
-      g_debug ("Device %d: Source Type : %s\n", deviceIndex, "Unknown");
+      g_debug ("Device %d: Source Type : %s\n",
+	       deviceIndex,
+	       "Unknown");
       break;
     }
 
@@ -185,9 +194,14 @@ grab_pointer (GtkWidget *widget, GdkEventMask eventmask)
 
   gdk_x11_display_error_trap_push (display);
 
-  result = gdk_seat_grab (device_manager, gtk_widget_get_window (widget),
-                          GDK_SEAT_CAPABILITY_ALL_POINTING, TRUE,
-			  NULL, NULL, NULL, NULL);
+  result = gdk_seat_grab (device_manager,
+		          gtk_widget_get_window (widget),
+                          GDK_SEAT_CAPABILITY_ALL_POINTING,
+			  TRUE,
+			  NULL,
+			  NULL,
+			  NULL,
+			  NULL);
 
   gdk_display_flush (display);
   if (gdk_x11_display_error_trap_pop (display))

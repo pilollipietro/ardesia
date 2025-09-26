@@ -62,15 +62,14 @@ on_stop_recording_click (GtkButton *toolbutton, gpointer func_data)
   annotate_release_grab ();
   bar_data->grab = FALSE;
   stop_recorder ();
-
-  GtkToggleButton *recordButton = GTK_TOGGLE_BUTTON (gtk_builder_get_object (
-      annotation_data->recordingstudio_window_gtk_builder, "record"));
+  GtkBuilder *builder = annotation_data->recordingstudio_window_gtk_builder;
+  GObject *record_obj = gtk_builder_get_object (builder, "record");
+  GtkToggleButton *recordButton = GTK_TOGGLE_BUTTON (record_obj);
   gtk_toggle_button_set_active (recordButton, FALSE);
-  GtkWidget *imageWidget = GTK_WIDGET (gtk_builder_get_object (
-      annotation_data->recordingstudio_window_gtk_builder, "media-record"));
+  GObject *media_record_obj = gtk_builder_get_object (builder, "media-record");
+  GtkWidget *imageWidget = GTK_WIDGET (media_record_obj);
   gtk_button_set_image ((GtkButton *) recordButton, imageWidget);
   gtk_button_set_label ((GtkButton *) recordButton, "Record");
-
   bar_data->grab           = grab_value;
   on_stop_recording_called = FALSE;
   start_tool (bar_data);
@@ -85,7 +84,7 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
   gboolean grab_value = bar_data->grab;
   GtkBuilder *recordingstudio_window_gtk_builder;
   recordingstudio_window_gtk_builder =
-                           annotation_data->recordingstudio_window_gtk_builder;
+    annotation_data->recordingstudio_window_gtk_builder;
   GtkWidget *annotation_window = get_annotation_window ();
 
   /* Release grab. */
@@ -103,6 +102,7 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
           GtkWidget *imageWidget = GTK_WIDGET (
               gtk_builder_get_object (recordingstudio_window_gtk_builder,
                                       "media-playback-stop"));
+
           gtk_button_set_image ((GtkButton *) toolbutton, imageWidget);
           gtk_button_set_label ((GtkButton *) toolbutton, "Pause");
         }
@@ -127,8 +127,8 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
       if (! is_recorder_available ())
         {
           GtkWidget *imageWidget = GTK_WIDGET (
-              gtk_builder_get_object (recordingstudio_window_gtk_builder,
-                                      "media-recorder-unavailable"));
+            gtk_builder_get_object (recordingstudio_window_gtk_builder,
+                                    "media-recorder-unavailable"));
 
           gtk_button_set_image ((GtkButton *) toolbutton, imageWidget);
           gtk_button_set_label ((GtkButton *) toolbutton, "Unavailable");
@@ -137,10 +137,11 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
                                  (GdkCursor *) NULL);
 
           visualize_missing_recorder_program_dialog (
-              GTK_WINDOW (get_bar_widget ()),
-              gettext ("In order to record with Ardesia you must install the "
-                       "vlc program and add it to the PATH environment "
-                       "variable"));
+            GTK_WINDOW (get_bar_widget ()),
+            gettext ("In order to record with Ardesia you must install the "
+                     "vlc program and add it to the PATH environment "
+                     "variable"));
+
           /* Put an icon that remember that the tool is not available. */
           bar_data->grab = grab_value;
           start_tool (bar_data);
@@ -162,6 +163,7 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
           GtkWidget *imageWidget = GTK_WIDGET (
               gtk_builder_get_object (recordingstudio_window_gtk_builder,
                                       "media-playback-stop"));
+
           gtk_button_set_image ((GtkButton *) toolbutton, imageWidget);
           gtk_button_set_label ((GtkButton *) toolbutton, "Pause");
         }
@@ -300,7 +302,9 @@ draw_video_cursor (cairo_t *cr, GtkWidget *widget)
   get_desktop_mouse_location (&x, &y);
   GdkWindow *root_win = gdk_get_default_root_window ();
   cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-		                                         32, 32);
+		                                         32,
+							 32);
+
   GdkPixbuf *pb = gdk_pixbuf_get_from_window (root_win, 
 		                              x - 16,
 					      y - 16,

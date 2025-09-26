@@ -84,7 +84,7 @@ G_MODULE_EXPORT gboolean
 on_bar_configure_event (GtkWidget *widget, GdkEvent *event, gpointer func_data)
 {
   g_debug ("bar configure event (%d)\n", bar_data->screenshot_pending);
-  if ( ! bar_data->screenshot_pending)
+  if (! bar_data->screenshot_pending)
     {
       set_options (bar_data);
     }
@@ -416,7 +416,7 @@ on_bar_showhide_activate (GtkToolButton *toolButton, gpointer func_data)
                                         bar_data->snapshot_surface,
                                         0, 0);
               cairo_paint (annotation_cr);
-	      gtk_widget_queue_draw(annotation_window);
+	      gtk_widget_queue_draw (annotation_window);
             }
 
           bar_data->annotation_is_visible = TRUE;
@@ -722,7 +722,11 @@ add_background_button (gchar *label, gint mode, gchar *filename, gchar *color)
       gtk_tool_item_set_tooltip_text (GTK_TOOL_ITEM (button), label);
     }
 
-  gtk_box_pack_start (GTK_BOX (annotation_data->background_selection_container),
+  GtkWidget *background_selection_container;
+  background_selection_container =
+    annotation_data->background_selection_container;
+
+  gtk_box_pack_start (GTK_BOX (background_selection_container),
                       GTK_WIDGET (button),
 		      TRUE,
 		      TRUE,
@@ -731,17 +735,22 @@ add_background_button (gchar *label, gint mode, gchar *filename, gchar *color)
   /*
    * If an 'Add' button was stored on the container,
    * move the new button right before it so the Add button stays last.
-   * This preserves all the existing logic that runs before/after packing the button.
+   * This preserves all the existing logic that runs before/after
+   * packing the button.
    */
-  GtkWidget *add_btn = g_object_get_data (G_OBJECT (annotation_data->background_selection_container),
-                                          "background_add_button");
+  GtkWidget *add_btn =
+    g_object_get_data (G_OBJECT (background_selection_container),
+		       "background_add_button");
+
   if (add_btn != NULL)
     {
-      GList *children = gtk_container_get_children (GTK_CONTAINER (annotation_data->background_selection_container));
+      GList *children = gtk_container_get_children (
+        GTK_CONTAINER (background_selection_container));
+
       gint pos = g_list_index (children, add_btn);
       if (pos >= 0)
         {
-          gtk_box_reorder_child (GTK_BOX (annotation_data->background_selection_container),
+          gtk_box_reorder_child (GTK_BOX (background_selection_container),
                                  GTK_WIDGET (button),
                                  pos);
         }
@@ -798,7 +807,7 @@ on_background_selection_size_allocate (GtkWidget *widget,
 static void
 load_backgrounds_from_config (void)
 {
-    GKeyFile *kf = g_key_file_new();
+    GKeyFile *kf = g_key_file_new ();
 
     /* user config overrides */
     gchar *usrfile = g_build_filename (g_get_user_config_dir (),
@@ -826,30 +835,30 @@ load_backgrounds_from_config (void)
       }
     g_free (usrfile);
 
-    /* COLORS */
+    /* Colors */
     gsize n_colors = 0;
     gchar **color_keys = g_key_file_get_keys (kf, "colors", &n_colors, NULL);
     for (gsize i = 0; i < n_colors; i++) {
         gchar *hex = g_key_file_get_string (kf, "colors", color_keys[i], NULL);
-	g_debug("Load background color %s in preference", hex);
+	g_debug ("Load background color %s in preference", hex);
         add_background_button (gettext (color_keys[i]),
                                BACKGROUND_MODE_COLOR,
                                NULL,
-                               g_strdup(hex));
+                               g_strdup (hex));
         g_free (hex);
     }
     g_strfreev (color_keys);
 
 
-    /* IMAGES */
+    /* Images */
     gsize n_images = 0;
     gchar **image_keys = g_key_file_get_keys (kf, "images", &n_images, NULL);
     for (gsize i = 0; i < n_images; i++) {
         gchar *path = g_key_file_get_string (kf, "images", image_keys[i], NULL);
-	g_debug("Load background image %s in preference", path);
+	g_debug ("Load background image %s in preference", path);
         add_background_button (gettext (image_keys[i]),
                                BACKGROUND_MODE_FILE,
-                               g_strdup(path),
+                               g_strdup (path),
                                NULL);
         g_free (path);
     }
@@ -882,12 +891,14 @@ void create_bar_preference_window (GtkWindow *parent)
 
   load_backgrounds_from_config ();
 
-  GtkWidget *add_image = gtk_image_new_from_icon_name ("list-add",
-                                                     GTK_ICON_SIZE_LARGE_TOOLBAR);
+  GtkWidget *add_image =
+    gtk_image_new_from_icon_name ("list-add",
+                                  GTK_ICON_SIZE_LARGE_TOOLBAR);
+
   button = gtk_tool_button_new (add_image, NULL);
 
-  /* Tooltip: in GTK3 puoi passare una stringa normale */
-  gtk_tool_item_set_tooltip_text (GTK_TOOL_ITEM (button), gettext ("Add background"));
+  gtk_tool_item_set_tooltip_text (GTK_TOOL_ITEM (button),
+		                  gettext ("Add background"));
 
   gtk_box_pack_start (box, GTK_WIDGET (button), TRUE, TRUE, 0);
 
@@ -895,7 +906,9 @@ void create_bar_preference_window (GtkWindow *parent)
    * Store a pointer to Add on the container so new backgrounds
    * can be inserted right before it.
    */
-  g_object_set_data (G_OBJECT (box), "background_add_button", GTK_WIDGET (button));
+  g_object_set_data (G_OBJECT (box),
+		     "background_add_button",
+		     GTK_WIDGET (button));
 
   gtk_window_set_transient_for (GTK_WINDOW (window), parent);
 

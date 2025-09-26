@@ -95,7 +95,8 @@ destroy_workspace (Workspace *workspace)
  * desktop. The shortcut filename will be “<PACKAGE_NAME>_workspace”.
  *
  * On Windows it calls windows_create_link() using a stock folder icon,
- * on Unix-like systems it calls xdg_create_link() with the “folder-documents” icon.
+ * on Unix-like systems it calls xdg_create_link() with the
+ * “folder-documents” icon.
  *
  * Example:
  *   create_workspace_shortcut (my_workspace);
@@ -105,12 +106,16 @@ create_workspace_shortcut (Workspace *workspace)
 {
   gchar *workspace_dir = workspace->workspace_dir;
   g_debug ("Creating workspace shortcut\n");
-  gchar *desktop_entry_filename = g_strdup_printf (
-      "%s%s%s_workspace", get_desktop_dir (), G_DIR_SEPARATOR_S, PACKAGE_NAME);
+  gchar *desktop_entry_filename = g_strdup_printf ("%s%s%s_workspace",
+		                                   get_desktop_dir (),
+						   G_DIR_SEPARATOR_S,
+						   PACKAGE_NAME);
 
 #ifdef _WIN32
-  windows_create_link (workspace_dir, desktop_entry_filename,
-                       "%SystemRoot%\\system32\\imageres.dll", 123);
+  windows_create_link (workspace_dir,
+		       desktop_entry_filename,
+                       "%SystemRoot%\\system32\\imageres.dll",
+		       123);
 
 #else
   xdg_create_link (workspace_dir, desktop_entry_filename, "folder-documents");
@@ -182,7 +187,8 @@ configure_workspace (Workspace *workspace)
 
   /* The workspace directory is in the documents ardesia folder. */
   workspace->workspace_dir = g_build_filename (documents_dir,
-		                               PACKAGE_NAME, (gchar *) 0);
+		                               PACKAGE_NAME,
+					       (gchar *) 0);
 }
 
 void

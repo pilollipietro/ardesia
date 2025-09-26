@@ -69,8 +69,12 @@ open_svg ()
   gint width = gtk_widget_get_allocated_width (annotation_window);
   gint height = gtk_widget_get_allocated_height (annotation_window);
 
-  fprintf (fp, "\t<svg:svg width=\"%d\" height=\"%d\" viewbox=\"0 0 %d %d\">\n",
-           width, height, width, height);
+  fprintf (fp,
+	   "\t<svg:svg width=\"%d\" height=\"%d\" viewbox=\"0 0 %d %d\">\n",
+           width,
+	   height,
+	   width,
+	   height);
 }
 
 /* Close the svg tag. */

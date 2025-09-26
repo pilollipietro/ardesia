@@ -41,7 +41,7 @@ is_similar (gdouble x, gdouble y, gdouble pixel_tollerance)
 }
 
 static guint
-countPointsAlongHorizontal (GSList *list, gdouble x, gdouble pixel_tollerance)
+count_points_along_horizontal (GSList *list, gdouble x, gdouble pixel_tollerance)
 {
   guint i      = 0;
   guint length = g_slist_length (list);
@@ -59,7 +59,7 @@ countPointsAlongHorizontal (GSList *list, gdouble x, gdouble pixel_tollerance)
 }
 
 static guint
-countPointsAlongVertical (GSList *list, gdouble y, gdouble pixel_tollerance)
+count_points_along_vertical (GSList *list, gdouble y, gdouble pixel_tollerance)
 {
   guint i      = 0;
   guint length = g_slist_length (list);
@@ -157,10 +157,21 @@ is_a_triangle (GSList *list, gdouble pixel_tollerance)
   found_min_and_max (list, &minx, &miny, &maxx, &maxy);
 
   // the * 3 adds some additional tolerance for wonky rectangles
-  guint top    = countPointsAlongVertical (list, miny, pixel_tollerance * 3);
-  guint bottom = countPointsAlongVertical (list, maxy, pixel_tollerance * 3);
-  guint left   = countPointsAlongHorizontal (list, minx, pixel_tollerance * 3);
-  guint right  = countPointsAlongHorizontal (list, maxx, pixel_tollerance * 3);
+  guint top    = count_points_along_vertical (list,
+		                              miny,
+					      pixel_tollerance * 3);
+
+  guint bottom = count_points_along_vertical (list,
+		                              maxy,
+					      pixel_tollerance * 3);
+
+  guint left   = count_points_along_horizontal (list,
+		                                minx,
+						pixel_tollerance * 3);
+
+  guint right  = count_points_along_horizontal (list,
+		                                maxx,
+						pixel_tollerance * 3);
 
   const gchar *format = "triangle: %d %d %d %d";
   gchar       *msg;
@@ -651,186 +662,6 @@ build_outbounded_rectangle (GSList *list)
   return ret_list;
 }
 
-/* Try to build a triangle out of the points. */
-GSList *
-build_outbounded_triangle (GSList *list, gdouble pixel_tollerance)
-{
-  guint          length = g_slist_length (list);
-  AnnotatePoint *point  = (AnnotatePoint *) g_slist_nth_data (list, length / 2);
-  GSList        *ret_list = (GSList *) NULL;
-  AnnotatePoint *point0, *point1, *point2, *point3;
-  gdouble        minx = 0;
-  gdouble        miny = 0;
-  gdouble        maxx = 0;
-  gdouble        maxy = 0;
-
-  found_min_and_max (list, &minx, &miny, &maxx, &maxy);
-
-  guint top    = countPointsAlongVertical (list, miny, pixel_tollerance * 3);
-  guint bottom = countPointsAlongVertical (list, maxy, pixel_tollerance * 3);
-  guint left   = countPointsAlongHorizontal (list, minx, pixel_tollerance * 3);
-  guint right  = countPointsAlongHorizontal (list, maxx, pixel_tollerance * 3);
-
-  if (top == 1 && left == 1 && bottom > 1 && right == 1)
-    {
-      point0 = allocate_point ((minx + maxx) / 2,
-		               miny, point->width,
-			       point->pressure);
-      ret_list = g_slist_prepend (ret_list, point0);
-
-      point1   = allocate_point (minx,
-		                 maxy,
-		                 point->width, point->pressure);
-
-      ret_list = g_slist_prepend (ret_list, point1);
-
-      point2   = allocate_point (maxx, maxy, point->width, point->pressure);
-      ret_list = g_slist_prepend (ret_list, point2);
-
-      point3 = allocate_point ((minx + maxx) / 2,
-		               miny,
-			       point->width, point->pressure);
-      ret_list = g_slist_prepend (ret_list, point3);
-    }
-  else if (top == 1 && left > 1 && bottom > 1 && right == 1)
-    {
-      point0   = allocate_point (minx,
-		                 miny,
-				 point->width,
-				 point->pressure);
-
-      ret_list = g_slist_prepend (ret_list, point0);
-
-      point1   = allocate_point (minx, maxy, point->width, point->pressure);
-      ret_list = g_slist_prepend (ret_list, point1);
-
-      point2   = allocate_point (maxx, maxy, point->width, point->pressure);
-      ret_list = g_slist_prepend (ret_list, point2);
-
-      point3   = allocate_point (minx, miny, point->width, point->pressure);
-      ret_list = g_slist_prepend (ret_list, point3);
-    }
-  else if (top == 1 && left == 1 && bottom > 1 && right > 1)
-    {
-      point0   = allocate_point (minx, maxy, point->width, point->pressure);
-      ret_list = g_slist_prepend (ret_list, point0);
-
-      point1   = allocate_point (maxx, maxy, point->width, point->pressure);
-      ret_list = g_slist_prepend (ret_list, point1);
-
-      point2   = allocate_point (maxx, miny, point->width, point->pressure);
-      ret_list = g_slist_prepend (ret_list, point2);
-
-      point3   = allocate_point (minx, maxy, point->width, point->pressure);
-      ret_list = g_slist_prepend (ret_list, point3);
-    }
-  else if (top == 1 && left == 1 && bottom == 1 && right > 1)
-    {
-      point0 = allocate_point (minx,
-		               (miny + maxy) / 2,
-			       point->width,
-			       point->pressure);
-
-      ret_list = g_slist_prepend (ret_list, point0);
-
-      point1   = allocate_point (maxx, maxy, point->width, point->pressure);
-      ret_list = g_slist_prepend (ret_list, point1);
-
-      point2   = allocate_point (maxx, miny, point->width, point->pressure);
-      ret_list = g_slist_prepend (ret_list, point2);
-
-      point3 = allocate_point (minx,
-		               (miny + maxy) / 2,
-		               point->width,
-			       point->pressure);
-
-      ret_list = g_slist_prepend (ret_list, point3);
-    }
-  else if (top > 1 && left == 1 && bottom == 1 && right > 1)
-    {
-      point0   = allocate_point (minx, miny, point->width, point->pressure);
-      ret_list = g_slist_prepend (ret_list, point0);
-
-      point1   = allocate_point (maxx, miny, point->width, point->pressure);
-      ret_list = g_slist_prepend (ret_list, point1);
-
-      point2   = allocate_point (maxx, maxy, point->width, point->pressure);
-      ret_list = g_slist_prepend (ret_list, point2);
-
-      point3   = allocate_point (minx, miny, point->width, point->pressure);
-      ret_list = g_slist_prepend (ret_list, point3);
-    }
-  else if (top > 1 && left > 1 && bottom == 1 && right == 1)
-    {
-      point0   = allocate_point (minx, miny, point->width, point->pressure);
-      ret_list = g_slist_prepend (ret_list, point0);
-
-      point1   = allocate_point (maxx, miny, point->width, point->pressure);
-      ret_list = g_slist_prepend (ret_list, point1);
-
-      point2   = allocate_point (minx, maxy, point->width, point->pressure);
-      ret_list = g_slist_prepend (ret_list, point2);
-
-      point3   = allocate_point (minx, miny, point->width, point->pressure);
-      ret_list = g_slist_prepend (ret_list, point3);
-    }
-  else if (top == 1 && left > 1 && bottom == 1 && right == 1)
-    {
-      point0 = allocate_point (maxx, (maxy + miny) / 2,
-		               point->width,
-			       point->pressure);
-
-      ret_list = g_slist_prepend (ret_list, point0);
-
-      point1   = allocate_point (minx, miny, point->width, point->pressure);
-      ret_list = g_slist_prepend (ret_list, point1);
-
-      point2   = allocate_point (minx, maxy, point->width, point->pressure);
-      ret_list = g_slist_prepend (ret_list, point2);
-
-      point3 = allocate_point (maxx, (maxy + miny) / 2,
-		               point->width,
-			       point->pressure);
-
-      ret_list = g_slist_prepend (ret_list, point3);
-    }
-  else if (top > 1 && left == 1 && bottom == 1 && right == 1)
-    {
-      point0 = allocate_point ((minx + maxx) / 2,
-		               maxy, point->width,
-			       point->pressure);
-
-      ret_list = g_slist_prepend (ret_list, point0);
-
-      point1   = allocate_point (minx, miny, point->width, point->pressure);
-      ret_list = g_slist_prepend (ret_list, point1);
-
-      point2   = allocate_point (maxx, maxy, point->width, point->pressure);
-      ret_list = g_slist_prepend (ret_list, point2);
-
-      point3 = allocate_point ((minx + maxx) / 2, maxy,
-		               point->width,
-			       point->pressure);
-
-      ret_list = g_slist_prepend (ret_list, point3);
-    }
-  else
-    {
-      /* Copy over the list, cannot return as it will be freed. */
-      for (guint i = 0; i < length; i++)
-        {
-          point = (AnnotatePoint *) g_slist_nth_data (list, i);
-          point0 = allocate_point (point->x,
-			           point->y,
-				   point->width,
-				   point->pressure);
-          ret_list = g_slist_prepend (ret_list, point0);
-        }
-    }
-
-  return ret_list;
-}
-
 /* The path in list is similar to an ellipse. */
 gboolean
 is_similar_to_an_ellipse (GSList *list, gdouble pixel_tollerance)
@@ -949,7 +780,8 @@ is_similar_to_an_ellipse (GSList *list, gdouble pixel_tollerance)
 /*
  * build_rectified_list:
  * @list_inp:        input GSList of AnnotatePoint (assumed ordered subpath)
- * @close_path:      TRUE if the subpath is closed (shape), FALSE for open strokes
+ * @close_path:      TRUE if the subpath is closed (shape),
+ *                   FALSE for open strokes
  * @pixel_tollerance: tolerance in pixels used by detectors / simplification
  *
  * Returns a new GSList with rectified points. The function copies input points

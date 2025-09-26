@@ -126,7 +126,8 @@
  *   annotation_data - pointer to the annotation data containing the path
  *   x, y            - coordinates of the starting point for the fill
  *
- * This function fills the interior of a closed shape starting at the given point.
+ * This function fills the interior of a closed shape starting at
+ * the given point.
  */
 void fill (AnnotateData *annotation_data,
            gdouble x,

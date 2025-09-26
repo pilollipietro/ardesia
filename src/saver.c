@@ -55,10 +55,15 @@ void
 show_could_not_write_dialog (GtkWindow *parent_window)
 {
   GtkWidget *permission_denied_dialog = (GtkWidget *) NULL;
-
-  permission_denied_dialog = gtk_message_dialog_new (
-      parent_window, GTK_DIALOG_MODAL, GTK_MESSAGE_ERROR, GTK_BUTTONS_OK,
-      gettext ("Couldn't open file for writing: Permission denied"));
+  const gchar *message_text = gettext("Couldn't open file for writing: Permission denied");
+  
+  permission_denied_dialog = gtk_message_dialog_new(
+    parent_window,
+    GTK_DIALOG_MODAL,
+    GTK_MESSAGE_ERROR,
+    GTK_BUTTONS_OK,
+    "%s",
+    message_text);
 
   gtk_window_set_modal (GTK_WINDOW (permission_denied_dialog), TRUE);
 
@@ -95,10 +100,16 @@ start_save_image_dialog_callback (GdkPixbuf *buffer)
   gchar     *supported_extension = ".pdf";
   gint       run_status          = GTK_RESPONSE_NO;
   gboolean   screenshot          = FALSE;
+  GtkWidget *chooser             = NULL;
 
-  GtkWidget *chooser = gtk_file_chooser_dialog_new (
-      gettext ("Export as pdf"), parent, GTK_FILE_CHOOSER_ACTION_SAVE,
-      "_Cancel", GTK_RESPONSE_CANCEL, "Save _As", GTK_RESPONSE_ACCEPT, NULL);
+  chooser = gtk_file_chooser_dialog_new (gettext ("Export as pdf"),
+		                         parent,
+					 GTK_FILE_CHOOSER_ACTION_SAVE,
+					 "_Cancel",
+					 GTK_RESPONSE_CANCEL,
+					 "Save _As",
+					 GTK_RESPONSE_ACCEPT,
+					 NULL);
 
   gtk_window_set_modal (GTK_WINDOW (chooser), TRUE);
   gtk_window_set_keep_above (GTK_WINDOW (chooser), TRUE);
@@ -107,9 +118,11 @@ start_save_image_dialog_callback (GdkPixbuf *buffer)
 
   /* Save the preview in a buffer. */
   preview        = gtk_image_new ();
-  preview_pixbuf = gdk_pixbuf_scale_simple (buffer, preview_width,
+  preview_pixbuf = gdk_pixbuf_scale_simple (buffer,
+		                            preview_width,
                                             preview_height,
 					    GDK_INTERP_BILINEAR);
+
   gtk_image_set_from_pixbuf (GTK_IMAGE (preview), preview_pixbuf);
 
   gtk_file_chooser_set_preview_widget (GTK_FILE_CHOOSER (chooser), preview);
@@ -137,7 +150,8 @@ start_save_image_dialog_callback (GdkPixbuf *buffer)
       if (! g_str_has_suffix (filename, supported_extension))
         {
           g_free (filename_copy);
-          filename_copy = g_strdup_printf ("%s%s", filename,
+          filename_copy = g_strdup_printf ("%s%s",
+			                   filename,
 			                   supported_extension);
         }
 

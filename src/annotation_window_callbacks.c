@@ -79,7 +79,7 @@ on_keypress (GtkWidget *widget, GdkEvent *event, gpointer user_data)
 
   g_debug ("Annotation on_keypress event (%d, %d)\n", ev->type, ev->keyval);
 
-  if (data->is_text_editor_visible == TRUE)
+  if (data->is_text_editor_visible)
     {
       retval = on_text_window_key_press_event (widget, event, text_data);
     }
@@ -200,8 +200,8 @@ on_button_press (GtkWidget *win, GdkEventButton *ev, gpointer user_data)
   AnnotateData *data   = (AnnotateData *) user_data;
   gboolean      retval = FALSE;
 
-  if (data->is_annotation_visible == TRUE &&
-      data->is_text_editor_visible == FALSE)
+  if (data->is_annotation_visible &&
+      ! data->is_text_editor_visible)
     {
       retval = annotation_window_button_press (ev, data);
     }
@@ -216,8 +216,8 @@ on_motion_notify (GtkWidget *win, GdkEventMotion *ev, gpointer user_data)
 
   AnnotateData *data   = (AnnotateData *) user_data;
   gboolean      retval = FALSE;
-  if (data->is_annotation_visible == TRUE &&
-      data->is_text_editor_visible == FALSE)
+  if (data->is_annotation_visible &&
+      ! data->is_text_editor_visible)
     {
       retval = annotation_window_mouse_move (ev, data);
     }
@@ -231,11 +231,11 @@ on_button_release (GtkWidget *win, GdkEventButton *ev, gpointer user_data)
   g_debug ("annotation_window::on_button_release\n");
   AnnotateData *data   = (AnnotateData *) user_data;
   gboolean      retval = FALSE;
-  if (data->is_text_editor_visible == TRUE)
+  if (data->is_text_editor_visible)
     {
       retval = on_text_window_button_release (win, ev, text_data);
     }
-  else if (data->is_annotation_visible == TRUE)
+  else if (data->is_annotation_visible)
     {
       retval = annotation_window_button_release (ev, data);
     }
