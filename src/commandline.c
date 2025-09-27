@@ -129,8 +129,8 @@ print_help ()
             "set after hitting Enter\n");
   g_printf ("  --tabsize,\t\t-t\t\tSet the tabsize in pixel in text window\n");
 
-  g_printf ("  --coverage,\t\t-c\t\tSet whether to fit to _monitor_, an _area_ "
-            "or _full_\n");
+  g_printf ("  --coverage,\t\t-c\t\tSet whether to fit to monitor, an area "
+            "or full\n");
   g_printf ("  --tools-monitor,\t-m\t\tSet which monitor has the tools window "
             "appear (default: 1)\n");
   g_printf ("  --workspace-monitor,\t-M\t\tSet which monitor the main window "

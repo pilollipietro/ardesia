@@ -50,6 +50,13 @@ get_toolbar_area ()
 			                      commandline->tools_monitor);
           return monitor->rect;
         }
+      else
+        {
+          /*
+	   * Non-monitor modes: use the drawable area as toolbar area.
+	   */
+	  return get_drawable_area ();
+	}
     }
   return NULL;
 }
@@ -67,9 +74,11 @@ get_drawable_area ()
         {
 	  GList *monitors;
 	  monitors = workspace->monitors;
-
-          if (commandline->workspace_monitor < 0 ||
-              commandline->workspace_monitor >= g_list_length (monitors))
+	  gint monitors_len = g_list_length (monitors);
+	  gint workspace_monitor = commandline->workspace_monitor;
+	  g_debug ("Detected %d monitors", monitors_len);
+	  g_debug ("Selected monitor %d", workspace_monitor);
+          if (workspace_monitor < 0 || workspace_monitor >= monitors_len)
             {
               g_warning ("Workspace monitor was given an illegal value, moving "
                          "to monitor 0.\n");
