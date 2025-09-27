@@ -94,8 +94,8 @@ destroy_workspace (Workspace *workspace)
  * Creates a shortcut (link) to the given workspace directory on the user’s
  * desktop. The shortcut filename will be “<PACKAGE_NAME>_workspace”.
  *
- * On Windows it calls windows_create_link() using a stock folder icon,
- * on Unix-like systems it calls xdg_create_link() with the
+ * On Windows it calls windows_create_link () using a stock folder icon,
+ * on Unix-like systems it calls xdg_create_link () with the
  * “folder-documents” icon.
  *
  * Example:

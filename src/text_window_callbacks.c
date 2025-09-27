@@ -106,11 +106,11 @@ on_text_window_button_release (GtkWidget *win,
       text_config->start_x = ev->x;
 
       const gchar *message_format = "on_text_window_button_release: text pos: %f %f";
-      gchar *status_message = g_strdup_printf(message_format,
-		                              text_data->pos->x,
-					      text_data->pos->y);
-      replace_status_message(status_message);
-      g_free(status_message);
+      gchar *status_message = g_strdup_printf (message_format,
+		                               text_data->pos->x,
+					       text_data->pos->y);
+      replace_status_message (status_message);
+      g_free (status_message);
 
       /* This present the ardesia bar and the panels. */
       gtk_window_present (GTK_WINDOW (get_bar_widget ()));
@@ -438,7 +438,7 @@ on_text_window_key_press_event (GtkWidget *widget,
   gboolean closed_to_bar = inside_bar_window (point_x, point_y);
   GtkWidget *annotation_window = get_annotation_window ();
   int width = gtk_widget_get_allocated_width (GTK_WIDGET (annotation_window));
-  // int height = gtk_widget_get_allocated_width(text_data->window);
+  // int height = gtk_widget_get_allocated_width (text_data->window);
 
   if (is_delete_char (keyEvent->keyval))
     {

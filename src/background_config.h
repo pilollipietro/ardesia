@@ -35,14 +35,14 @@ void background_config_ensure_user_file (void);
 /*
  * Load all color keys from config file.
  * Returns an array of key names (NULL terminated).
- * Caller must free with g_strfreev().
+ * Caller must free with g_strfreev ().
  */
 gchar **background_config_get_color_keys (gsize *n_colors);
 
 /*
  * Load all image keys from config file.
  * Returns an array of key names (NULL terminated).
- * Caller must free with g_strfreev().
+ * Caller must free with g_strfreev ().
  */
 gchar **background_config_get_image_keys (gsize *n_images);
 

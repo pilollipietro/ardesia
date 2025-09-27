@@ -785,7 +785,7 @@ is_similar_to_an_ellipse (GSList *list, gdouble pixel_tollerance)
  * @pixel_tollerance: tolerance in pixels used by detectors / simplification
  *
  * Returns a new GSList with rectified points. The function copies input points
- * (so returned list elements are newly allocated via allocate_point()) and
+ * (so returned list elements are newly allocated via allocate_point ()) and
  * either:
  *  - recognizes and returns a geometric shape (rectangle, triangle, polygon)
  *  - or returns a straightened / simplified polyline.

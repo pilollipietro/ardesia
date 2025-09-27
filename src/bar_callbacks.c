@@ -53,8 +53,8 @@ on_bar_window_state_event (GtkWidget *widget,
 {
   g_debug ("on bar state event\n");
   BarData *bar_data = (BarData *) func_data;
-  GdkWindow *win = gtk_widget_get_window(widget);
-  GdkWindowState state = gdk_window_get_state(win);
+  GdkWindow *win = gtk_widget_get_window (widget);
+  GdkWindowState state = gdk_window_get_state (win);
 
   /* Track the minimized signals */
   if (state & GDK_WINDOW_STATE_ICONIFIED)
@@ -387,7 +387,7 @@ on_bar_showhide_activate (GtkToolButton *toolButton, gpointer func_data)
             cairo_destroy (cr);
           }
 
-	  annotate_clear_screen();
+	  annotate_clear_screen ();
 
           bar_data->annotation_is_visible = FALSE;
 
@@ -668,8 +668,8 @@ on_background_selection_window_configure_event (GtkWidget *widget,
       event->type == GDK_CONFIGURE)
     {
       gint elements = g_slist_length (annotation_data->background_button_data);
-      GtkWidget *window = GTK_WIDGET(annotation_data->background_selection_window);
-      gint h = gtk_widget_get_allocated_height(window);
+      GtkWidget *window = GTK_WIDGET (annotation_data->background_selection_window);
+      gint h = gtk_widget_get_allocated_height (window);
       gint m = (int) log2 ((double) h);
       m      = (int) pow (2.0, m);
 
@@ -810,7 +810,7 @@ on_background_selection_size_allocate (GtkWidget *widget,
 		                       GdkRectangle *allocation,
                                        gpointer user_data)
 {
-  // g_printf("size allocate %d %d\n", allocation->width, allocation->height);
+  // g_printf ("size allocate %d %d\n", allocation->width, allocation->height);
 }
 
 /* Load colors and images from config file. */
@@ -831,7 +831,7 @@ load_backgrounds_from_config ()
               add_background_button (color_keys[i],
                                      BACKGROUND_MODE_COLOR,
                                      NULL,
-                                     g_strdup(hex));
+                                     g_strdup (hex));
             }
         }
       g_strfreev (color_keys);
@@ -853,7 +853,7 @@ load_backgrounds_from_config ()
                                      BACKGROUND_MODE_FILE,
                                      g_strdup (path),
                                      NULL);
-              g_free(path);
+              g_free (path);
             }
         }
       g_strfreev (image_keys);

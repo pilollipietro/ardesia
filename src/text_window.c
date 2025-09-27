@@ -298,7 +298,7 @@ set_cursor_height (GtkWidget *widget)
 void
 init_text_widget (GtkWidget *widget)
 {
-  // embed_tools_window(widget);
+  // embed_tools_window (widget);
 
   set_cursor_height (widget);
   assign_text_cursor_to_window (widget);

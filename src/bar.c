@@ -434,7 +434,7 @@ take_pen_tool ()
 
   if (is_filler_toggle_tool_button_active ())
     {
-      if (strcmp(annotation_data->color + 6, "FF") != 0)
+      if (strcmp (annotation_data->color + 6, "FF") != 0)
         {
           pencil_obj = gtk_builder_get_object (bar_gtk_builder,
                                                "buttonHighlighter");

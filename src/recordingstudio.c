@@ -39,10 +39,10 @@
 /*
  * This global flag is used to suppress a spurious toggle-button event.
  *
- * When we reset the button inside on_stop_recording_click(),
+ * When we reset the button inside on_stop_recording_click (),
  * the toggle fires its “clicked” event again.
  * By setting on_stop_recording_called = TRUE here,
- * on_record_click() can detect that it was triggered by the reset
+ * on_record_click () can detect that it was triggered by the reset
  * and safely ignore the event.
  */
 static gboolean on_stop_recording_called = FALSE;

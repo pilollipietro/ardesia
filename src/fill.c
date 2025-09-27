@@ -42,9 +42,9 @@
  */
 
 void
-fill(AnnotateData *annotation_data,
-           gdouble x,
-           gdouble y)
+fill (AnnotateData *annotation_data,
+      gdouble x,
+      gdouble y)
 {
     if (!annotation_data || !annotation_data->color) return;
 

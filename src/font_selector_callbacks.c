@@ -32,9 +32,9 @@
  *        (e.g., GTK_RESPONSE_OK, GTK_RESPONSE_CANCEL).
  * @param user_data User data passed to the callback.
  */
-void on_font_selector_response(GtkDialog *dialog,
-		               gint response_id,
-			       gpointer user_data)
+void on_font_selector_response (GtkDialog *dialog,
+		                gint response_id,
+			        gpointer user_data)
 {
     if (response_id == GTK_RESPONSE_OK)
     {
@@ -45,15 +45,15 @@ void on_font_selector_response(GtkDialog *dialog,
         
         if (annotation_data->font != NULL)
         {
-            pango_font_description_free(annotation_data->font);
+            pango_font_description_free (annotation_data->font);
         }
         annotation_data->font = new_font_desc;
     }
 
-    gtk_widget_destroy(GTK_WIDGET(dialog));
+    gtk_widget_destroy (GTK_WIDGET (dialog));
 }
 
-void on_font_selector_destroy(GtkWidget *window, gpointer user_data)
+void on_font_selector_destroy (GtkWidget *window, gpointer user_data)
 {
     annotation_data->font_window = NULL;
 }

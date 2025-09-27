@@ -68,9 +68,9 @@ cairo_image_surface_create_from_svg (const gchar *file)
   return surface;
 }
 
-static gchar* svg_replace_color(const gchar *svg_data,
-                                const gchar *old_color,
-                                const gchar *new_color)
+static gchar* svg_replace_color (const gchar *svg_data,
+                                 const gchar *old_color,
+                                 const gchar *new_color)
 {
     if (! svg_data || ! old_color || ! new_color)
         return NULL;
@@ -85,9 +85,9 @@ static gchar* svg_replace_color(const gchar *svg_data,
  * cairo_surface_t.
  */
 static cairo_surface_t *
-cairo_image_surface_create_from_svg_repl(const gchar *file,
-                                         const gchar *old_color,
-                                         const gchar *new_color)
+cairo_image_surface_create_from_svg_repl (const gchar *file,
+                                          const gchar *old_color,
+                                          const gchar *new_color)
 {
     cairo_surface_t *surface;
     cairo_t         *cr;
@@ -109,7 +109,7 @@ cairo_image_surface_create_from_svg_repl(const gchar *file,
     /* Read svg from memory. */
     GInputStream *stream;
     stream = g_memory_input_stream_new_from_data (new_svg,
-                                                  strlen(new_svg),
+                                                  strlen (new_svg),
 						  NULL);
 
     handle = rsvg_handle_new_from_stream_sync (stream,
@@ -135,8 +135,8 @@ cairo_image_surface_create_from_svg_repl(const gchar *file,
 
     /* Build cairo surface. */
     surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-                                          round(viewport.width),
-                                          round(viewport.height));
+                                          round (viewport.width),
+                                          round (viewport.height));
     cr = cairo_create (surface);
     rsvg_handle_render_document (handle, cr, &viewport, NULL);
     cairo_destroy (cr);
@@ -363,9 +363,9 @@ get_filler_pixbuf (GdkPixbuf **pixbuf,
   gint image_width;
   gint image_height;
 
-  gchar *rgb = g_strndup(color, 6);
+  gchar *rgb = g_strndup (color, 6);
   image_surface = get_filler_image_surface ("ff0000", rgb);
-  g_free(rgb);
+  g_free (rgb);
 
   image_width   = cairo_image_surface_get_width (image_surface);
   image_height  = cairo_image_surface_get_height (image_surface);
@@ -418,7 +418,7 @@ get_pen_pixbuf (GdkPixbuf **pixbuf,
   gint             cursor_width;
   gint             cursor_height;
 
-  gchar *rgb = g_strndup(color, 6);
+  gchar *rgb = g_strndup (color, 6);
   if (arrow)
     { /* load the arrow icon. */
       image_surface = get_arrow_image_surface ("ff0000", rgb);
@@ -445,7 +445,7 @@ get_pen_pixbuf (GdkPixbuf **pixbuf,
         }
       g_free (alpha);
     }
-  g_free(rgb);
+  g_free (rgb);
 
   icon_width  = cairo_image_surface_get_width (image_surface);
   icon_height = cairo_image_surface_get_height (image_surface);
@@ -527,7 +527,7 @@ set_pen_cursor (GdkCursor **cursor,
 
   gdouble hotspot_x       = thickness / 2 + circle_width;
   gdouble hotspot_y       =
-    gdk_pixbuf_get_height(pixbuf) - thickness / 2 - circle_width;
+    gdk_pixbuf_get_height (pixbuf) - thickness / 2 - circle_width;
 
   *cursor = gdk_cursor_new_from_pixbuf (gdk_display_get_default (),
 		                        pixbuf,
@@ -548,7 +548,7 @@ set_eraser_cursor (GdkCursor **cursor, gint size)
 
   gdouble hotspot_x       = size / 2 + circle_width;
   gdouble hotspot_y       =
-    gdk_pixbuf_get_height(pixbuf) - size / 2 - circle_width;
+    gdk_pixbuf_get_height (pixbuf) - size / 2 - circle_width;
 
   *cursor = gdk_cursor_new_from_pixbuf (gdk_display_get_default (),
 		                        pixbuf,

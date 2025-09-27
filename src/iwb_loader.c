@@ -51,7 +51,7 @@ add_background_color_reference (xmlXPathContextPtr context, xmlChar *ref)
   xmlXPathObjectPtr result = xmlXPathEvalExpression (xpath, context);
   xmlNodePtr        node   = result->nodesetval->nodeTab[0];
 
-  /* e.g. rbg(255,255,255) */
+  /* e.g. rbg (255,255,255) */
   xmlChar *fill                = xmlGetProp (node, (xmlChar *) "fill");
   gint     open_bracket_index  = g_substrlastpos ((const gchar *) fill, "(");
   gint     comma_index         = g_substrlastpos ((const gchar *) fill, ",");

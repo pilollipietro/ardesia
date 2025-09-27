@@ -443,7 +443,7 @@ create_annotation_window (Workspace *workspace, CommandLine *commandline)
   GtkWidget *widget = (GtkWidget *) NULL;
   GError    *error  = (GError *) NULL;
 
-  annotate_init(NULL);
+  annotate_init (NULL);
 
   /* Initialize the main window. */
   annotation_data->annotation_window_gtk_builder = gtk_builder_new ();
@@ -860,7 +860,7 @@ initialize_annotation_cairo_context (AnnotateData *data)
 
       if (annotation_data->savepoint_list == NULL)
         {
-          g_debug("It has not savepoint; clear the screen");
+          g_debug ("It has not savepoint; clear the screen");
           /* Clear the screen.  */
           annotate_clear_screen ();
 	  /* Create the first empty savepoint. */
@@ -868,8 +868,8 @@ initialize_annotation_cairo_context (AnnotateData *data)
         }
       else
 	{
-          g_debug("It has savepoint; restore surface");
-	  annotate_restore_surface();
+          g_debug ("It has savepoint; restore surface");
+	  annotate_restore_surface ();
         }
 
 #ifndef _WIN32
@@ -1061,7 +1061,7 @@ annotate_modify_color (AnnotateDeviceData *devdata,
     }
 
     assert (strlen (annotation_data->color) == 8);
-    sscanf(annotation_data->color, "%02X%02X%02X%02X", &r, &g, &b, &a);
+    sscanf (annotation_data->color, "%02X%02X%02X%02X", &r, &g, &b, &a);
 
     if (devdata->coord_list != NULL) {
         AnnotatePoint *last_point;
@@ -1375,7 +1375,7 @@ annotate_shape_recognize (AnnotateDeviceData *devdata, gboolean closed_path)
     }
   else if (closed_path)
     {
-      splinify(devdata);
+      splinify (devdata);
     }
 }
 
@@ -1945,11 +1945,12 @@ annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
   return TRUE;
 }
 
-void save_closed_path() {
-    cairo_t *annotation_cr = annotation_data->annotation_cairo_context; 
-    cairo_path_t *path_copy = cairo_copy_path (annotation_cr);
-    annotation_data->paths = g_list_append (annotation_data->paths,
-		                            path_copy);
+void save_closed_path ()
+{
+  cairo_t *annotation_cr = annotation_data->annotation_cairo_context; 
+  cairo_path_t *path_copy = cairo_copy_path (annotation_cr);
+  annotation_data->paths = g_list_append (annotation_data->paths,
+		                          path_copy);
 }
 
 gboolean
@@ -2132,13 +2133,13 @@ initialize_font (CommandLine *commandline)
       annotation_data->font = pango_font_description_from_string (font_string);
 
       /* Free the temporary string. */
-      g_free(font_string);
+      g_free (font_string);
     }
   else
     {
       /* If no font family was provided, set a default font. */
-      annotation_data->font = pango_font_description_new();
-      pango_font_description_set_size(annotation_data->font, 32 * PANGO_SCALE);
+      annotation_data->font = pango_font_description_new ();
+      pango_font_description_set_size (annotation_data->font, 32 * PANGO_SCALE);
     }
 }
 

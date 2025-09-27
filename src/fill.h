@@ -51,72 +51,72 @@
  *
  **/
 #if G_BYTE_ORDER == G_LITTLE_ENDIAN
-#define CAIRO_ARGB32_SET_PIXEL(d, r, g, b, a) \
-  G_STMT_START                                \
-  {                                           \
-    guint tr = (a) * (r) + 0x80;              \
-    guint tg = (a) * (g) + 0x80;              \
-    guint tb = (a) * (b) + 0x80;              \
-    d[0]     = (((tb) >> 8) + (tb)) >> 8;     \
-    d[1]     = (((tg) >> 8) + (tg)) >> 8;     \
-    d[2]     = (((tr) >> 8) + (tr)) >> 8;     \
-    d[3]     = (a);                           \
-  }                                           \
+#define CAIRO_ARGB32_SET_PIXEL (d, r, g, b, a) \
+  G_STMT_START                                 \
+  {                                            \
+    guint tr = (a) * (r) + 0x80;               \
+    guint tg = (a) * (g) + 0x80;               \
+    guint tb = (a) * (b) + 0x80;               \
+    d[0]     = (((tb) >> 8) + (tb)) >> 8;      \
+    d[1]     = (((tg) >> 8) + (tg)) >> 8;      \
+    d[2]     = (((tr) >> 8) + (tr)) >> 8;      \
+    d[3]     = (a);                            \
+  }                                            \
   G_STMT_END
 #else
-#define GIMP_CAIRO_ARGB32_SET_PIXEL(d, r, g, b, a) \
-  G_STMT_START                                     \
-  {                                                \
-    guint tr = (a) * (r) + 0x80;                   \
-    guint tg = (a) * (g) + 0x80;                   \
-    guint tb = (a) * (b) + 0x80;                   \
-    d[0]     = (a);                                \
-    d[1]     = (((tr) >> 8) + (tr)) >> 8;          \
-    d[2]     = (((tg) >> 8) + (tg)) >> 8;          \
-    d[3]     = (((tb) >> 8) + (tb)) >> 8;          \
-  }                                                \
+#define GIMP_CAIRO_ARGB32_SET_PIXEL (d, r, g, b, a) \
+  G_STMT_START                                      \
+  {                                                 \
+    guint tr = (a) * (r) + 0x80;                    \
+    guint tg = (a) * (g) + 0x80;                    \
+    guint tb = (a) * (b) + 0x80;                    \
+    d[0]     = (a);                                 \
+    d[1]     = (((tr) >> 8) + (tr)) >> 8;           \
+    d[2]     = (((tg) >> 8) + (tg)) >> 8;           \
+    d[3]     = (((tb) >> 8) + (tb)) >> 8;           \
+  }                                                 \
   G_STMT_END
 #endif
 
 /* Macro to get the rgba value of the pixel at coordinate (x,y).*/
 #if G_BYTE_ORDER == G_LITTLE_ENDIAN
-#define CAIRO_ARGB32_GET_PIXEL(s, r, g, b, a) \
-  G_STMT_START                                \
-  {                                           \
-    const guint tb = (s)[0];                  \
-    const guint tg = (s)[1];                  \
-    const guint tr = (s)[2];                  \
-    const guint ta = (s)[3];                  \
-    (r)            = (tr << 8) / (ta + 1);    \
-    (g)            = (tg << 8) / (ta + 1);    \
-    (b)            = (tb << 8) / (ta + 1);    \
-    (a)            = ta;                      \
-  }                                           \
+#define CAIRO_ARGB32_GET_PIXEL (s, r, g, b, a) \
+  G_STMT_START                                 \
+  {                                            \
+    const guint tb = (s)[0];                   \
+    const guint tg = (s)[1];                   \
+    const guint tr = (s)[2];                   \
+    const guint ta = (s)[3];                   \
+    (r)            = (tr << 8) / (ta + 1);     \
+    (g)            = (tg << 8) / (ta + 1);     \
+    (b)            = (tb << 8) / (ta + 1);     \
+    (a)            = ta;                       \
+  }                                            \
   G_STMT_END
 #else
-#define CAIRO_ARGB32_GET_PIXEL(s, r, g, b, a) \
-  G_STMT_START                                \
-  {                                           \
-    const guint ta = (s)[0];                  \
-    const guint tr = (s)[1];                  \
-    const guint tg = (s)[2];                  \
-    const guint tb = (s)[3];                  \
-    (r)            = (tr << 8) / (ta + 1);    \
-    (g)            = (tg << 8) / (ta + 1);    \
-    (b)            = (tb << 8) / (ta + 1);    \
-    (a)            = ta;                      \
-  }                                           \
+#define CAIRO_ARGB32_GET_PIXEL (s, r, g, b, a) \
+  G_STMT_START                                 \
+  {                                            \
+    const guint ta = (s)[0];                   \
+    const guint tr = (s)[1];                   \
+    const guint tg = (s)[2];                   \
+    const guint tb = (s)[3];                   \
+    (r)            = (tr << 8) / (ta + 1);     \
+    (g)            = (tg << 8) / (ta + 1);     \
+    (b)            = (tb << 8) / (ta + 1);     \
+    (a)            = ta;                       \
+  }                                            \
   G_STMT_END
 #endif
 
-#define RGB_TO_UINT(r, g, b) \
+#define RGB_TO_UINT (r, g, b) \
   ((((guint) (r)) << 16) | (((guint) (g)) << 8) | ((guint) (b)))
-#define RGB_TO_RGBA(x, a)        (((x) << 8) | ((((guint) a) & 0xff)))
-#define RGBA_TO_UINT(r, g, b, a) RGB_TO_RGBA (RGB_TO_UINT (r, g, b), a)
-#define UINT_RGBA_R(x)           (((guint) (x)) >> 24)
-#define UINT_RGBA_G(x)           ((((guint) (x)) >> 16) & 0xff)
-#define UINT_RGBA_B(x)           ((((guint) (x)) >> 8) & 0xff)
-#define UINT_RGBA_A(x)           (((guint) (x)) & 0xff)
+#define RGB_TO_RGBA (x, a)        (((x) << 8) | ((((guint) a) & 0xff)))
+#define RGBA_TO_UINT (r, g, b, a) RGB_TO_RGBA (RGB_TO_UINT (r, g, b), a)
+#define UINT_RGBA_R (x)           (((guint) (x)) >> 24)
+#define UINT_RGBA_G (x)           ((((guint) (x)) >> 16) & 0xff)
+#define UINT_RGBA_B (x)           ((((guint) (x)) >> 8) & 0xff)
+#define UINT_RGBA_A (x)           (((guint) (x)) & 0xff)
 
 /*
  * Perform a fill operation starting from the specified point (x, y)

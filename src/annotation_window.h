@@ -411,6 +411,6 @@ void show_text_settings_window ();
 
 void initialize_font (CommandLine *commandline);
 
-void save_closed_path();
+void save_closed_path ();
 
 #endif

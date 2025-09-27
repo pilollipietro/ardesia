@@ -271,8 +271,8 @@ main (int argc, char *argv[])
 		                workspace->project_dir);
   replace_status_message (status_msg);
 
-  //create_text_settings_window();
-  initialize_font(commandline);
+  //create_text_settings_window ();
+  initialize_font (commandline);
 
   // main loop for a GTK application
   gtk_main ();
