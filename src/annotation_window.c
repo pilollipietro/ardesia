@@ -446,7 +446,7 @@ create_annotation_window (Workspace *workspace, CommandLine *commandline)
   annotate_init(NULL);
 
   /* Initialize the main window. */
-  annotation_data->annotation_window_gtk_builder = gtk_builder_new();
+  annotation_data->annotation_window_gtk_builder = gtk_builder_new ();
 
   GtkBuilder * annotation_window_gtk_builder =
     annotation_data->annotation_window_gtk_builder;
@@ -1501,9 +1501,9 @@ annotate_quit ()
 
       for (GList *l = annotation_data->paths; l != NULL; l = l->next) {
 	cairo_path_t *path = (cairo_path_t *)l->data;
-	cairo_path_destroy(path);
+	cairo_path_destroy (path);
       }
-      g_list_free(annotation_data->paths);
+      g_list_free (annotation_data->paths);
       annotation_data->paths = NULL;
 
       if (annotation_data->default_pen)
