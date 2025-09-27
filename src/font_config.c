@@ -21,104 +21,121 @@
  *
  */
 
-#include <glib.h>
-#include "config.h"
 #include "font_config.h"
-#include "user_config.h"
+#include "config_path.h"
+#include <glib.h>
+#include <pango/pango.h>
 
-#define CONFIG_FILE_NAME "ardesia.conf"
-#define CONFIG_SECTION   "font"
+#define FONT_SECTION "font"
+#define FONT_KEY_FAMILY "family"
+#define FONT_KEY_SIZE   "size"
+#define FONT_KEY_STYLE  "style"
 
-static gchar *
-get_config_file (void)
-{
-  /* build user config path first */
-  return g_build_filename (g_get_user_config_dir (), CONFIG_FILE_NAME, NULL);
-}
-
+/* Load font settings from configuration (user first, then system).
+ * Returns a newly-allocated PangoFontDescription or NULL if none found.
+ */
 PangoFontDescription *
 font_config_load (void)
 {
-  GKeyFile *key_file = g_key_file_new ();
-  gchar *user_file = get_config_file ();
-  gchar *system_file = g_build_filename (ARDESIA_SYSCONFDIR,
-                                         CONFIG_FILE_NAME, NULL);
+  gchar *cfg = get_config_file ();
+  if (cfg == NULL)
+    return NULL;
 
-  gboolean loaded = FALSE;
-
-  if (g_file_test (user_file, G_FILE_TEST_EXISTS))
-    loaded = g_key_file_load_from_file (key_file, user_file,
-                                        G_KEY_FILE_NONE, NULL);
-  if (!loaded && g_file_test (system_file, G_FILE_TEST_EXISTS))
-    loaded = g_key_file_load_from_file (key_file, system_file,
-                                        G_KEY_FILE_NONE, NULL);
-
-  g_free (user_file);
-  g_free (system_file);
-
-  if (!loaded)
+  GKeyFile *kf = g_key_file_new ();
+  if (!g_key_file_load_from_file (kf, cfg, G_KEY_FILE_NONE, NULL))
     {
-      g_key_file_unref (key_file);
+      g_key_file_unref (kf);
+      g_free (cfg);
       return NULL;
     }
 
-  gchar *family = g_key_file_get_string (key_file, CONFIG_SECTION, "family", NULL);
-  gint size = g_key_file_get_integer (key_file, CONFIG_SECTION, "size", NULL);
-  gchar *style = g_key_file_get_string (key_file, CONFIG_SECTION, "style", NULL);
+  gchar *family = g_key_file_get_string (kf, FONT_SECTION, FONT_KEY_FAMILY, NULL);
+  gint size = g_key_file_get_integer (kf, FONT_SECTION, FONT_KEY_SIZE, NULL);
+  gchar *style = g_key_file_get_string (kf, FONT_SECTION, FONT_KEY_STYLE, NULL);
 
-  /* build font description */
-  PangoFontDescription *font = NULL;
-  if (family)
+  PangoFontDescription *desc = NULL;
+  if (family != NULL)
     {
-      gchar *font_str = g_strdup_printf ("%s %d %s",
-                                         family ? family : "Sans",
-                                         size > 0 ? size : 32,
-                                         style ? style : "");
-      font = pango_font_description_from_string (font_str);
-      g_free (font_str);
+      desc = pango_font_description_new ();
+      pango_font_description_set_family (desc, family);
+      if (size > 0)
+        pango_font_description_set_size (desc, size * PANGO_SCALE);
+
+      if (style != NULL)
+        {
+          if (g_ascii_strcasecmp (style, "bolditalic") == 0)
+            {
+              pango_font_description_set_weight (desc, PANGO_WEIGHT_BOLD);
+              pango_font_description_set_style (desc, PANGO_STYLE_ITALIC);
+            }
+          else if (g_ascii_strcasecmp (style, "bold") == 0)
+            {
+              pango_font_description_set_weight (desc, PANGO_WEIGHT_BOLD);
+            }
+          else if (g_ascii_strcasecmp (style, "italic") == 0)
+            {
+              pango_font_description_set_style (desc, PANGO_STYLE_ITALIC);
+            }
+        }
     }
 
   g_free (family);
   g_free (style);
-  g_key_file_unref (key_file);
-  return font;
+  g_key_file_unref (kf);
+  g_free (cfg);
+  return desc;
 }
 
+/* Save font settings into the user config file.
+ * This will ensure the user config exists (copying the system file
+ * if necessary) before writing.
+ */
 void
-font_config_save (const PangoFontDescription *font)
+font_config_save (const PangoFontDescription *font_desc)
 {
-  /* Ensure user file exists first */
-  user_config_ensure_file ();
+  if (font_desc == NULL)
+    return;
 
-  gchar *user_file = get_config_file ();
-  GKeyFile *key_file = g_key_file_new ();
-  g_key_file_load_from_file (key_file, user_file, G_KEY_FILE_NONE, NULL);
+  gchar *user = get_user_file (); /* ensures user file exists */
+  if (user == NULL)
+    return;
 
-  const gchar *family = pango_font_description_get_family (font);
-  int size = pango_font_description_get_size (font) / PANGO_SCALE;
+  GKeyFile *kf = g_key_file_new ();
+  /* Load existing user file if any; ignore errors and overwrite keys */
+  g_key_file_load_from_file (kf, user, G_KEY_FILE_KEEP_COMMENTS, NULL);
 
-  /* style as string is a bit tricky but you can build it */
-  gchar *style_str = g_strdup (pango_font_description_to_string (font)); 
-  /* optional: parse style separately */
+  const gchar *family = pango_font_description_get_family (font_desc);
+  gint size = pango_font_description_get_size (font_desc) / PANGO_SCALE;
 
-  g_key_file_set_string (key_file, CONFIG_SECTION, "family", family);
-  g_key_file_set_integer (key_file, CONFIG_SECTION, "size", size);
-  /* if you have style string separately, set it here */
+  PangoStyle pstyle = pango_font_description_get_style (font_desc);
+  PangoWeight pweight = pango_font_description_get_weight (font_desc);
+  gchar *style_buf = NULL;
+  if (pweight >= PANGO_WEIGHT_BOLD && pstyle == PANGO_STYLE_ITALIC)
+    style_buf = g_strdup ("bolditalic");
+  else if (pweight >= PANGO_WEIGHT_BOLD)
+    style_buf = g_strdup ("bold");
+  else if (pstyle == PANGO_STYLE_ITALIC)
+    style_buf = g_strdup ("italic");
+  else
+    style_buf = g_strdup ("normal");
 
+  g_key_file_set_string (kf, FONT_SECTION, FONT_KEY_FAMILY, family ? family : "Sans");
+  g_key_file_set_integer (kf, FONT_SECTION, FONT_KEY_SIZE, size > 0 ? size : 32);
+  g_key_file_set_string (kf, FONT_SECTION, FONT_KEY_STYLE, style_buf);
+
+  gsize len = 0;
+  gchar *data = g_key_file_to_data (kf, &len, NULL);
   GError *error = NULL;
-  gsize length = 0;
-  gchar *data = g_key_file_to_data (key_file, &length, NULL);
-  g_file_set_contents (user_file, data, length, &error);
-  if (error)
+  if (!g_file_set_contents (user, data, len, &error))
     {
-      g_warning ("Cannot save font config: %s", error->message);
-      g_clear_error (&error);
+      g_warning ("Could not write font config to %s: %s", user,
+                 error ? error->message : "unknown error");
+      if (error) g_error_free (error);
     }
 
   g_free (data);
-  g_free (style_str);
-  g_free (user_file);
-  g_key_file_unref (key_file);
+  g_free (style_buf);
+  g_key_file_unref (kf);
+  g_free (user);
 }
-
 

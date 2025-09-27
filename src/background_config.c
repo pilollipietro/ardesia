@@ -22,60 +22,9 @@
  */
 
 #include "background_config.h"
+#include "config_path.h"
 #include <gio/gio.h>
 #include <glib/gstdio.h>
-
-#ifndef ARDESIA_SYSCONFDIR
-#define ARDESIA_SYSCONFDIR "/etc"
-#endif
-
-/* Copy system config to user config if needed */
-void
-background_config_ensure_user_file (void)
-{
-  gchar *user_conf_path = g_build_filename (g_get_user_config_dir (),
-                                            "ardesiarc",
-                                            NULL);
-
-  if (!g_file_test (user_conf_path, G_FILE_TEST_IS_REGULAR))
-    {
-      g_mkdir_with_parents (g_get_user_config_dir (), 0700);
-
-      gchar *sys_conf_path = g_build_filename (ARDESIA_SYSCONFDIR,
-                                               "ardesia.conf",
-                                               NULL);
-
-      if (g_file_test (sys_conf_path, G_FILE_TEST_IS_REGULAR))
-        {
-          GFile *source = g_file_new_for_path (sys_conf_path);
-          GFile *dest   = g_file_new_for_path (user_conf_path);
-
-          GError *error = NULL;
-          if (!g_file_copy (source,
-                            dest,
-                            G_FILE_COPY_OVERWRITE,
-                            NULL, NULL, NULL, &error))
-            {
-              g_warning ("Unable to copy system config %s to %s: %s",
-                         sys_conf_path,
-                         user_conf_path,
-                         error ? error->message : "unknown error");
-              if (error) g_error_free (error);
-            }
-
-          g_object_unref (source);
-          g_object_unref (dest);
-        }
-      else
-        {
-          g_warning ("System configuration file %s not found", sys_conf_path);
-        }
-
-      g_free (sys_conf_path);
-    }
-
-  g_free (user_conf_path);
-}
 
 /* Internal: load a GKeyFile either from user or system config */
 static GKeyFile *
@@ -83,24 +32,19 @@ background_config_load_keyfile (void)
 {
   GKeyFile *kf = g_key_file_new ();
 
-  gchar *usrfile = g_build_filename (g_get_user_config_dir (),
-                                     "ardesiarc",
-                                     NULL);
-
-  if (g_file_test (usrfile, G_FILE_TEST_IS_REGULAR))
+  /*
+   * Use helper to get the correct config file for reading.
+   * get_config_file() returns the user config path if it exists,
+   * otherwise the system config path, or NULL if none exists.
+   */
+  gchar *cfg = get_config_file ();
+  if (cfg != NULL)
     {
-      g_key_file_load_from_file (kf, usrfile, G_KEY_FILE_NONE, NULL);
-    }
-  else
-    {
-      gchar *sysfile = g_build_filename (ARDESIA_SYSCONFDIR,
-                                         "ardesia.conf",
-                                         NULL);
-      g_key_file_load_from_file (kf, sysfile, G_KEY_FILE_NONE, NULL);
-      g_free (sysfile);
+      /* load_from_file will tolerate missing groups; errors are ignored */
+      g_key_file_load_from_file (kf, cfg, G_KEY_FILE_NONE, NULL);
+      g_free (cfg);
     }
 
-  g_free (usrfile);
   return kf;
 }
 
@@ -143,15 +87,28 @@ background_config_get_image (const gchar *key)
 gboolean
 background_config_save (GKeyFile *kf)
 {
-  background_config_ensure_user_file ();
-
-  gchar *usrfile = g_build_filename (g_get_user_config_dir (),
-                                     "ardesiarc",
-                                     NULL);
+  /*
+   * For writes ensure the user file exists first (this will copy system
+   * config to the user's location if necessary), then write the content.
+   */
+  gchar *usrfile = get_user_file ();
+  if (usrfile == NULL)
+    {
+      g_key_file_unref (kf);
+      return FALSE;
+    }
 
   gsize    len  = 0;
   gchar   *data = g_key_file_to_data (kf, &len, NULL);
-  gboolean ok   = g_file_set_contents (usrfile, data, len, NULL);
+  GError  *error = NULL;
+  gboolean ok   = g_file_set_contents (usrfile, data, len, &error);
+  if (!ok)
+    {
+      g_warning ("Could not write config %s: %s", usrfile,
+                 error ? error->message : "unknown error");
+      if (error)
+        g_error_free (error);
+    }
 
   g_free (data);
   g_free (usrfile);
@@ -197,3 +154,4 @@ background_config_remove_key (const gchar *key_name)
   background_config_save (kf);
   g_key_file_unref (kf);
 }
+

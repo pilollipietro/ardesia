@@ -44,7 +44,6 @@ typedef struct
   gint position;
 
   /* Options for text_window */
-  gchar *fontfamily;
   gint   text_leftmargin;
   gint   text_tabsize;
 

@@ -35,6 +35,7 @@
 #include "cairo_functions.h"
 #include "cursors.h"
 #include "fill.h"
+#include "font_config.h"
 #include "input.h"
 #include "iwb_loader.h"
 #include "text_window.h"
@@ -2115,29 +2116,16 @@ annotation_window_change (int width, int height)
     }
 }
 
-void
-initialize_font (CommandLine *commandline)
-{
-  if (commandline->fontfamily != NULL)
+void    
+initialize_font (void)
+{ 
+  annotation_data->font = font_config_load ();
+
+  if (annotation_data->font == NULL)
     {
-      gchar *font_string;
-
-      /*
-       * Create a font description string in the format "Family Size".
-       * For example, "Cantarell 32".
-       */
-      font_string = g_strdup_printf ("%s %d", commandline->fontfamily, 32);
-
-      /* Create the PangoFontDescription object from the string. */
-      annotation_data->font = pango_font_description_from_string (font_string);
-
-      /* Free the temporary string. */
-      g_free (font_string);
-    }
-  else
-    {
-      /* If no font family was provided, set a default font. */
       annotation_data->font = pango_font_description_new ();
-      pango_font_description_set_size (annotation_data->font, 32 * PANGO_SCALE);
+      pango_font_description_set_size (annotation_data->font,
+                                       32 * PANGO_SCALE);
     }
 }
+

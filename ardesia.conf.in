@@ -4,3 +4,8 @@ white=ffffffff
 
 [images]
 paper=@prefix@/share/ardesia/ui/backgrounds/notebook_paper.png
+
+[font]
+family=Sans
+size=32
+style=BoldItalic 

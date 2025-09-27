@@ -44,7 +44,7 @@
 #endif
 #endif
 
-#include <config.h>
+#include "config.h"
 
 /*
  * Standard gettext macros.

@@ -27,12 +27,6 @@
 #include <glib.h>
 
 /*
- * Ensure that the user config file exists.
- * Copies the system config to user config if necessary.
- */
-void background_config_ensure_user_file (void);
-
-/*
  * Load all color keys from config file.
  * Returns an array of key names (NULL terminated).
  * Caller must free with g_strfreev ().

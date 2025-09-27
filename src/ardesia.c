@@ -248,7 +248,6 @@ main (int argc, char *argv[])
 
   /* Initialize new text configuration options. */
   text_config             = create_text_config ();
-  text_config->fontfamily = commandline->fontfamily;
   text_config->leftmargin = commandline->text_leftmargin;
   text_config->tabsize    = commandline->text_tabsize;
 
@@ -270,7 +269,7 @@ main (int argc, char *argv[])
 		                workspace->project_dir);
   replace_status_message (status_msg);
 
-  initialize_font (commandline);
+  initialize_font ();
 
   gtk_main ();
 

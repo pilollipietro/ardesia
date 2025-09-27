@@ -23,6 +23,7 @@
 
 #include "annotation_window.h"
 #include "font_selector.h"
+#include "font_config.h"
 
 /**
  * @brief Handles the response from the font dialog.
@@ -48,6 +49,8 @@ void on_font_selector_response (GtkDialog *dialog,
           pango_font_description_free (annotation_data->font);
         }
       annotation_data->font = new_font_desc;
+      /* Save to config file */
+      font_config_save (annotation_data->font);
     }
 
   gtk_widget_destroy (GTK_WIDGET (dialog));

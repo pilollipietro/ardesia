@@ -41,7 +41,6 @@ static struct option long_options[] = {
    * We distinguish them by their indices.
    */
   { "gravity",           required_argument, 0, 'g'  },
-  { "font",              required_argument, 0, 'f'  },
   { "leftmargin",        required_argument, 0, 'l'  },
   { "tabsize",           required_argument, 0, 't'  },
   { "tools-monitor",     required_argument, 0, 'm'  },
@@ -80,7 +79,6 @@ add_defaults_to_commandline (CommandLine *commandline)
   commandline->debug             = FALSE;
   commandline->iwb_filename      = NULL;
   commandline->decorated         = FALSE;
-  commandline->fontfamily        = "serif";
   commandline->text_leftmargin   = 0;
   commandline->text_tabsize      = 80;
   commandline->mode              = DRAW_ON_MONITOR;
@@ -120,11 +118,6 @@ print_help ()
   g_printf ("  \t\t\t\t\twest\n");
   g_printf ("  \t\t\t\t\tnorth\n");
   g_printf ("  \t\t\t\t\tsouth\n");
-  g_printf ("  --font ,\t\t-f\t\tSet the font family for the text window. "
-            "Possible values are:\n");
-  g_printf ("  \t\t\t\t\tserif [default]\n");
-  g_printf ("  \t\t\t\t\tsans-serif\n");
-  g_printf ("  \t\t\t\t\tmonospace\n");
   g_printf ("  --leftmargin,\t\t-l\t\tSet the left margin in text window to "
             "set after hitting Enter\n");
   g_printf ("  --tabsize,\t\t-t\t\tSet the tabsize in pixel in text window\n");
@@ -213,14 +206,6 @@ parse_options (CommandLine *commandline, gint argc, char *argv[])
           else
             {
               print_help ();
-            }
-          break;
-        case 'f':
-          if (g_strcmp0 (optarg, "serif") == 0 ||
-	      g_strcmp0 (optarg, "sans-serif") == 0 ||
-              g_strcmp0 (optarg, "monospace") == 0)
-            {
-              commandline->fontfamily = optarg;
             }
           break;
         case 'l':

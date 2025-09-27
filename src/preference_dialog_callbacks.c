@@ -26,6 +26,7 @@
 #include "background_window.h"
 #include "bar_callbacks.h"
 #include "preference_dialog.h"
+#include "user_config.h"
 #include "utils.h"
 
 /* Update the preview image. */
@@ -102,7 +103,7 @@ on_preference_ok_button_clicked (GtkButton *buton, gpointer data)
     preference_data->preference_dialog_gtk_builder;
     
   /* Ensure that the user config file exists before we modify it */
-  background_config_ensure_user_file ();
+  user_config_ensure_file ();
 
   GObject *color_tool_obj;
   color_tool_obj = gtk_builder_get_object (preference_dialog_gtk_builder,

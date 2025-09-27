@@ -409,7 +409,7 @@ void create_text_settings_window ();
 
 void show_text_settings_window ();
 
-void initialize_font (CommandLine *commandline);
+void initialize_font ();
 
 void save_closed_path ();
 
