@@ -52,9 +52,9 @@ on_bar_window_state_event (GtkWidget *widget,
 			   gpointer func_data)
 {
   g_debug ("on bar state event\n");
-  BarData *bar_data = (BarData *) func_data;
-  GdkWindow *win = gtk_widget_get_window (widget);
-  GdkWindowState state = gdk_window_get_state (win);
+  BarData       *bar_data = (BarData *) func_data;
+  GdkWindow     *win      = gtk_widget_get_window (widget);
+  GdkWindowState state    = gdk_window_get_state (win);
 
   /* Track the minimized signals */
   if (state & GDK_WINDOW_STATE_ICONIFIED)
@@ -375,8 +375,8 @@ on_bar_showhide_activate (GtkToolButton *toolButton, gpointer func_data)
 
           {
             GdkWindow *gdk_win = gtk_widget_get_window (window);
-            gint width  = gdk_window_get_width (gdk_win);
-            gint height = gdk_window_get_height (gdk_win);
+            gint       width   = gdk_window_get_width (gdk_win);
+            gint       height  = gdk_window_get_height (gdk_win);
 
             bar_data->snapshot_surface =
               cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);
@@ -387,7 +387,7 @@ on_bar_showhide_activate (GtkToolButton *toolButton, gpointer func_data)
             cairo_destroy (cr);
           }
 
-	  annotate_clear_screen ();
+          annotate_clear_screen ();
 
           bar_data->annotation_is_visible = FALSE;
 
@@ -410,14 +410,14 @@ on_bar_showhide_activate (GtkToolButton *toolButton, gpointer func_data)
           /* Restore saved drawing if available */
           if (bar_data->snapshot_surface)
             {
-	      cairo_t *annotation_cr;
-	      annotation_cr = annotation_data->annotation_cairo_context;
+              cairo_t *annotation_cr;
+              annotation_cr = annotation_data->annotation_cairo_context;
 
               cairo_set_source_surface (annotation_cr,
                                         bar_data->snapshot_surface,
                                         0, 0);
               cairo_paint (annotation_cr);
-	      gtk_widget_queue_draw (annotation_window);
+              gtk_widget_queue_draw (annotation_window);
             }
 
           bar_data->annotation_is_visible = TRUE;
@@ -429,7 +429,6 @@ on_bar_showhide_activate (GtkToolButton *toolButton, gpointer func_data)
           /* Put the hide icon. */
           GtkImage *icon = get_image_from_builder (gettext ("hide"));
           gtk_tool_button_set_icon_widget (toolButton, (GtkWidget *) icon);
-
         }
     }
 }
@@ -479,7 +478,7 @@ on_bar_recorder_activate (GtkToolButton *toolbutton, gpointer func_data)
       annotation_data->recordingstudio_window = recordingstudio_window;
 
       gtk_window_set_transient_for (GTK_WINDOW (recordingstudio_window),
-		                    GTK_WINDOW (get_bar_widget ()));
+                                    GTK_WINDOW (get_bar_widget ()));
 
       if (annotation_data->recordingstudio_window == NULL)
         {
@@ -501,25 +500,25 @@ on_bar_recorder_activate (GtkToolButton *toolbutton, gpointer func_data)
 gboolean
 on_remove_background_button (GtkMenuItem *menuitem, gpointer user_data)
 {
-  GtkWidget *widget = GTK_WIDGET (user_data);
-  gint width = gtk_widget_get_allocated_width (widget);
-  GObject *obj = G_OBJECT (widget);
+  GtkWidget   *widget = GTK_WIDGET (user_data);
+  gint         width  = gtk_widget_get_allocated_width (widget);
+  GObject     *obj    = G_OBJECT (widget);
   const gchar *background_key_name;
   background_key_name = g_object_get_data (obj, "background-label");
-  
+
   if (background_key_name)
-  {
-    background_config_remove_key (background_key_name);
-  }
+    {
+      background_config_remove_key (background_key_name);
+    }
 
   gtk_widget_destroy (widget);
   GtkWidget *background_selection_window;
   gint       cwidth;
   gint       cheight;
   background_selection_window = annotation_data->background_selection_window;
-  cwidth = gtk_widget_get_allocated_width (background_selection_window);
+  cwidth  = gtk_widget_get_allocated_width (background_selection_window);
   cheight = gtk_widget_get_allocated_height (background_selection_window);
-  
+
   gtk_window_resize (GTK_WINDOW (annotation_data->background_selection_window),
                      cwidth - width,
                      cheight);
@@ -533,7 +532,7 @@ background_selection_on_toggled (GtkToggleToolButton *toggle_tool_button,
   BackgroundButtonData *button_data = (BackgroundButtonData *) userdata;
   annotation_data->background_button_last_selected = button_data->index;
 
-  GSList *node;
+  GSList               *node;
   BackgroundButtonData *data;
   node = g_slist_nth (annotation_data->background_button_data,
 		      button_data->index);
@@ -611,13 +610,13 @@ resize_image_to_button (BackgroundButtonData *data, gint size)
   cairo_surface_t *surface = NULL;
   gchar           *output  = NULL;
   GError          *error   = NULL;
-  GtkToolButton *tool_button;
-  GtkWidget     *icon_widget;
-  GtkImage      *image;
-  
+  GtkToolButton   *tool_button;
+  GtkWidget       *icon_widget;
+  GtkImage        *image;
+
   tool_button = GTK_TOOL_BUTTON (data->button);
   icon_widget = gtk_tool_button_get_icon_widget (tool_button);
-  image = GTK_IMAGE (icon_widget);
+  image       = GTK_IMAGE (icon_widget);
 
   surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, w, h);
   cr      = cairo_create (surface);
@@ -675,7 +674,7 @@ on_background_selection_window_configure_event (GtkWidget *widget,
 
       for (gint ii = 0; ii < elements; ii++)
         {
-          GSList *node;
+          GSList               *node;
           BackgroundButtonData *data;
           node = g_slist_nth (annotation_data->background_button_data, ii);
           data = (BackgroundButtonData *) node->data;
@@ -696,21 +695,21 @@ void
 add_background_button (gchar *label, gint mode, gchar *filename, gchar *color)
 {
   GtkToolItem *button = NULL;
-  
+
   if (annotation_data->background_button_data == NULL)
     {
       button = gtk_radio_tool_button_new (NULL);
     }
   else
     {
-      GSList *last_node;
+      GSList               *last_node;
       BackgroundButtonData *data;
       last_node = g_slist_last (annotation_data->background_button_data);
-      data = (BackgroundButtonData *) last_node->data;
+      data      = (BackgroundButtonData *) last_node->data;
 
       GtkRadioToolButton *radio_button;
       radio_button = GTK_RADIO_TOOL_BUTTON (data->button);
-      button = gtk_radio_tool_button_new_from_widget (radio_button);
+      button       = gtk_radio_tool_button_new_from_widget (radio_button);
     }
   g_object_set_data_full (G_OBJECT (button),
                         "background-label",      /* key */
@@ -770,10 +769,10 @@ add_background_button (gchar *label, gint mode, gchar *filename, gchar *color)
   data->mode                 = mode;
   data->filename             = filename;
   data->color                = color;
-  data->index = g_slist_length (annotation_data->background_button_data);
-  data->size  = 32;
-  data->button               = button;
-  
+  data->index  = g_slist_length (annotation_data->background_button_data);
+  data->size   = 32;
+  data->button = button;
+
   annotation_data->background_button_data =
     g_slist_append (annotation_data->background_button_data,
                     data);
@@ -837,10 +836,9 @@ load_backgrounds_from_config ()
       g_strfreev (color_keys);
     }
 
-
-  gsize n_images = 0;
+  gsize   n_images   = 0;
   gchar **image_keys = background_config_get_image_keys (&n_images);
-  
+
   if (image_keys)
     {
       for (gsize i = 0; i < n_images; i++)
@@ -860,7 +858,8 @@ load_backgrounds_from_config ()
     }
 }
 
-void create_bar_preference_window (GtkWindow *parent)
+void
+create_bar_preference_window (GtkWindow *parent)
 {
   GtkWidget   *window = NULL;
   GtkToolItem *button = NULL;
@@ -895,7 +894,7 @@ void create_bar_preference_window (GtkWindow *parent)
 
   gtk_box_pack_start (box, GTK_WIDGET (button), TRUE, TRUE, 0);
 
-  /* 
+  /*
    * Store a pointer to Add on the container so new backgrounds
    * can be inserted right before it.
    */
@@ -1045,4 +1044,3 @@ on_bar_white_activate (GtkToolButton *toolbutton, gpointer func_data)
   BarData *bar_data = (BarData *) func_data;
   set_color (bar_data, WHITE);
 }
-

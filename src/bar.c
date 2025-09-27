@@ -22,11 +22,11 @@
  *
  */
 
+#include "bar.h"
 #include "annotation_window.h"
 #include "background_window.h"
-#include "text_window.h"
-#include "bar.h"
 #include "commandline.h"
+#include "text_window.h"
 #include "utils.h"
 
 /* Timer used to up-rise the window. */
@@ -136,7 +136,7 @@ init_bar_data ()
   bar_data->screenshot_callback         = NULL;
   bar_data->screenshot_saved_location_x = -1;
   bar_data->screenshot_saved_location_y = -1;
-  bar_data->snapshot_surface = NULL;
+  bar_data->snapshot_surface            = NULL;
 
   /* default to yellow highlighter */
   activate_tool_button ("buttonHighlighter");
@@ -227,7 +227,7 @@ create_bar_window (CommandLine *commandline,
         }
     }
 
-  /* 
+  /*
    * Load the bar_gtk_builder file with the definition
    * of the ardesia bar gui.
    */
@@ -242,7 +242,7 @@ create_bar_window (CommandLine *commandline,
       return bar_window;
     }
 
-  bar_data = init_bar_data ();
+  bar_data         = init_bar_data ();
   GObject *bar_obj = gtk_builder_get_object (bar_gtk_builder, BAR_WIDGET_NAME);
 
   bar_window = GTK_WIDGET (bar_obj);
@@ -436,12 +436,12 @@ take_pen_tool ()
     {
       if (strcmp (annotation_data->color + 6, "FF") != 0)
         {
-          pencil_obj = gtk_builder_get_object (bar_gtk_builder,
-                                               "buttonHighlighter");
+          pencil_obj         = gtk_builder_get_object (bar_gtk_builder,
+                                                       "buttonHighlighter");
           pencil_tool_button = GTK_TOGGLE_TOOL_BUTTON (pencil_obj);
-	}
-      GObject *filler_obj = gtk_builder_get_object (bar_gtk_builder,
-                                                    "buttonFiller");
+        }
+      GObject            *filler_obj = gtk_builder_get_object (bar_gtk_builder,
+                                                               "buttonFiller");
       GtkToggleToolButton *filler_tool_button = NULL;
       filler_tool_button = GTK_TOGGLE_TOOL_BUTTON (filler_obj);
       gtk_toggle_tool_button_set_active (filler_tool_button, FALSE);
@@ -573,9 +573,9 @@ start_tool (BarData *bar_data)
         {
           g_debug ("start_tool (non-text tool selected)\n");
           /*
-	   * This call is required as the leave event for the bar occurs
-	   * when we enter the toolbar object
-	   */
+           * This call is required as the leave event for the bar occurs
+           * when we enter the toolbar object
+           */
           stop_text_widget ();
           /* Is an other tool for paint or erase. */
           set_options (bar_data);
@@ -591,7 +591,7 @@ end_clapperboad_countdown (gpointer user_data)
   bar_data->grab      = FALSE;
   annotate_release_grab ();
 
-  /* 
+  /*
    * Ideally we want to go back to our background
    * settings that we had before.
    */
@@ -609,4 +609,3 @@ begin_clapperboard_countdown ()
 {
   timer = g_timeout_add (BAR_TO_TOP_TIMEOUT, end_clapperboad_countdown, NULL);
 }
-

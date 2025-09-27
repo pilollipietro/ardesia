@@ -21,9 +21,9 @@
  *
  */
 
+#include "broken.h"
 #include "annotation_window.h"
 #include "bar_callbacks.h"
-#include "broken.h"
 #include "utils.h"
 
 /* Number x is roundable to y. */
@@ -209,44 +209,46 @@ calculate_medium_pression (GSList *list)
 static gboolean
 is_polygon_convex (GSList *points)
 {
-    guint n = g_slist_length (points);
-    if (n < 3)
-        return FALSE;
+  guint n = g_slist_length (points);
+  if (n < 3)
+    return FALSE;
 
-    gint sign = 0; /* +1 or -1 when we detect a non-zero turn */
-    const gdouble EPS = 1e-9;
+  gint          sign = 0; /* +1 or -1 when we detect a non-zero turn */
+  const gdouble EPS  = 1e-9;
 
-    for (guint i = 0; i < n; i++)
+  for (guint i = 0; i < n; i++)
     {
-        AnnotatePoint *A = g_slist_nth_data (points, i);
-        AnnotatePoint *B = g_slist_nth_data (points, (i + 1) % n);
-        AnnotatePoint *C = g_slist_nth_data (points, (i + 2) % n);
+      AnnotatePoint *A = g_slist_nth_data (points, i);
+      AnnotatePoint *B = g_slist_nth_data (points, (i + 1) % n);
+      AnnotatePoint *C = g_slist_nth_data (points, (i + 2) % n);
 
-        gdouble v1x = B->x - A->x;
-        gdouble v1y = B->y - A->y;
-        gdouble v2x = C->x - B->x;
-        gdouble v2y = C->y - B->y;
+      gdouble v1x = B->x - A->x;
+      gdouble v1y = B->y - A->y;
+      gdouble v2x = C->x - B->x;
+      gdouble v2y = C->y - B->y;
 
-        /* cross product z-component */
-        gdouble cross = v1x * v2y - v1y * v2x;
+      /* cross product z-component */
+      gdouble cross = v1x * v2y - v1y * v2x;
 
-        if (fabs (cross) <= EPS)
-            continue; /* collinear or tiny - ignore */
+      if (fabs (cross) <= EPS)
+        continue; /* collinear or tiny - ignore */
 
-        if (cross > 0)
+      if (cross > 0)
         {
-            if (sign < 0) return FALSE;
-            sign = 1;
+          if (sign < 0)
+            return FALSE;
+          sign = 1;
         }
-        else /* cross < 0 */
+      else /* cross < 0 */
         {
-            if (sign > 0) return FALSE;
-            sign = -1;
+          if (sign > 0)
+            return FALSE;
+          sign = -1;
         }
     }
 
-    /* If sign never set (all collinear) consider it non-convex for our use */
-    return (sign != 0);
+  /* If sign never set (all collinear) consider it non-convex for our use */
+  return (sign != 0);
 }
 
 /* The path described in list is similar to a regular polygon. */
@@ -273,8 +275,8 @@ is_similar_to_a_regular_polygon (GSList *list, gdouble pixel_tollerance)
 					   point->x,
                                            point->y);
 
-      total_distance       = total_distance + distance;
-      old_point            = point;
+      total_distance = total_distance + distance;
+      old_point      = point;
     }
 
   ideal_distance = total_distance / length;
@@ -385,9 +387,9 @@ calculate_edge_degree (AnnotatePoint *point_a, AnnotatePoint *point_b)
  * straighten:
  *
  * Takes a list of AnnotatePoint structures and returns a new list
- * where minor deviations in direction are smoothed out. 
- * Only significant points that exceed the degree threshold are kept, 
- * and nearly horizontal or vertical lines are adjusted to exact 
+ * where minor deviations in direction are smoothed out.
+ * Only significant points that exceed the degree threshold are kept,
+ * and nearly horizontal or vertical lines are adjusted to exact
  * horizontal or vertical alignment.
  *
  * Parameters:
@@ -416,7 +418,7 @@ straighten (GSList *list)
   length = g_slist_length (list);
 
   /* Copy the first one point; it is a good point. */
-  inp_point   = (AnnotatePoint *) g_slist_nth_data (list, 0);
+  inp_point = (AnnotatePoint *) g_slist_nth_data (list, 0);
 
   first_point = allocate_point (inp_point->x,
 		                inp_point->y,
@@ -431,9 +433,9 @@ straighten (GSList *list)
       AnnotatePoint *point_b = (AnnotatePoint *) g_slist_nth_data (list, i + 1);
       AnnotatePoint *point_c = (AnnotatePoint *) g_slist_nth_data (list, i + 2);
 
-      gdouble        direction_ab = calculate_edge_degree (point_a, point_b);
-      gdouble        direction_bc = calculate_edge_degree (point_b, point_c);
-      gdouble        delta_degree = fabs (direction_ab - direction_bc);
+      gdouble direction_ab = calculate_edge_degree (point_a, point_b);
+      gdouble direction_bc = calculate_edge_degree (point_b, point_c);
+      gdouble delta_degree = fabs (direction_ab - direction_bc);
 
       if (delta_degree > degree_threshold)
         {
@@ -446,14 +448,14 @@ straighten (GSList *list)
           list_out = g_slist_prepend (list_out, point);
         }
 
-      /* 
+      /*
        * Else: is three the difference degree is minor than
        * the threshold I neglegt B.
        */
     }
 
   /* Copy the last point; it is a good point. */
-  last_point     = (AnnotatePoint *) g_slist_nth_data (list, length - 1);
+  last_point = (AnnotatePoint *) g_slist_nth_data (list, length - 1);
 
   last_out_point = allocate_point (last_point->x,
                                    last_point->y,
@@ -776,7 +778,6 @@ is_similar_to_an_ellipse (GSList *list, gdouble pixel_tollerance)
   return TRUE;
 }
 
-
 /*
  * build_rectified_list:
  * @list_inp:        input GSList of AnnotatePoint (assumed ordered subpath)
@@ -813,8 +814,7 @@ build_rectified_list (GSList *list_inp,
   /* Copy the input list. */
   for (i = 0; i < length; i++)
     {
-      AnnotatePoint *point = (AnnotatePoint *) g_slist_nth_data (list_inp,
-			                                          i);
+      AnnotatePoint *point = (AnnotatePoint *) g_slist_nth_data (list_inp, i);
 
       AnnotatePoint *point_copy = allocate_point (point->x,
 			                          point->y,
@@ -834,7 +834,7 @@ build_rectified_list (GSList *list_inp,
       ret_list = extract_polygon (ret_list);
       return ret_list;
     }
-  ret_list = straighten (ret_list);
+  ret_list      = straighten (ret_list);
   guint npoints = g_slist_length (ret_list);
   if (is_a_rectangle (ret_list, pixel_tollerance))
     {
@@ -877,12 +877,12 @@ broken (GSList *list_inp,
                                                          close_path,
                                                          pixel_tollerance);
 
-        /* Free the meaningful_point_list after it's been processed. */
-        g_slist_foreach (meaningful_points, (GFunc) g_free, NULL);
-        g_slist_free (meaningful_points);
+      /* Free the meaningful_point_list after it's been processed. */
+      g_slist_foreach (meaningful_points, (GFunc) g_free, NULL);
+      g_slist_free (meaningful_points);
 
-        return rectified_list;
+      return rectified_list;
     }
 
-    return meaningful_points;
+  return meaningful_points;
 }

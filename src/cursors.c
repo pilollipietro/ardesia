@@ -68,17 +68,17 @@ cairo_image_surface_create_from_svg (const gchar *file)
   return surface;
 }
 
-static gchar* svg_replace_color (const gchar *svg_data,
-                                 const gchar *old_color,
-                                 const gchar *new_color)
+static
+gchar* svg_replace_color (const gchar *svg_data,
+                          const gchar *old_color,
+                          const gchar *new_color)
 {
-    if (! svg_data || ! old_color || ! new_color)
-        return NULL;
-    GString *gstr = g_string_new (svg_data);
-    g_string_replace (gstr, old_color, new_color, 0);
-    return gstr->str;
+  if (! svg_data || ! old_color || ! new_color)
+    return NULL;
+  GString *gstr = g_string_new (svg_data);
+  g_string_replace (gstr, old_color, new_color, 0);
+  return gstr->str;
 }
-
 
 /*
  * Read svg file and replace old_color with new_color and return
@@ -89,60 +89,62 @@ cairo_image_surface_create_from_svg_repl (const gchar *file,
                                           const gchar *old_color,
                                           const gchar *new_color)
 {
-    cairo_surface_t *surface;
-    cairo_t         *cr;
-    RsvgHandle      *handle;
-    gchar           *svg_text = NULL;
-    GError          *error = NULL;
+  cairo_surface_t *surface;
+  cairo_t         *cr;
+  RsvgHandle      *handle;
+  gchar           *svg_text = NULL;
+  GError          *error    = NULL;
 
-    /* Read svg file. */
-    if (! g_file_get_contents (file, &svg_text, NULL, &error)) {
-        g_printerr ("Cannot read file %s: %s\n", file, error->message);
-        g_error_free (error);
-        return NULL;
+  /* Read svg file. */
+  if (! g_file_get_contents (file, &svg_text, NULL, &error))
+    {
+      g_printerr ("Cannot read file %s: %s\n", file, error->message);
+      g_error_free (error);
+      return NULL;
     }
 
-    /* Replace color. */
-    gchar *new_svg = svg_replace_color (svg_text, old_color, new_color);
-    g_free (svg_text);
+  /* Replace color. */
+  gchar *new_svg = svg_replace_color (svg_text, old_color, new_color);
+  g_free (svg_text);
 
-    /* Read svg from memory. */
-    GInputStream *stream;
-    stream = g_memory_input_stream_new_from_data (new_svg,
-                                                  strlen (new_svg),
-						  NULL);
+  /* Read svg from memory. */
+  GInputStream *stream;
+  stream = g_memory_input_stream_new_from_data (new_svg,
+                                                strlen (new_svg),
+						NULL);
 
-    handle = rsvg_handle_new_from_stream_sync (stream,
-                                               NULL,
-                                               RSVG_HANDLE_FLAGS_NONE,
-                                               NULL,   // cancellable
-                                               &error); // GError**
+  handle = rsvg_handle_new_from_stream_sync (stream,
+                                             NULL,
+                                             RSVG_HANDLE_FLAGS_NONE,
+                                             NULL,   // cancellable
+                                             &error); // GError**
 
-    g_object_unref (stream);
-    g_free (new_svg);
+  g_object_unref (stream);
+  g_free (new_svg);
 
-    if (! handle) {
-        g_printerr ("Cannot parse SVG: %s\n", error->message);
-        g_error_free (error);
-        return NULL;
+  if (! handle)
+    {
+      g_printerr ("Cannot parse SVG: %s\n", error->message);
+      g_error_free (error);
+      return NULL;
     }
 
-    /* Get size. */
-    RsvgRectangle viewport = {0.0, 0.0, 0.0, 0.0};
-    rsvg_handle_get_intrinsic_size_in_pixels (handle,
-                                              &viewport.width,
-                                              &viewport.height);
+  /* Get size. */
+  RsvgRectangle viewport = {0.0, 0.0, 0.0, 0.0};
+  rsvg_handle_get_intrinsic_size_in_pixels (handle,
+                                            &viewport.width,
+                                            &viewport.height);
 
-    /* Build cairo surface. */
-    surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-                                          round (viewport.width),
-                                          round (viewport.height));
-    cr = cairo_create (surface);
-    rsvg_handle_render_document (handle, cr, &viewport, NULL);
-    cairo_destroy (cr);
-    g_object_unref (handle);
-    
-    return surface;
+  /* Build cairo surface. */
+  surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+                                        round (viewport.width),
+                                        round (viewport.height));
+  cr = cairo_create (surface);
+  rsvg_handle_render_document (handle, cr, &viewport, NULL);
+  cairo_destroy (cr);
+  g_object_unref (handle);
+
+  return surface;
 }
 
 /* Get the eraser image surface. */
@@ -354,7 +356,7 @@ get_eraser_pixbuf (gdouble thickness,
 /* Create pixmap and mask for the eraser cursor. */
 static void
 get_filler_pixbuf (GdkPixbuf **pixbuf,
-                   gchar* color)
+                   gchar *color)
 {
   cairo_surface_t *image_surface = (cairo_surface_t *) NULL;
   cairo_surface_t *surface       = (cairo_surface_t *) NULL;
@@ -363,12 +365,12 @@ get_filler_pixbuf (GdkPixbuf **pixbuf,
   gint image_width;
   gint image_height;
 
-  gchar *rgb = g_strndup (color, 6);
+  gchar *rgb    = g_strndup (color, 6);
   image_surface = get_filler_image_surface ("ff0000", rgb);
   g_free (rgb);
 
-  image_width   = cairo_image_surface_get_width (image_surface);
-  image_height  = cairo_image_surface_get_height (image_surface);
+  image_width  = cairo_image_surface_get_width (image_surface);
+  image_height = cairo_image_surface_get_height (image_surface);
 
   *pixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB,
 		            TRUE,
@@ -436,7 +438,6 @@ get_pen_pixbuf (GdkPixbuf **pixbuf,
         {
           /* load the pencil icon. */
           image_surface = get_pen_image_surface ("ffff00", rgb);
-
         }
       else
         {
@@ -452,9 +453,11 @@ get_pen_pixbuf (GdkPixbuf **pixbuf,
 
   cursor_width  = (gint) icon_width + thickness / 2 + circle_width;
   cursor_height = (gint) icon_height + thickness / 2 + circle_width;
-  *pixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB, TRUE, 8,
-		            cursor_width, cursor_height);
-  
+  *pixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB,
+                            TRUE, 8,
+		            cursor_width,
+                            cursor_height);
+
   guchar *pixels = gdk_pixbuf_get_pixels (*pixbuf);
   surface = cairo_image_surface_create_for_data (pixels,
 		                                 CAIRO_FORMAT_RGB24,
@@ -525,9 +528,8 @@ set_pen_cursor (GdkCursor **cursor,
 
   get_pen_pixbuf (&pixbuf, color, thickness, arrow, circle_width);
 
-  gdouble hotspot_x       = thickness / 2 + circle_width;
-  gdouble hotspot_y       =
-    gdk_pixbuf_get_height (pixbuf) - thickness / 2 - circle_width;
+  gdouble hotspot_x = thickness / 2 + circle_width;
+  gdouble hotspot_y = gdk_pixbuf_get_height (pixbuf) - thickness / 2 - circle_width;
 
   *cursor = gdk_cursor_new_from_pixbuf (gdk_display_get_default (),
 		                        pixbuf,
@@ -546,9 +548,8 @@ set_eraser_cursor (GdkCursor **cursor, gint size)
 
   get_eraser_pixbuf (size, &pixbuf, circle_width);
 
-  gdouble hotspot_x       = size / 2 + circle_width;
-  gdouble hotspot_y       =
-    gdk_pixbuf_get_height (pixbuf) - size / 2 - circle_width;
+  gdouble hotspot_x = size / 2 + circle_width;
+  gdouble hotspot_y = gdk_pixbuf_get_height (pixbuf) - size / 2 - circle_width;
 
   *cursor = gdk_cursor_new_from_pixbuf (gdk_display_get_default (),
 		                        pixbuf,
@@ -560,7 +561,7 @@ set_eraser_cursor (GdkCursor **cursor, gint size)
 
 /* Set the filler cursor. */
 void
-set_filler_cursor (GdkCursor **cursor, gchar* color)
+set_filler_cursor (GdkCursor **cursor, gchar *color)
 {
   GdkPixbuf *pixbuf = (GdkPixbuf *) NULL;
   get_filler_pixbuf (&pixbuf, color);

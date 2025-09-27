@@ -35,7 +35,7 @@
 void
 show_permission_denied_dialog (GtkWindow *parent)
 {
-  GtkWidget *permission_denied_dialog = (GtkWidget *) NULL;
+  GtkWidget   *permission_denied_dialog = (GtkWidget *) NULL;
   const gchar *message_text;
   message_text = gettext ("Fail to open the file: Permission denied");
   permission_denied_dialog =

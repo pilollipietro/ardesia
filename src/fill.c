@@ -28,7 +28,6 @@
 #include "fill.h"
 #include "utils.h"
 
-
 /*
  * Perform a fill operation starting from the specified point (x, y)
  * within a closed path in the provided annotation data.
@@ -46,36 +45,40 @@ fill (AnnotateData *annotation_data,
       gdouble x,
       gdouble y)
 {
-    if (!annotation_data || !annotation_data->color) return;
+  if (! annotation_data || ! annotation_data->color)
+    return;
 
-    cairo_t *cr = annotation_data->annotation_cairo_context;
+  cairo_t *cr = annotation_data->annotation_cairo_context;
 
-    guint r, g, b, a;
-    if (sscanf (annotation_data->color, "%02X%02X%02X%02X", &r, &g, &b, &a) != 4) {
-        g_debug ("Invalid color format: %s", annotation_data->color);
-        cairo_destroy (cr);
-        return;
+  guint r, g, b, a;
+  if (sscanf (annotation_data->color, "%02X%02X%02X%02X", &r, &g, &b, &a) != 4)
+    {
+      g_debug ("Invalid color format: %s", annotation_data->color);
+      cairo_destroy (cr);
+      return;
     }
 
-    double fr = r / 255.0;
-    double fg = g / 255.0;
-    double fb = b / 255.0;
-    double fa = a / 255.0;
+  double fr = r / 255.0;
+  double fg = g / 255.0;
+  double fb = b / 255.0;
+  double fa = a / 255.0;
 
-    for (GList *l = annotation_data->paths; l != NULL; l = l->next) {
-        cairo_path_t *path = (cairo_path_t*)l->data;
+  for (GList *l = annotation_data->paths; l != NULL; l = l->next)
+    {
+      cairo_path_t *path = (cairo_path_t *) l->data;
 
-        cairo_new_path (cr);
-        cairo_append_path (cr, path);
+      cairo_new_path (cr);
+      cairo_append_path (cr, path);
 
-        if (cairo_in_fill (cr, x, y)) {
-	    g_debug ("found closed path to fill");
-            cairo_set_source_rgba (cr, fr, fg, fb, fa);
-            cairo_fill (cr);
+      if (cairo_in_fill (cr, x, y))
+        {
+          g_debug ("found closed path to fill");
+          cairo_set_source_rgba (cr, fr, fg, fb, fa);
+          cairo_fill (cr);
 
-            return;
+          return;
         }
     }
 
-    g_debug ("No path contains point (%f,%f)", x, y);
+  g_debug ("No path contains point (%f,%f)", x, y);
 }

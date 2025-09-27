@@ -21,11 +21,11 @@
  *
  */
 
+#include "text_window_callbacks.h"
 #include "annotation_window.h"
 #include "bar_callbacks.h"
 #include "keyboard.h"
 #include "text_window.h"
-#include "text_window_callbacks.h"
 #include "utils.h"
 
 static void print_text_properties (CharInfo *char_info);
@@ -329,8 +329,8 @@ delete_character ()
                 }
               else
                 {
-		  gdouble baseline_offset;
-		  baseline_offset = (gdouble) char_info->baseline / PANGO_SCALE;
+                  gdouble baseline_offset;
+                  baseline_offset = (gdouble) char_info->baseline / PANGO_SCALE;
                   cairo_rectangle (text_data->cr,
                                    char_info->x,
                                    char_info->y - baseline_offset,
@@ -433,9 +433,9 @@ on_text_window_key_press_event (GtkWidget *widget,
     }
 
   stop_blink_cursor ();
-  gdouble point_x = text_data->pos->x + text_data->extents.x_advance;
-  gdouble point_y = text_data->pos->y - text_data->max_font_height / 2;
-  gboolean closed_to_bar = inside_bar_window (point_x, point_y);
+  gdouble    point_x       = text_data->pos->x + text_data->extents.x_advance;
+  gdouble    point_y       = text_data->pos->y - text_data->max_font_height / 2;
+  gboolean   closed_to_bar = inside_bar_window (point_x, point_y);
   GtkWidget *annotation_window = get_annotation_window ();
   int width = gtk_widget_get_allocated_width (GTK_WIDGET (annotation_window));
   // int height = gtk_widget_get_allocated_width (text_data->window);

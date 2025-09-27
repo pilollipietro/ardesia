@@ -20,7 +20,7 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
- 
+
 #include "background_config.h"
 #include <gio/gio.h>
 #include <glib/gstdio.h>
@@ -107,8 +107,8 @@ background_config_load_keyfile (void)
 gchar **
 background_config_get_color_keys (gsize *n_colors)
 {
-  GKeyFile *kf = background_config_load_keyfile ();
-  gchar **keys = g_key_file_get_keys (kf, "colors", n_colors, NULL);
+  GKeyFile *kf   = background_config_load_keyfile ();
+  gchar   **keys = g_key_file_get_keys (kf, "colors", n_colors, NULL);
   g_key_file_unref (kf);
   return keys;
 }
@@ -116,8 +116,8 @@ background_config_get_color_keys (gsize *n_colors)
 gchar **
 background_config_get_image_keys (gsize *n_images)
 {
-  GKeyFile *kf = background_config_load_keyfile ();
-  gchar **keys = g_key_file_get_keys (kf, "images", n_images, NULL);
+  GKeyFile *kf   = background_config_load_keyfile ();
+  gchar   **keys = g_key_file_get_keys (kf, "images", n_images, NULL);
   g_key_file_unref (kf);
   return keys;
 }
@@ -125,8 +125,8 @@ background_config_get_image_keys (gsize *n_images)
 gchar *
 background_config_get_color (const gchar *key)
 {
-  GKeyFile *kf = background_config_load_keyfile ();
-  gchar *val = g_key_file_get_string (kf, "colors", key, NULL);
+  GKeyFile *kf  = background_config_load_keyfile ();
+  gchar    *val = g_key_file_get_string (kf, "colors", key, NULL);
   g_key_file_unref (kf);
   return val;
 }
@@ -134,8 +134,8 @@ background_config_get_color (const gchar *key)
 gchar *
 background_config_get_image (const gchar *key)
 {
-  GKeyFile *kf = background_config_load_keyfile ();
-  gchar *val = g_key_file_get_string (kf, "images", key, NULL);
+  GKeyFile *kf  = background_config_load_keyfile ();
+  gchar    *val = g_key_file_get_string (kf, "images", key, NULL);
   g_key_file_unref (kf);
   return val;
 }
@@ -149,9 +149,9 @@ background_config_save (GKeyFile *kf)
                                      "ardesiarc",
                                      NULL);
 
-  gsize len = 0;
-  gchar *data = g_key_file_to_data (kf, &len, NULL);
-  gboolean ok = g_file_set_contents (usrfile, data, len, NULL);
+  gsize    len  = 0;
+  gchar   *data = g_key_file_to_data (kf, &len, NULL);
+  gboolean ok   = g_file_set_contents (usrfile, data, len, NULL);
 
   g_free (data);
   g_free (usrfile);
@@ -184,7 +184,7 @@ void
 background_config_remove_key (const gchar *key_name)
 {
   GKeyFile *kf = background_config_load_keyfile ();
-  
+
   if (g_key_file_has_key (kf, "colors", key_name, NULL))
     {
       g_key_file_remove_key (kf, "colors", key_name, NULL);
@@ -193,7 +193,7 @@ background_config_remove_key (const gchar *key_name)
     {
       g_key_file_remove_key (kf, "images", key_name, NULL);
     }
-  
+
   background_config_save (kf);
   g_key_file_unref (kf);
 }

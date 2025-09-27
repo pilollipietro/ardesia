@@ -27,5 +27,3 @@ void on_font_selector_response (GtkDialog *dialog,
 
 void on_font_selector_destroy (GtkWidget *window,
 		               gpointer user_data);
-
-

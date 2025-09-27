@@ -43,8 +43,8 @@ add_header ()
   const gchar *svg_ns      = "http://www.w3.org/2000/svg";
   const gchar *xlink_ns    = "http://www.w3.org/1999/xlink";
   const gchar *iwb_version = "1.0";
-  const gchar *iwb_format =
-  "<iwb xmlns:iwb=\"%s\" xmlns:svg=\"%s\" xmlns:xlink=\"%s\" version=\"%s\">\n";
+  const gchar *iwb_format  = "<iwb xmlns:iwb=\"%s\" xmlns:svg=\"%s\" "
+                             "xmlns:xlink=\"%s\" version=\"%s\">\n";
 
   fprintf (fp,
 	   iwb_format,
@@ -66,8 +66,8 @@ static void
 open_svg ()
 {
   GtkWidget *annotation_window = get_annotation_window ();
-  gint width = gtk_widget_get_allocated_width (annotation_window);
-  gint height = gtk_widget_get_allocated_height (annotation_window);
+  gint       width  = gtk_widget_get_allocated_width (annotation_window);
+  gint       height = gtk_widget_get_allocated_height (annotation_window);
 
   fprintf (fp,
 	   "\t<svg:svg width=\"%d\" height=\"%d\" viewbox=\"0 0 %d %d\">\n",
@@ -89,24 +89,19 @@ static void
 add_savepoint (gint index)
 {
   GtkWidget *annotation_window = get_annotation_window ();
-  gint width = gtk_widget_get_allocated_width (annotation_window);
-  gint height = gtk_widget_get_allocated_height (annotation_window);
-  gchar *id = g_strdup_printf ("id%d", index + 1);
+  gint       width  = gtk_widget_get_allocated_width (annotation_window);
+  gint       height = gtk_widget_get_allocated_height (annotation_window);
+  gchar     *id     = g_strdup_printf ("id%d", index + 1);
   gchar *file = g_strdup_printf ("images/%s_%d_vellum.png",
 		                 PACKAGE_NAME,
 				 index);
-  const gchar *svg_image_format =
-    "\t\t<svg:image id=\"%s\" xlink:href=\"%s\" x=\"0\" y=\"0\" "
-    "width=\"%d\" height=\"%d\"/>\n";
+  const gchar *svg_image_format = "\t\t<svg:image id=\"%s\" xlink:href=\"%s\" "
+                                  "x=\"0\" y=\"0\" "
+                                  "width=\"%d\" height=\"%d\"/>\n";
 
   open_svg ();
 
-  fprintf (fp,
-	   svg_image_format,
-           id,
-	   file,
-	   width,
-	   height);
+  fprintf (fp, svg_image_format, id, file, width, height);
 
   g_free (file);
   file = NULL;
@@ -119,9 +114,9 @@ static void
 add_background (gchar *img_dir_path, gchar *background_image)
 {
   GtkWidget *annotation_window = get_annotation_window ();
-  gint width = gtk_widget_get_allocated_width (annotation_window);
-  gint height = gtk_widget_get_allocated_height (annotation_window);
-  gchar *image_destination_path = (gchar *) NULL;
+  gint       width  = gtk_widget_get_allocated_width (annotation_window);
+  gint       height = gtk_widget_get_allocated_height (annotation_window);
+  gchar     *image_destination_path = (gchar *) NULL;
 
   image_destination_path = g_build_filename (img_dir_path,
                                              "ardesia_0_vellum.png",
@@ -138,7 +133,7 @@ add_background (gchar *img_dir_path, gchar *background_image)
            * under image_path overriding it.
            */
           GFile *image_destination = NULL;
-	  image_destination = g_file_new_for_path (image_destination_path);
+          image_destination   = g_file_new_for_path (image_destination_path);
           GFile *image_source = g_file_new_for_path (background_image);
 
           g_file_copy (image_source,
@@ -156,16 +151,15 @@ add_background (gchar *img_dir_path, gchar *background_image)
     }
   else
     {
-      gchar *color = background_data->color;
+      gchar       *color           = background_data->color;
       /* Initialize the rgba components to transparent. */
-      guint  r     = 0;
-      guint  g     = 0;
-      guint  b     = 0;
-      guint  a     = 0;
-      const gchar *svg_rect_format =
-        "\t\t<svg:rect id=\"id1\" x=\"0\" y=\"0\" "
-	"width=\"%d\" height=\"%d\" "
-	"fill=\"%s\" fill-opacity=\"%d\"/>\n";
+      guint        r               = 0;
+      guint        g               = 0;
+      guint        b               = 0;
+      guint        a               = 0;
+      const gchar *svg_rect_format = "\t\t<svg:rect id=\"id1\" x=\"0\" y=\"0\""
+                                     " width=\"%d\" height=\"%d\""
+                                     " fill=\"%s\" fill-opacity=\"%d\"/>\n";
 
       /* If the background type is color then parse it. */
       if ((color != NULL) && (background_data->type != 0))
@@ -177,12 +171,7 @@ add_background (gchar *img_dir_path, gchar *background_image)
 
       open_svg ();
 
-      fprintf (fp,
-	       svg_rect_format,
-               width,
-	       height,
-	       rgb,
-	       a);
+      fprintf (fp, svg_rect_format, width, height, rgb, a);
 
       close_svg ();
       g_free (rgb);
@@ -292,7 +281,7 @@ add_folder_to_gst_outfile (GsfOutfile *gst_outfile,
 			   gchar *folder)
 {
   GsfOutfile *gst_dir = NULL;
-  gst_dir = GSF_OUTFILE (gsf_outfile_new_child (gst_outfile, folder, TRUE));
+  gst_dir     = GSF_OUTFILE (gsf_outfile_new_child (gst_outfile, folder, TRUE));
   gchar *path = g_build_filename (working_dir, folder, NULL);
   GDir  *dir  = g_dir_open (path, 0, NULL);
 

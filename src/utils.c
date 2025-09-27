@@ -37,7 +37,6 @@
 #include "bar.h"
 #include "workspace.h"
 
-
 /* The list of the artefacts created in the current session. */
 static GSList *artifacts = (GSList *) NULL;
 
@@ -326,13 +325,13 @@ is_bar_window_over_annotation_window ()
 GdkPixbuf *
 take_screenshot_now ()
 {
-  GtkWidget *widget    = annotation_data->annotation_window;
+  GtkWidget *widget = annotation_data->annotation_window;
 
   GtkWidget *bar_widget = GTK_WIDGET (get_bar_widget ());
-  gdouble opacity = gtk_widget_get_opacity (bar_widget);
+  gdouble    opacity    = gtk_widget_get_opacity (bar_widget);
   gtk_widget_set_opacity (bar_widget, 0.0);
 
-  gint       ann_width = 0, ann_height = 0, ann_x = 0, ann_y = 0;
+  gint ann_width = 0, ann_height = 0, ann_x = 0, ann_y = 0;
   gtk_window_get_position (GTK_WINDOW (widget), &ann_x, &ann_y);
   gtk_window_get_size (GTK_WINDOW (widget), &ann_width, &ann_height);
 

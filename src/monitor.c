@@ -123,9 +123,9 @@ debug_monitor_struct (gpointer data, gpointer userdata)
 {
   Monitor *m = (Monitor *) data;
   g_debug ("Monitor %d: %d %d %d %d\n",
-	   m->monitor_index,
+           m->monitor_index,
 	   m->rect->x,
-	   m->rect->y,
+           m->rect->y,
 	   m->rect->width,
 	   m->rect->height);
 }

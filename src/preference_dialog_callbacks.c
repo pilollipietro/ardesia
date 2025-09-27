@@ -122,7 +122,7 @@ on_preference_ok_button_clicked (GtkButton *buton, gpointer data)
       rgba = gdkrgba_to_rgba (gdkcolor);
 
       add_background_button (rgba, BACKGROUND_MODE_COLOR, NULL, rgba);
-      
+
       /* Add chosen color to user configuration */
       background_config_add_color (rgba, rgba);
 
@@ -141,12 +141,12 @@ on_preference_ok_button_clicked (GtkButton *buton, gpointer data)
                                               "imageChooserButton");
           GtkFileChooserButton *image_chooser_button = NULL;
           image_chooser_button = GTK_FILE_CHOOSER_BUTTON (image_obj);
-          gchar *filename = NULL;
+          gchar *filename      = NULL;
 
-	  GtkFileChooser *chooser;
-	  chooser = GTK_FILE_CHOOSER (image_chooser_button);
+          GtkFileChooser *chooser;
+          chooser = GTK_FILE_CHOOSER (image_chooser_button);
 
-	  filename = gtk_file_chooser_get_filename (chooser);
+          filename = gtk_file_chooser_get_filename (chooser);
           if (filename)
             {
               FILE *stream = g_fopen (filename, "r");
@@ -182,8 +182,8 @@ on_preference_ok_button_clicked (GtkButton *buton, gpointer data)
 				         BACKGROUND_MODE_FILE,
 					 filename,
 					 NULL);
-				  /* Save chosen image to user configuration */
-				  background_config_add_image (name, filename);
+                  /* Save chosen image to user configuration */
+                  background_config_add_image (name, filename);
                   fclose (stream);
                 }
             }

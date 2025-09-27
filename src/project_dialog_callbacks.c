@@ -40,7 +40,7 @@ G_MODULE_EXPORT void
 on_project_ok_button_clicked (GtkButton *buton, gpointer data)
 {
   ProjectData *project_data = (ProjectData *) data;
-  GObject *dialog_obj;
+  GObject     *dialog_obj;
   dialog_obj = gtk_builder_get_object (project_data->project_dialog_gtk_builder,
                                        "projectDialogEntry");
 

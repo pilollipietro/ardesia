@@ -54,9 +54,10 @@ show_override_dialog (GtkWindow *parent)
 void
 show_could_not_write_dialog (GtkWindow *parent_window)
 {
-  GtkWidget *permission_denied_dialog = (GtkWidget *) NULL;
-  const gchar *message_text = gettext ("Couldn't open file for writing: Permission denied");
-  
+  GtkWidget   *permission_denied_dialog = (GtkWidget *) NULL;
+  const gchar *message_text = gettext ("Couldn't open file for writing: "
+                                       "Permission denied");
+
   permission_denied_dialog = gtk_message_dialog_new (parent_window,
 		                                     GTK_DIALOG_MODAL,
 						     GTK_MESSAGE_ERROR,

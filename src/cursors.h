@@ -60,7 +60,7 @@ void set_pen_cursor (GdkCursor **cursor,
 void set_eraser_cursor (GdkCursor **cursor, gint size);
 
 /* Set the filler cursor. */
-void set_filler_cursor (GdkCursor **cursor, gchar* color);
+void set_filler_cursor (GdkCursor **cursor, gchar *color);
 
 /* Quit the cursors and free the inners variables. */
 void cursors_main_quit ();

@@ -35,14 +35,14 @@
 gchar *
 start_project_dialog ()
 {
-  GtkWidget *project_dialog = NULL;
-  GObject   *project_obj    = NULL;
-  GObject   *dialog_obj     = NULL;
-  GtkWidget *dialog_entry   = NULL;
-  gchar     *ret            = NULL;
-  gint       pos            = -1;
-  gchar     *date           = get_date ();
-  ProjectData *project_data = NULL;
+  GtkWidget   *project_dialog = NULL;
+  GObject     *project_obj    = NULL;
+  GObject     *dialog_obj     = NULL;
+  GtkWidget   *dialog_entry   = NULL;
+  gchar       *ret            = NULL;
+  gint         pos            = -1;
+  gchar       *date           = get_date ();
+  ProjectData *project_data   = NULL;
   project_data = (ProjectData *) g_malloc ((gsize) sizeof (ProjectData));
 
   /* Initialize the main window. */
@@ -55,7 +55,7 @@ start_project_dialog ()
 
   /* Fill the window by the gtk builder xml */
   GtkBuilder *builder;
-  builder = project_data->project_dialog_gtk_builder;
+  builder     = project_data->project_dialog_gtk_builder;
   project_obj = gtk_builder_get_object (builder, "projectDialog");
 
   project_dialog = GTK_WIDGET (project_obj);

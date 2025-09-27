@@ -25,8 +25,8 @@
  * Functions for handling various (GTK+)-Events.
  */
 
-#include "annotation_window.h"
 #include "annotation_window_callbacks.h"
+#include "annotation_window.h"
 #include "background_window.h"
 #include "bar.h"
 #include "cairo_functions.h"

@@ -160,7 +160,7 @@ typedef struct
   GtkWidget *background_selection_container;
   GSList    *background_button_data;
   // last background item selected, -1 if not
-  gint background_button_last_selected;
+  gint       background_button_last_selected;
 
   gfloat highlighter_multiplier;
   gfloat pen_multiplier;

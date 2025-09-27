@@ -96,7 +96,7 @@ annotate_get_arrow_direction (AnnotateDeviceData *devdata)
   point     = (AnnotatePoint *) g_slist_nth_data (relevantpoint_list, 0);
 
   /* Give the direction using the last two point. */
-  ret       = atan2 (point->y - old_point->y, point->x - old_point->x);
+  ret = atan2 (point->y - old_point->y, point->x - old_point->x);
 
   /* Free the relevant point list. */
   g_slist_foreach (relevantpoint_list, (GFunc) g_free, (gpointer) NULL);
@@ -106,7 +106,7 @@ annotate_get_arrow_direction (AnnotateDeviceData *devdata)
   return ret;
 }
 
-/* 
+/*
  * Color selector; if eraser than select the transparent color
  * else allocate the right color.
  */
@@ -254,8 +254,8 @@ annotate_draw_ellipse (AnnotateDeviceData *devdata, gdouble x, gdouble y,
   cairo_restore (annotation_cairo_context);
 }
 
-/* 
- * Draw a curve using a cubic bezier splines passing 
+/*
+ * Draw a curve using a cubic bezier splines passing
  * the list's coordinate.
  */
 static void
@@ -372,13 +372,13 @@ roundify (AnnotateDeviceData *devdata, gboolean closed_path)
       if (rect_list)
         {
           /*
-	   * Identify the bounding rectangle of all the points and draws
-	   * the appropriate ellipse/circle.
-	   */
-          gint n    = g_slist_length (rect_list);
-          gint left = 0, right = 0, top = 0, bottom = 0;
+           * Identify the bounding rectangle of all the points and draws
+           * the appropriate ellipse/circle.
+           */
+          gint           n    = g_slist_length (rect_list);
+          gint           left = 0, right = 0, top = 0, bottom = 0;
           AnnotatePoint *point1 = NULL;
-	  point1 = (AnnotatePoint *) g_slist_nth_data (rect_list, 0);
+          point1 = (AnnotatePoint *) g_slist_nth_data (rect_list, 0);
           left   = point1->x;
           right  = point1->x;
           top    = point1->y;
@@ -452,8 +452,8 @@ create_annotation_window (Workspace *workspace, CommandLine *commandline)
     annotation_data->annotation_window_gtk_builder;
 
   annotation_data->is_opaque = commandline->is_opaque;
-  annotation_data->paths = NULL;
-  
+  annotation_data->paths     = NULL;
+
   /* Load the gtk builder file created with glade. */
   gtk_builder_add_from_file (annotation_window_gtk_builder,
                              ANNOTATION_UI_FILE, &error);
@@ -465,10 +465,10 @@ create_annotation_window (Workspace *workspace, CommandLine *commandline)
       return widget;
     }
 
-  GObject  *annotation_obj;
+  GObject *annotation_obj;
   annotation_obj = gtk_builder_get_object (annotation_window_gtk_builder,
-		                           "annotationWindow");
-  widget = GTK_WIDGET (annotation_obj);
+                                           "annotationWindow");
+  widget         = GTK_WIDGET (annotation_obj);
   gtk_window_set_keep_above (GTK_WINDOW (widget), TRUE);
 
   annotation_data->annotation_window = widget;
@@ -609,10 +609,10 @@ delete_savepoint (AnnotateSavepoint *savepoint)
 static void
 annotate_redolist_free ()
 {
-  guint   i         = annotation_data->current_save_index;
+  guint   i              = annotation_data->current_save_index;
   GSList *savepoint_list = NULL;
-  savepoint_list = annotation_data->savepoint_list;
-  GSList *stop_list = g_slist_nth (savepoint_list, i);
+  savepoint_list         = annotation_data->savepoint_list;
+  GSList *stop_list      = g_slist_nth (savepoint_list, i);
 
   while (savepoint_list != stop_list)
     {
@@ -777,7 +777,7 @@ annotate_add_savepoint ()
 					 savepoint_index);
 
   GSList *savepoint_list = (GSList *) NULL;
-  savepoint_list = annotation_data->savepoint_list;
+  savepoint_list         = annotation_data->savepoint_list;
 
   /* Add a new save-point. */
   annotation_data->savepoint_list = g_slist_prepend (savepoint_list,
@@ -825,8 +825,8 @@ initialize_annotation_cairo_context (AnnotateData *data)
       /* The hdc has depth 32 and the technology is DT_RASDISPLAY. */
       GdkWindow *window;
       HDC        hdc;
-      window = gtk_widget_get_window (annotation_window);
-      hdc = GetDC (GDK_WINDOW_HWND (window));
+      window                   = gtk_widget_get_window (annotation_window);
+      hdc                      = GetDC (GDK_WINDOW_HWND (window));
       /*
        * @TODO Use an HDC that support the ARGB32 format to support
        * the alpha channel; this fix the highlighter bug.
@@ -838,7 +838,7 @@ initialize_annotation_cairo_context (AnnotateData *data)
 
       annotation_data->annotation_cairo_context = cairo_create (surface);
 #else
-      int width = gtk_widget_get_allocated_width (annotation_window);
+      int width  = gtk_widget_get_allocated_width (annotation_window);
       int height = gtk_widget_get_allocated_height (annotation_window);
       annotation_data->annotation_cairo_context = create_new_context (width,
 		                                                      height);
@@ -863,13 +863,13 @@ initialize_annotation_cairo_context (AnnotateData *data)
           g_debug ("It has not savepoint; clear the screen");
           /* Clear the screen.  */
           annotate_clear_screen ();
-	  /* Create the first empty savepoint. */
-	  annotate_add_savepoint ();
+          /* Create the first empty savepoint. */
+          annotate_add_savepoint ();
         }
       else
-	{
+        {
           g_debug ("It has savepoint; restore surface");
-	  annotate_restore_surface ();
+          annotate_restore_surface ();
         }
 
 #ifndef _WIN32
@@ -894,7 +894,7 @@ annotate_restore_surface ()
       guint i = annotation_data->current_save_index;
       if (g_slist_length (annotation_data->savepoint_list) == i)
         {
-	      /* clear path and current point */
+          /* clear path and current point */
           cairo_new_path (annotation_cr);
           clear_cairo_context (annotation_cr);
           return;
@@ -927,8 +927,7 @@ annotate_restore_surface ()
           if (image_surface)
             {
               g_debug ("paint savepoint %s\n", savepoint->filename);
-              cairo_set_source_surface (annotation_cr,
-                                        image_surface, 0, 0);
+              cairo_set_source_surface (annotation_cr, image_surface, 0, 0);
               cairo_paint (annotation_cr);
               cairo_stroke (annotation_cr);
               cairo_surface_destroy (image_surface);
@@ -939,7 +938,6 @@ annotate_restore_surface ()
     }
 
   gtk_widget_queue_draw (annotation_data->annotation_window);
-
 }
 
 /* Get the annotation window. */
@@ -1042,17 +1040,17 @@ annotate_modify_color (AnnotateDeviceData *devdata,
 		       AnnotateData *data,
 		       gdouble pressure)
 {
-    /* Pressure value is from 0 to 1; this value modify the RGBA gradient. */
-    guint r, g, b, a;
-    gdouble old_pressure = pressure;
-    gdouble new_alpha;
-    gdouble contrast = 1.5; 
-    cairo_t *annotation_cr;
-    annotation_cr = annotation_data->annotation_cairo_context;
+  /* Pressure value is from 0 to 1; this value modify the RGBA gradient. */
+  guint    r, g, b, a;
+  gdouble  old_pressure = pressure;
+  gdouble  new_alpha;
+  gdouble  contrast = 1.5;
+  cairo_t *annotation_cr;
+  annotation_cr = annotation_data->annotation_cairo_context;
 
-    if ((! annotation_cr) ||
-	(! annotation_data->color)) {
-        return;
+  if ((! annotation_cr) || (! annotation_data->color))
+    {
+      return;
     }
     if (pressure >= 1) {
 	cairo_set_source_color_from_string (annotation_cr,
@@ -1060,8 +1058,8 @@ annotate_modify_color (AnnotateDeviceData *devdata,
         return;
     }
 
-    assert (strlen (annotation_data->color) == 8);
-    sscanf (annotation_data->color, "%02X%02X%02X%02X", &r, &g, &b, &a);
+  assert (strlen (annotation_data->color) == 8);
+  sscanf (annotation_data->color, "%02X%02X%02X%02X", &r, &g, &b, &a);
 
     if (devdata->coord_list != NULL) {
         AnnotatePoint *last_point;
@@ -1072,23 +1070,24 @@ annotate_modify_color (AnnotateDeviceData *devdata,
         old_pressure = last_point->pressure;
     }
 
-    /*
-     * Use a squareroot function to give an exponential curve.
-     * This amplifies low pressure values,
-     * making the stroke more visible at the start and end.
-     */
-    gdouble smoothed_pressure = (3 * pressure + old_pressure) / 4;
-    gdouble curved_pressure = sqrt (smoothed_pressure);
+  /*
+   * Use a squareroot function to give an exponential curve.
+   * This amplifies low pressure values,
+   * making the stroke more visible at the start and end.
+   */
+  gdouble smoothed_pressure = (3 * pressure + old_pressure) / 4;
+  gdouble curved_pressure   = sqrt (smoothed_pressure);
 
-    /*
-     * Calculate the final alpha value by combining the curved pressure
-     * and contrast factor.
-     */
-    new_alpha = curved_pressure * contrast;
+  /*
+   * Calculate the final alpha value by combining the curved pressure
+   * and contrast factor.
+   */
+  new_alpha = curved_pressure * contrast;
 
-    /* Ensure the alpha value does not exceed the maximum of 1.0 */
-    if (new_alpha > 1.0) {
-        new_alpha = 1.0;
+  /* Ensure the alpha value does not exceed the maximum of 1.0 */
+  if (new_alpha > 1.0)
+    {
+      new_alpha = 1.0;
     }
 
     g_debug ("pressure %f, new_alpha %f", pressure, new_alpha);
@@ -1116,7 +1115,7 @@ annotate_push_context (cairo_t *cr)
   cairo_set_operator (annotation_data->annotation_cairo_context,
 		      CAIRO_OPERATOR_ADD);
 
-  /* 
+  /*
    * Creates a pattern from surface at x,y on the context
    * at 0, left screen -> right screen, right screen disappears
    * at -1920, left screen -> disappears, right screen is good
@@ -1227,7 +1226,7 @@ annotate_acquire_grab ()
     }
 }
 
-/* 
+/*
  * Draw line from the last point drawn to (x2,y2);
  * if stroke is false the cairo path is not forgotten.
  */
@@ -1316,7 +1315,7 @@ annotate_draw_arrow (AnnotateDeviceData *devdata, gdouble distance)
 
   if (g_slist_length (devdata->coord_list) < 2)
     {
-      /* 
+      /*
        * If it has length lesser then two then is a point and
        * it has no sense draw the arrow.
        */
@@ -1499,10 +1498,11 @@ annotate_quit ()
           annotation_data->savepoint_dir = (gchar *) NULL;
         }
 
-      for (GList *l = annotation_data->paths; l != NULL; l = l->next) {
-	cairo_path_t *path = (cairo_path_t *)l->data;
-	cairo_path_destroy (path);
-      }
+      for (GList *l = annotation_data->paths; l != NULL; l = l->next)
+        {
+          cairo_path_t *path = (cairo_path_t *) l->data;
+          cairo_path_destroy (path);
+        }
       g_list_free (annotation_data->paths);
       annotation_data->paths = NULL;
 
@@ -1707,7 +1707,7 @@ create_annotation_data ()
   annotation_data->font_window = NULL;
   annotation_data->font        = NULL;
 
-  /* 
+  /*
    * We create background data objects at the same time to be safe
    */
   background_data = create_background_data ();
@@ -1922,10 +1922,10 @@ annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
                   /* Seems that you are pressing the pen more. */
                   annotate_modify_color (masterdata, data, pressure);
                   annotate_draw_line (masterdata, ev->x, ev->y, TRUE);
-                  /* 
-		   * Store the new pressure without allocate
-		   * a new coordinate.
-		   */
+                  /*
+                   * Store the new pressure without allocate
+                   * a new coordinate.
+                   */
                   last_point->pressure = pressure;
                   return TRUE;
                 }
@@ -1945,12 +1945,12 @@ annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
   return TRUE;
 }
 
-void save_closed_path ()
+void
+save_closed_path ()
 {
-  cairo_t *annotation_cr = annotation_data->annotation_cairo_context; 
-  cairo_path_t *path_copy = cairo_copy_path (annotation_cr);
-  annotation_data->paths = g_list_append (annotation_data->paths,
-		                          path_copy);
+  cairo_t      *annotation_cr = annotation_data->annotation_cairo_context;
+  cairo_path_t *path_copy     = cairo_copy_path (annotation_cr);
+  annotation_data->paths = g_list_append (annotation_data->paths, path_copy);
 }
 
 gboolean
@@ -2001,7 +2001,7 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
     }
 #endif
 
-  /* 
+  /*
    * This was required to stop if from permanently holding on the screen
    * over the ardesia bar.
    */
@@ -2048,7 +2048,7 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
 
       gboolean closed_path = FALSE;
 
-      /* 
+      /*
        * If the distance between two point lesser than tolerance
        * they are the same point for me.
        */
@@ -2086,11 +2086,11 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
               annotate_draw_arrow (masterdata, distance);
             }
         }
-      if (closed_path) {
-	 cairo_close_path (annotation_data->annotation_cairo_context);
-	 save_closed_path ();
-      }
-
+      if (closed_path)
+        {
+          cairo_close_path (annotation_data->annotation_cairo_context);
+          save_closed_path ();
+        }
     }
 
   cairo_stroke (data->annotation_cairo_context);
@@ -2115,7 +2115,6 @@ annotation_window_change (int width, int height)
     }
 }
 
-
 void
 initialize_font (CommandLine *commandline)
 {
@@ -2123,7 +2122,7 @@ initialize_font (CommandLine *commandline)
     {
       gchar *font_string;
 
-      /* 
+      /*
        * Create a font description string in the format "Family Size".
        * For example, "Cantarell 32".
        */
@@ -2142,4 +2141,3 @@ initialize_font (CommandLine *commandline)
       pango_font_description_set_size (annotation_data->font, 32 * PANGO_SCALE);
     }
 }
-

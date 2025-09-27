@@ -24,12 +24,12 @@
 #ifndef __ARDESIA_H
 #define __ARDESIA_H
 
+#include <gdk/gdk.h>
+#include <getopt.h>
 #include <glib.h>
 #include <glib/gprintf.h>
-#include <locale.h>
-#include <getopt.h>
-#include <gdk/gdk.h>
 #include <gtk/gtk.h>
+#include <locale.h>
 
 #include "commandline.h"
 #include "config.h"

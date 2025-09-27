@@ -49,15 +49,15 @@ static gboolean paused = FALSE;
 static GPid
 call_recorder (gchar *filename, gchar *option)
 {
-  GPid   pid             = (GPid) 0;
+  GPid pid = (GPid) 0;
 
-  gchar *pidfilename     = g_strdup_printf ("%s%s%s", get_project_dir (),
-                                            G_DIR_SEPARATOR_S,
-					    "ardesia_recorder.pid");
+  gchar *pidfilename = g_strdup_printf ("%s%s%s", get_project_dir (),
+                                        G_DIR_SEPARATOR_S,
+					"ardesia_recorder.pid");
 
-  gchar *logfilename     = g_strdup_printf ("%s%s%s", get_project_dir (),
-                                            G_DIR_SEPARATOR_S,
-					    "ardesia_recorder.log");
+  gchar *logfilename = g_strdup_printf ("%s%s%s", get_project_dir (),
+                                        G_DIR_SEPARATOR_S,
+					"ardesia_recorder.log");
 
   gchar *quoted_filename = g_strdup_printf ("%s", filename);
 
@@ -72,7 +72,7 @@ call_recorder (gchar *filename, gchar *option)
                              pidfilename,
 			     (gchar *) 0 };
 
-  gint x = 0, y = 0;
+  gint       x = 0, y = 0;
   GtkWidget *annotation_window = get_annotation_window ();
 
   gdk_window_get_root_origin (gtk_widget_get_window (annotation_window),

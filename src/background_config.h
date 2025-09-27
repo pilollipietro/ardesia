@@ -20,13 +20,13 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
- 
+
 #ifndef __BACKGROUND_CONFIG_H__
 #define __BACKGROUND_CONFIG_H__
 
 #include <glib.h>
 
-/* 
+/*
  * Ensure that the user config file exists.
  * Copies the system config to user config if necessary.
  */
@@ -68,4 +68,3 @@ void background_config_add_image (const gchar *name, const gchar *path);
 void background_config_remove_key (const gchar *key_name);
 
 #endif /* __BACKGROUND_CONFIG_H__ */
-

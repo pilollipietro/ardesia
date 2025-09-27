@@ -52,7 +52,7 @@ start_share_dialog ()
 
       /* Fill the window by the gtk builder xml. */
       GObject *obj = gtk_builder_get_object (share_dialog_gtk_builder,
-                                        "shareDialog");
+                                             "shareDialog");
       share_dialog = GTK_WIDGET (obj);
 
       gtk_window_set_keep_above (GTK_WINDOW (share_dialog), TRUE);

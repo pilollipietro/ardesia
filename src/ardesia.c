@@ -21,8 +21,8 @@
  *
  */
 
-#include "annotation_window.h"
 #include "ardesia.h"
+#include "annotation_window.h"
 #include "background_window.h"
 #include "bar.h"
 #include "bar_callbacks.h"
@@ -30,7 +30,6 @@
 #include "project_dialog.h"
 #include "text_window.h"
 #include "utils.h"
-#include "text_window.h"
 
 extern TextConfig *text_config;
 GtkWidget         *ardesia_bar_window;
@@ -72,12 +71,12 @@ get_drawable_area ()
     {
       if (commandline->mode == DRAW_ON_MONITOR)
         {
-	  GList *monitors;
-	  monitors = workspace->monitors;
-	  gint monitors_len = g_list_length (monitors);
-	  gint workspace_monitor = commandline->workspace_monitor;
-	  g_debug ("Detected %d monitors", monitors_len);
-	  g_debug ("Selected monitor %d", workspace_monitor);
+          GList *monitors;
+          monitors               = workspace->monitors;
+          gint monitors_len      = g_list_length (monitors);
+          gint workspace_monitor = commandline->workspace_monitor;
+          g_debug ("Detected %d monitors", monitors_len);
+          g_debug ("Selected monitor %d", workspace_monitor);
           if (workspace_monitor < 0 || workspace_monitor >= monitors_len)
             {
               g_warning ("Workspace monitor was given an illegal value, moving "
@@ -90,10 +89,10 @@ get_drawable_area ()
         }
       else if (commandline->mode == DRAW_ON_FULLDESKTOP)
         {
-	  GdkScreen  *screen  = gdk_screen_get_default ();
-          GdkWindow *rootwindow = gdk_screen_get_root_window (screen);
-          int maxwidth                  = gdk_window_get_width (rootwindow);
-          int maxheight                 = gdk_window_get_height (rootwindow);
+          GdkScreen *screen             = gdk_screen_get_default ();
+          GdkWindow *rootwindow         = gdk_screen_get_root_window (screen);
+          int        maxwidth           = gdk_window_get_width (rootwindow);
+          int        maxheight          = gdk_window_get_height (rootwindow);
           commandline->clipRect->x      = 0;
           commandline->clipRect->y      = 0;
           commandline->clipRect->width  = maxwidth;
@@ -103,10 +102,10 @@ get_drawable_area ()
       else
         {
           // check clipRect bounds
-	  GdkScreen  *screen  = gdk_screen_get_default ();
+          GdkScreen *screen     = gdk_screen_get_default ();
           GdkWindow *rootwindow = gdk_screen_get_root_window (screen);
-          int maxwidth  = gdk_window_get_width (rootwindow);
-          int maxheight = gdk_window_get_height (rootwindow);
+          int        maxwidth   = gdk_window_get_width (rootwindow);
+          int        maxheight  = gdk_window_get_height (rootwindow);
           g_debug ("Maximum Size: %d %d\n", maxwidth, maxheight);
           if (commandline->clipRect->x < 0)
             {
@@ -241,7 +240,7 @@ main (int argc, char *argv[])
   // handle command line
   commandline = create_command_line ();
   parse_options (commandline, argc, argv);
-  if (commandline->debug) 
+  if (commandline->debug)
     {
       g_setenv ("G_MESSAGES_DEBUG", "all", TRUE);
       debug_commandline (commandline);
@@ -271,10 +270,8 @@ main (int argc, char *argv[])
 		                workspace->project_dir);
   replace_status_message (status_msg);
 
-  //create_text_settings_window ();
   initialize_font (commandline);
 
-  // main loop for a GTK application
   gtk_main ();
 
   destroy_workspace (workspace);

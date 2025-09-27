@@ -20,7 +20,7 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
- 
+
 #include <gdk/gdk.h>
 
 #ifdef HAVE_CONFIG_H
@@ -62,12 +62,12 @@ on_stop_recording_click (GtkButton *toolbutton, gpointer func_data)
   annotate_release_grab ();
   bar_data->grab = FALSE;
   stop_recorder ();
-  GtkBuilder *builder = annotation_data->recordingstudio_window_gtk_builder;
-  GObject *record_obj = gtk_builder_get_object (builder, "record");
+  GtkBuilder *builder    = annotation_data->recordingstudio_window_gtk_builder;
+  GObject    *record_obj = gtk_builder_get_object (builder, "record");
   GtkToggleButton *recordButton = GTK_TOGGLE_BUTTON (record_obj);
   gtk_toggle_button_set_active (recordButton, FALSE);
   GObject *media_record_obj = gtk_builder_get_object (builder, "media-record");
-  GtkWidget *imageWidget = GTK_WIDGET (media_record_obj);
+  GtkWidget *imageWidget    = GTK_WIDGET (media_record_obj);
   gtk_button_set_image ((GtkButton *) recordButton, imageWidget);
   gtk_button_set_label ((GtkButton *) recordButton, "Record");
   bar_data->grab           = grab_value;
@@ -81,7 +81,7 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
   if (on_stop_recording_called)
     return;
   g_debug ("on_recording_click\n");
-  gboolean grab_value = bar_data->grab;
+  gboolean    grab_value = bar_data->grab;
   GtkBuilder *recordingstudio_window_gtk_builder;
   recordingstudio_window_gtk_builder =
     annotation_data->recordingstudio_window_gtk_builder;
@@ -127,8 +127,8 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
       if (! is_recorder_available ())
         {
           GtkWidget *imageWidget = GTK_WIDGET (
-            gtk_builder_get_object (recordingstudio_window_gtk_builder,
-                                    "media-recorder-unavailable"));
+              gtk_builder_get_object (recordingstudio_window_gtk_builder,
+                                      "media-recorder-unavailable"));
 
           gtk_button_set_image ((GtkButton *) toolbutton, imageWidget);
           gtk_button_set_label ((GtkButton *) toolbutton, "Unavailable");
@@ -137,10 +137,10 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
                                  (GdkCursor *) NULL);
 
           visualize_missing_recorder_program_dialog (
-            GTK_WINDOW (get_bar_widget ()),
-            gettext ("In order to record with Ardesia you must install the "
-                     "vlc program and add it to the PATH environment "
-                     "variable"));
+              GTK_WINDOW (get_bar_widget ()),
+              gettext ("In order to record with Ardesia you must install the "
+                       "vlc program and add it to the PATH environment "
+                       "variable"));
 
           /* Put an icon that remember that the tool is not available. */
           bar_data->grab = grab_value;
@@ -155,8 +155,8 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
 
       /* The recording is not active. */
       gboolean status;
-      status  = start_save_video_dialog ((GtkButton *) toolbutton,
-                                         GTK_WINDOW (get_bar_widget ()));
+      status = start_save_video_dialog ((GtkButton *) toolbutton,
+                                        GTK_WINDOW (get_bar_widget ()));
 
       if (status)
         {
@@ -171,7 +171,6 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
   bar_data->grab = grab_value;
   start_tool (bar_data);
 }
-
 
 void
 get_desktop_mouse_location (int *x, int *y)
@@ -315,10 +314,10 @@ draw_video_cursor (cairo_t *cr, GtkWidget *widget)
   cairo_paint (desktop);
 
   /* average over all pixels */
-  unsigned char *pixels = cairo_image_surface_get_data (surface);
+  unsigned char *pixels    = cairo_image_surface_get_data (surface);
   /* gives back 128 = 32 pixels * 4 bytes each */
-  int stride = cairo_image_surface_get_stride (surface);
-  gint avg_pixel = 0;
+  int            stride    = cairo_image_surface_get_stride (surface);
+  gint           avg_pixel = 0;
   for (int ii = 0; ii < 32; ii++)
     {
       for (int jj = 0; jj < stride; jj++)
@@ -333,14 +332,14 @@ draw_video_cursor (cairo_t *cr, GtkWidget *widget)
   gint white = 255;
   gint r = 0, g = 0, b = 0;
   if (white - avg_pixel > avg_pixel)
-    { 
+    {
       // nearer to black
       r = 1;
       g = 1;
       b = 0;
     }
   else
-    { 
+    {
       // nearer to white
       r = 0;
       g = 1;
@@ -461,7 +460,7 @@ on_clapperboard_click (GtkToolButton *toolbutton, gpointer func_data)
   GtkWidget *annotation_window = get_annotation_window ();
   if (annotation_data->clapperboard_cairo_context == NULL)
     {
-      int width = gtk_widget_get_allocated_width (annotation_window);
+      int width  = gtk_widget_get_allocated_width (annotation_window);
       int height = gtk_widget_get_allocated_height (annotation_window);
       annotation_data->clapperboard_cairo_context = create_new_context (width,
 		                                                        height);

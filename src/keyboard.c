@@ -39,7 +39,7 @@ start_virtual_keyboard ()
   if (result != 0)
     {
       g_warning ("Fail to show virtual keyboard: Florence and gsettings "
-                  "packages are required\n");
+                 "packages are required\n");
     }
 }
 

@@ -21,8 +21,8 @@
  *
  */
 
-#include "annotation_window.h"
 #include "font_selector.h"
+#include "annotation_window.h"
 #include "font_selector_callbacks.h"
 
 
@@ -30,28 +30,29 @@
  * @brief Creates and shows the font settings dialog.
  * @param parent_window The window to set as the dialog's parent.
  */
-void create_font_selector_window (GtkWindow *parent)
+void
+create_font_selector_window (GtkWindow *parent)
 {
   if (annotation_data->font_window == NULL)
-  {
-    GtkBuilder *builder;
-    GtkWidget *font_dialog;
+    {
+      GtkBuilder *builder;
+      GtkWidget  *font_dialog;
 
-    gchar  *file = FONT_UI_FILE;
-    builder = gtk_builder_new_from_file (file);
-    GObject   *obj;
-    
-    obj = gtk_builder_get_object (builder, "font_dialog");
-    font_dialog = GTK_WIDGET (obj);
+      gchar *file = FONT_UI_FILE;
+      builder     = gtk_builder_new_from_file (file);
+      GObject *obj;
 
-    gtk_window_set_transient_for (GTK_WINDOW (font_dialog), parent);
-    gtk_window_set_modal (GTK_WINDOW (font_dialog), TRUE);
+      obj         = gtk_builder_get_object (builder, "font_dialog");
+      font_dialog = GTK_WIDGET (obj);
 
-    if (annotation_data->font != NULL)
-      {
-        gtk_font_chooser_set_font_desc (GTK_FONT_CHOOSER (font_dialog),
-			                annotation_data->font);
-      }
+      gtk_window_set_transient_for (GTK_WINDOW (font_dialog), parent);
+      gtk_window_set_modal (GTK_WINDOW (font_dialog), TRUE);
+
+      if (annotation_data->font != NULL)
+        {
+          gtk_font_chooser_set_font_desc (GTK_FONT_CHOOSER (font_dialog),
+                                          annotation_data->font);
+        }
 
     g_signal_connect (font_dialog,
 		      "response",
@@ -63,12 +64,12 @@ void create_font_selector_window (GtkWindow *parent)
 		      G_CALLBACK (on_font_selector_destroy),
 		      NULL);
 
-    annotation_data->font_window = font_dialog;
-  }
+      annotation_data->font_window = font_dialog;
+    }
 }
 
-void show_font_selector_window ()
+void
+show_font_selector_window ()
 {
-   gtk_widget_show_all (annotation_data->font_window);
+  gtk_widget_show_all (annotation_data->font_window);
 }
-

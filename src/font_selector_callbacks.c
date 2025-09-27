@@ -10,17 +10,17 @@
  * under the terms of the GNU General Public License as published by the
  * Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *    
+ *
  * Ardesia is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU General Public License for more details.
- *                     
+ *
  * You should have received a copy of the GNU General Public License along
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
- *    
+ *
  */
-  
+
 #include "annotation_window.h"
 #include "font_selector.h"
 
@@ -36,24 +36,25 @@ void on_font_selector_response (GtkDialog *dialog,
 		                gint response_id,
 			        gpointer user_data)
 {
-    if (response_id == GTK_RESPONSE_OK)
+  if (response_id == GTK_RESPONSE_OK)
     {
-        PangoFontDescription *new_font_desc;
-	GtkFontChooser *chooser;
-	chooser = GTK_FONT_CHOOSER (dialog);
-	new_font_desc = gtk_font_chooser_get_font_desc (chooser);
-        
-        if (annotation_data->font != NULL)
+      PangoFontDescription *new_font_desc;
+      GtkFontChooser       *chooser;
+      chooser       = GTK_FONT_CHOOSER (dialog);
+      new_font_desc = gtk_font_chooser_get_font_desc (chooser);
+
+      if (annotation_data->font != NULL)
         {
-            pango_font_description_free (annotation_data->font);
+          pango_font_description_free (annotation_data->font);
         }
-        annotation_data->font = new_font_desc;
+      annotation_data->font = new_font_desc;
     }
 
-    gtk_widget_destroy (GTK_WIDGET (dialog));
+  gtk_widget_destroy (GTK_WIDGET (dialog));
 }
 
-void on_font_selector_destroy (GtkWidget *window, gpointer user_data)
+void
+on_font_selector_destroy (GtkWidget *window, gpointer user_data)
 {
-    annotation_data->font_window = NULL;
+  annotation_data->font_window = NULL;
 }

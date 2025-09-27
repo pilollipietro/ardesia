@@ -96,7 +96,7 @@ load_file_onto_context (gchar *image_filename, cairo_t *cr)
     }
 }
 
-/* 
+/*
  * The windows has been exposed after the show_all request
  * to change the background color.
  */

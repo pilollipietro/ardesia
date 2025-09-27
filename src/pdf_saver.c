@@ -66,7 +66,7 @@ start_save_pdf_dialog (GtkWindow *parent, GdkPixbuf *pixbuf)
   gtk_window_set_title (GTK_WINDOW (chooser), gettext ("Choose a file"));
 
   /* Save the preview in a image buffer. */
-  preview        = gtk_image_new ();
+  preview = gtk_image_new ();
 
   preview_pixbuf = gdk_pixbuf_scale_simple (pixbuf,
 		                            preview_width,
@@ -155,8 +155,8 @@ static void
 pdf_save ()
 {
   GtkWidget *annotation_window = get_annotation_window ();
-  int width = gtk_widget_get_allocated_width (annotation_window);
-  int height = gtk_widget_get_allocated_height (annotation_window);
+  int        width  = gtk_widget_get_allocated_width (annotation_window);
+  int        height = gtk_widget_get_allocated_height (annotation_window);
 
   /* create the cairo surface for pdf */
   cairo_surface_t *pdf_surface = cairo_pdf_surface_create (pdf_data->filename,
@@ -209,10 +209,10 @@ add_pdf_page (GtkWindow *parent)
 void
 add_pdf_page_callback (GdkPixbuf *pixbuf)
 {
-  GtkWidget *parent = get_bar_widget ();
+  GtkWidget *parent            = get_bar_widget ();
   GtkWidget *annotation_window = get_annotation_window ();
 
-  int width = gtk_widget_get_allocated_width (annotation_window);
+  int width  = gtk_widget_get_allocated_width (annotation_window);
   int height = gtk_widget_get_allocated_height (annotation_window);
 
   cairo_surface_t *saved_surface;
@@ -232,7 +232,7 @@ add_pdf_page_callback (GdkPixbuf *pixbuf)
 
   g_free (default_filename);
 
-  /* 
+  /*
    * Load a surface with the data->annotation_cairo_context content
    * and write the file.
    */

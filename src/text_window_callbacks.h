@@ -21,8 +21,8 @@
  *
  */
 
-#ifndef __TEXT_WINDOW_CALLBACKS_H
-#define __TEXT_WINDOW_CALLBACKS_H
+#include <gtk/gtk.h>
+#include "text_window.h"
 
 void destroy_text_properties (gpointer data);
 
@@ -54,5 +54,3 @@ G_MODULE_EXPORT gboolean on_text_window_cursor_motion (GtkWidget *win,
 G_MODULE_EXPORT gboolean on_text_window_key_press_event (GtkWidget *widget,
 		                                         GdkEvent *event,
                                                          gpointer user_data);
-
-#endif

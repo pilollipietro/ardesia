@@ -21,9 +21,9 @@
  *
  */
 
+#include "workspace.h"
 #include "monitor.h"
 #include "utils.h"
-#include "workspace.h"
 
 Workspace *
 create_workspace ()
@@ -146,7 +146,7 @@ create_default_project_dir (Workspace *workspace)
       g_free (workspace->project_dir);
       workspace->project_dir = NULL;
     }
-  
+
   workspace->project_dir = g_build_filename (workspace->workspace_dir,
 		                             workspace->project_name,
 					     (gchar *) 0);
