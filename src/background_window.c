@@ -27,7 +27,6 @@
 
 #include "annotation_window.h"
 #include "background_window.h"
-#include "background_window_callbacks.h"
 #include "cairo_functions.h"
 #include "utils.h"
 

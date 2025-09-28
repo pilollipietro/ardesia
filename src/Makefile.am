@@ -28,8 +28,6 @@ ardesia_SOURCES = \
 	background_config.h                       \
 	background_window.c                       \
 	background_window.h                       \
-	background_window_callbacks.c             \
-	background_window_callbacks.h             \
         broken.c                                  \
 	broken.h                                  \
         bezier_spline.c                           \
