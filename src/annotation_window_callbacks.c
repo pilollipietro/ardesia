@@ -160,6 +160,7 @@ on_expose (GtkWidget *widget, cairo_t *cr, gpointer user_data)
       g_debug ("annotation_window_callbacks\n");
       /* Draw annotation layer on context cr. */
       initialize_annotation_cairo_context (annotation_data);
+      restore_background ();
       draw_cairo_context (cr,
 		          annotation_data->annotation_cairo_context,
 			  use_paint);

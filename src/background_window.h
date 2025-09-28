@@ -60,4 +60,7 @@ void update_background_image (gchar *name);
 /* Update the background color. */
 void update_background_color (gchar *rgba);
 
+/* Restore background. */
+void restore_background ();
+
 #endif

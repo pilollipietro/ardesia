@@ -26,6 +26,7 @@
 #endif
 
 #include "annotation_window.h"
+#include "background_config.h"
 #include "background_window.h"
 #include "cairo_functions.h"
 #include "utils.h"
@@ -102,3 +103,26 @@ update_background_color (gchar *rgba)
   annotation_data->is_background_visible = TRUE;
   gtk_widget_queue_draw (annotation_data->annotation_window);
 }
+
+/* Restore background. */
+void
+restore_background ()
+{
+  BackgroundRestored *br = background_config_restore_last_background ();
+  if (br)
+    {
+      switch (br->type)
+        {
+          case BACKGROUND_RESTORED_COLOR:
+            update_background_color (br->value);
+            break;
+          case BACKGROUND_RESTORED_IMAGE:
+            update_background_image (br->value);
+            break;
+          default:
+            break;
+        }
+      background_restored_free (br);
+    }
+}
+
