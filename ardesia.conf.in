@@ -5,6 +5,9 @@ white=ffffffff
 [images]
 paper=@prefix@/share/ardesia/ui/backgrounds/notebook_paper.png
 
+[background]
+current_background=transparent
+
 [font]
 family=Sans
 size=32

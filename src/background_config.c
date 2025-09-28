@@ -21,10 +21,14 @@
  *
  */
 
-#include "background_config.h"
-#include "config_path.h"
 #include <gio/gio.h>
 #include <glib/gstdio.h>
+
+#include "background_config.h"
+#include "background_window.h"
+#include "config_path.h"
+#include "user_config.h"
+
 
 /* Internal: load a GKeyFile either from user or system config */
 static GKeyFile *
@@ -126,6 +130,33 @@ background_config_add_color (const gchar *name, const gchar *rgba)
   g_key_file_unref (kf);
 }
 
+/* Utility to derive the label from a filename (without path and extension) */
+gchar *
+background_config_filename_to_label (const gchar *filename)
+{
+  /* Extract basename first */
+  gchar *basename = g_path_get_basename (filename);
+
+  /* Find last dot position (if any) */
+  const gchar *dot = strrchr (basename, '.');
+
+  gchar *label;
+  if (dot != NULL && dot > basename)
+    {
+      /* Copy up to char before the dot */
+      gsize len = (gsize)(dot - basename);
+      label = g_strndup (basename, len);
+    }
+  else
+    {
+      /* No dot, duplicate whole basename */
+      label = g_strdup (basename);
+    }
+
+  g_free (basename);
+  return label;
+}
+
 /* Add an image entry to the user configuration file */
 void
 background_config_add_image (const gchar *name, const gchar *path)
@@ -155,3 +186,77 @@ background_config_remove_key (const gchar *key_name)
   g_key_file_unref (kf);
 }
 
+/* Persist the currently selected background name/path */
+void
+background_config_set_current_background (const gchar *background)
+{
+  /* Make sure user config file exists */
+  user_config_ensure_file ();
+
+  /* Load the keyfile from user or system */
+  GKeyFile *kf = background_config_load_keyfile ();
+
+  /* Store in [background] section under key current_background */
+  g_key_file_set_string (kf, "background", "current_background", background);
+
+  /* Save back to user config */
+  background_config_save (kf);
+
+  g_key_file_unref (kf);
+}
+
+/* Retrieve the currently selected background from config */
+gchar *
+background_config_get_current_background (void)
+{
+  GKeyFile *kf = background_config_load_keyfile ();
+
+  gchar *val =
+    g_key_file_get_string (kf, "background", "current_background", NULL);
+
+  g_key_file_unref (kf);
+  return val; /* caller frees */
+}
+
+/*
+ * Restore last background used.
+ */
+BackgroundRestored *
+background_config_restore_last_background (void)
+{
+  gchar *last_bg = background_config_get_current_background ();
+  if (!last_bg)
+    return NULL;
+
+  GKeyFile *kf = background_config_load_keyfile ();
+  BackgroundRestored *br = g_new0 (BackgroundRestored, 1);
+
+  /* check colors section */
+  if (g_key_file_has_key (kf, "colors", last_bg, NULL))
+    {
+      br->type = BACKGROUND_RESTORED_COLOR;
+      br->value = g_key_file_get_string (kf, "colors", last_bg, NULL);
+    }
+  else if (g_key_file_has_key (kf, "images", last_bg, NULL))
+    {
+      br->type = BACKGROUND_RESTORED_IMAGE;
+      br->value = g_key_file_get_string (kf, "images", last_bg, NULL);
+    }
+  else
+    {
+      br->type = BACKGROUND_RESTORED_NONE;
+      br->value = NULL;
+    }
+
+  g_free (last_bg);
+  g_key_file_unref (kf);
+  return br;
+}
+
+void
+background_restored_free (BackgroundRestored *br)
+{
+  if (!br) return;
+  g_free (br->value);
+  g_free (br);
+}

@@ -27,6 +27,7 @@
 
 #include "annotation_window.h"
 #include "annotation_window_callbacks.h"
+#include "background_config.h"
 #include "background_window.h"
 #include "bar.h"
 #include "bar_callbacks.h"
@@ -876,7 +877,22 @@ initialize_annotation_cairo_context (AnnotateData *data)
 #ifndef _WIN32
       gtk_widget_set_opacity (annotation_window, 1.0);
 #endif
-
+      BackgroundRestored *br = background_config_restore_last_background ();
+      if (br)
+        {
+	  switch (br->type)
+	    {
+              case BACKGROUND_RESTORED_COLOR:
+                update_background_color (br->value);
+                break;
+              case BACKGROUND_RESTORED_IMAGE:
+                update_background_image (br->value);
+                break;
+              default:
+                break;
+            }
+          background_restored_free (br);
+	}
       annotate_acquire_grab ();
     }
 }

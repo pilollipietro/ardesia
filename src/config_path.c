@@ -95,4 +95,3 @@ get_user_file (void)
   return get_user_config_file ();
 }
 
-

@@ -271,7 +271,7 @@ create_bar_window (CommandLine *commandline,
 
   /* Move the window in the desired position. */
   gtk_window_move (GTK_WINDOW (bar_window), rect->x + x, rect->y + y);
-
+  
   return bar_window;
 }
 

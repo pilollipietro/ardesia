@@ -164,27 +164,14 @@ on_preference_ok_button_clicked (GtkButton *buton, gpointer data)
                 }
               else
                 {
-                  /*
-                   * Cut out filename (without extension)
-                   * from absolute file path.
-                   */
-                  int start = g_substrlastpos (filename, G_DIR_SEPARATOR_S) + 1;
-                  if (start < 0)
-                    {
-                      start = 0;
-                    }
-                  int end = g_substrlastpos (filename, ".");
-                  if (end < start)
-                    {
-                      end = strlen (filename);
-                    }
-                  gchar *name = g_substr (filename, start, end);
+		  gchar *name = background_config_filename_to_label(filename);
                   add_background_button (name,
 				         BACKGROUND_MODE_FILE,
 					 filename,
 					 NULL);
                   /* Save chosen image to user configuration */
                   background_config_add_image (name, filename);
+
                   fclose (stream);
                 }
             }

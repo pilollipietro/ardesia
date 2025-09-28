@@ -541,18 +541,26 @@ background_selection_on_toggled (GtkToggleToolButton *toggle_tool_button,
   if (data->mode == BACKGROUND_MODE_COLOR)
     {
       update_background_color (data->color);
+
+      /* Persist the selected background color */
+      background_config_set_current_background (data->color);
     }
   else if (data->mode == BACKGROUND_MODE_FILE)
     {
       update_background_image (data->filename);
+
+      /* Persist the selected background image */
+      gchar *name = background_config_filename_to_label(data->filename);
+      background_config_set_current_background (name);
+      g_free (name);
     }
   else
     {
       clear_background_context ();
+      background_config_set_current_background ("transparent");
 
       annotation_data->background_button_last_selected =
 	BACKGROUND_NONE_SELECTED;
-
     }
 }
 

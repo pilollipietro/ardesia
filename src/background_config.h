@@ -26,6 +26,17 @@
 
 #include <glib.h>
 
+typedef enum {
+  BACKGROUND_RESTORED_NONE,
+  BACKGROUND_RESTORED_COLOR,
+  BACKGROUND_RESTORED_IMAGE
+} BackgroundRestoredType;
+
+typedef struct {
+  BackgroundRestoredType type;
+  gchar *value; /* color string or filename */
+} BackgroundRestored;
+
 /*
  * Load all color keys from config file.
  * Returns an array of key names (NULL terminated).
@@ -60,5 +71,27 @@ void background_config_add_image (const gchar *name, const gchar *path);
 
 /* Remove an entry from both color and image sections in user config file */
 void background_config_remove_key (const gchar *key_name);
+
+/**
+ * Save the currently selected background (color name or image path)
+ * into the user configuration.
+ */
+void background_config_set_current_background (const gchar *background);
+
+/**
+ * Retrieve the currently selected background from config.
+ * Caller must g_free() the returned string.
+ */
+gchar *background_config_get_current_background (void);
+
+/* Utility to derive the label from a filename (without path and extension) */
+gchar * background_config_filename_to_label (const gchar *filename);
+
+/*
+ * Restore last background used.
+ */
+BackgroundRestored *background_config_restore_last_background (void);
+
+void background_restored_free (BackgroundRestored *br);
 
 #endif /* __BACKGROUND_CONFIG_H__ */
