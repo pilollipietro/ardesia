@@ -12,3 +12,11 @@ current_background=transparent
 family=Sans
 size=32
 style=BoldItalic 
+
+[annotation]
+color=FFFF0088
+arrow=false
+thickness=thin
+rectify=false
+roundify=false
+tool=highlighter

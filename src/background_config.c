@@ -30,32 +30,10 @@
 #include "user_config.h"
 
 
-/* Internal: load a GKeyFile either from user or system config */
-static GKeyFile *
-background_config_load_keyfile (void)
-{
-  GKeyFile *kf = g_key_file_new ();
-
-  /*
-   * Use helper to get the correct config file for reading.
-   * get_config_file() returns the user config path if it exists,
-   * otherwise the system config path, or NULL if none exists.
-   */
-  gchar *cfg = get_config_file ();
-  if (cfg != NULL)
-    {
-      /* load_from_file will tolerate missing groups; errors are ignored */
-      g_key_file_load_from_file (kf, cfg, G_KEY_FILE_NONE, NULL);
-      g_free (cfg);
-    }
-
-  return kf;
-}
-
 gchar **
 background_config_get_color_keys (gsize *n_colors)
 {
-  GKeyFile *kf   = background_config_load_keyfile ();
+  GKeyFile *kf   = user_config_load_keyfile ();
   gchar   **keys = g_key_file_get_keys (kf, "colors", n_colors, NULL);
   g_key_file_unref (kf);
   return keys;
@@ -64,7 +42,7 @@ background_config_get_color_keys (gsize *n_colors)
 gchar **
 background_config_get_image_keys (gsize *n_images)
 {
-  GKeyFile *kf   = background_config_load_keyfile ();
+  GKeyFile *kf   = user_config_load_keyfile ();
   gchar   **keys = g_key_file_get_keys (kf, "images", n_images, NULL);
   g_key_file_unref (kf);
   return keys;
@@ -73,7 +51,7 @@ background_config_get_image_keys (gsize *n_images)
 gchar *
 background_config_get_color (const gchar *key)
 {
-  GKeyFile *kf  = background_config_load_keyfile ();
+  GKeyFile *kf  = user_config_load_keyfile ();
   gchar    *val = g_key_file_get_string (kf, "colors", key, NULL);
   g_key_file_unref (kf);
   return val;
@@ -82,7 +60,7 @@ background_config_get_color (const gchar *key)
 gchar *
 background_config_get_image (const gchar *key)
 {
-  GKeyFile *kf  = background_config_load_keyfile ();
+  GKeyFile *kf  = user_config_load_keyfile ();
   gchar    *val = g_key_file_get_string (kf, "images", key, NULL);
   g_key_file_unref (kf);
   return val;
@@ -124,7 +102,7 @@ background_config_save (GKeyFile *kf)
 void
 background_config_add_color (const gchar *name, const gchar *rgba)
 {
-  GKeyFile *kf = background_config_load_keyfile ();
+  GKeyFile *kf = user_config_load_keyfile ();
   g_key_file_set_string (kf, "colors", name, rgba);
   background_config_save (kf);
   g_key_file_unref (kf);
@@ -161,7 +139,7 @@ background_config_filename_to_label (const gchar *filename)
 void
 background_config_add_image (const gchar *name, const gchar *path)
 {
-  GKeyFile *kf = background_config_load_keyfile ();
+  GKeyFile *kf = user_config_load_keyfile ();
   g_key_file_set_string (kf, "images", name, path);
   background_config_save (kf);
   g_key_file_unref (kf);
@@ -171,7 +149,7 @@ background_config_add_image (const gchar *name, const gchar *path)
 void
 background_config_remove_key (const gchar *key_name)
 {
-  GKeyFile *kf = background_config_load_keyfile ();
+  GKeyFile *kf = user_config_load_keyfile ();
 
   if (g_key_file_has_key (kf, "colors", key_name, NULL))
     {
@@ -194,7 +172,7 @@ background_config_set_current_background (const gchar *background)
   user_config_ensure_file ();
 
   /* Load the keyfile from user or system */
-  GKeyFile *kf = background_config_load_keyfile ();
+  GKeyFile *kf = user_config_load_keyfile ();
 
   /* Store in [background] section under key current_background */
   g_key_file_set_string (kf, "background", "current_background", background);
@@ -209,7 +187,7 @@ background_config_set_current_background (const gchar *background)
 gchar *
 background_config_get_current_background (void)
 {
-  GKeyFile *kf = background_config_load_keyfile ();
+  GKeyFile *kf = user_config_load_keyfile ();
 
   gchar *val =
     g_key_file_get_string (kf, "background", "current_background", NULL);
@@ -228,7 +206,7 @@ background_config_restore_last_background (void)
   if (!last_bg)
     return NULL;
 
-  GKeyFile *kf = background_config_load_keyfile ();
+  GKeyFile *kf = user_config_load_keyfile ();
   BackgroundRestored *br = g_new0 (BackgroundRestored, 1);
 
   /* check colors section */

@@ -23,6 +23,7 @@
  */
 
 #include "bar.h"
+#include "annotation_config.h"
 #include "annotation_window.h"
 #include "background_window.h"
 #include "commandline.h"
@@ -122,6 +123,27 @@ activate_tool_button (gchar *tool_button_name)
   gtk_toggle_tool_button_set_active (tool_button, TRUE);
 }
 
+/* Get status bar. */
+GtkStatusbar *
+get_statusbar ()
+{
+  GObject *g_object = gtk_builder_get_object (bar_gtk_builder,
+                                              gettext ("statusbar"));
+  return GTK_STATUSBAR (g_object);
+}
+
+/* Replace staus message of status bar. */
+void
+replace_status_message (gchar *message)
+{
+  GtkStatusbar *bar = get_statusbar ();
+  if (bar != NULL)
+    {
+      gtk_statusbar_pop (bar, 0);
+      gtk_statusbar_push (bar, 0, message);
+    }
+}
+
 /* Allocate and initialize the bar data structure. */
 static BarData *
 init_bar_data ()
@@ -131,13 +153,11 @@ init_bar_data ()
   bar_data->grab                        = TRUE;
   bar_data->rectifier                   = FALSE;
   bar_data->rounder                     = FALSE;
-  bar_data->thickness                   = THIN_THICKNESS;
   bar_data->screenshot_pending          = FALSE;
   bar_data->screenshot_callback         = NULL;
   bar_data->screenshot_saved_location_x = -1;
   bar_data->screenshot_saved_location_y = -1;
   bar_data->snapshot_surface            = NULL;
-
   /* default to yellow highlighter */
   activate_tool_button ("buttonHighlighter");
   activate_tool_button ("buttonYellow");
@@ -145,6 +165,254 @@ init_bar_data ()
   return bar_data;
 }
 
+/* 
+ * Map a color string to the corresponding toolbar button and activate it.
+ * If the color does not match any predefined color, the "buttonColor"
+ * (custom color) button is activated.
+ */
+void
+update_color_in_bar (const gchar *rgba_color)
+{
+  if (rgba_color == NULL)
+    {
+      /* Default to custom color button */
+      activate_tool_button ("buttonColor");
+      return;
+    }
+  gchar *opaque_color = g_strdup_printf("%.6sFF", rgba_color);
+  if (g_ascii_strcasecmp (opaque_color, WHITE) == 0)
+    {
+      activate_tool_button ("buttonWhite");
+    }
+  else if (g_ascii_strcasecmp (opaque_color, RED) == 0)
+    {
+      activate_tool_button ("buttonRed");
+    }
+  else if (g_ascii_strcasecmp (opaque_color, YELLOW) == 0)
+    {
+      activate_tool_button ("buttonYellow");
+    }
+  else if (g_ascii_strcasecmp (opaque_color, GREEN) == 0)
+    {
+      activate_tool_button ("buttonGreen");
+    }
+  else if (g_ascii_strcasecmp (opaque_color, BLUE) == 0)
+    {
+      activate_tool_button ("buttonBlue");
+    }
+  else
+    {
+      /* Not a predefined color: activate the custom color button */
+      activate_tool_button ("buttonColor");
+    }
+  g_free (opaque_color);
+}
+
+/* Set thickness in bar data. */
+void
+set_thickness (gint thickness)
+{
+  bar_data->thickness = thickness;
+}
+
+/* Activate tool button by name. */
+void
+select_thickness (GtkToolButton *toolbutton, gchar *thickness)
+{
+  GObject *thickness_obj = gtk_builder_get_object (bar_gtk_builder, thickness);
+  gtk_tool_button_set_icon_widget (toolbutton, GTK_WIDGET (thickness_obj));
+}
+
+/* Update thickness in bar. */
+void
+update_thickness_in_bar(gchar *thickness)
+{
+  GObject *obj = gtk_builder_get_object (bar_gtk_builder, "buttonThick");
+  GtkToolButton *tool_button = GTK_TOOL_BUTTON (obj);
+  select_thickness (tool_button, thickness);
+}
+
+/*
+ * Finds a widget by its ID in the GtkBuilder UI definition and sets it
+ * as the icon for a GtkToolButton.
+ */
+void set_icon(GtkToolButton *toolbutton, gchar *icon_id)
+{
+  GObject *obj = gtk_builder_get_object (bar_gtk_builder,
+                                         icon_id);
+  
+  gtk_tool_button_set_icon_widget (toolbutton,
+                                   GTK_WIDGET (obj));
+}
+
+/*
+ * Sets the 'rounder' icon on a GtkToolButton.
+ */
+void set_rounder_icon(GtkToolButton *toolbutton)
+{
+  set_icon(toolbutton, "rounder");
+}
+
+/*
+ * Sets the 'rectifier' icon on a GtkToolButton.
+ */
+void set_rectifier_icon(GtkToolButton *toolbutton)
+{
+  set_icon(toolbutton, "rectifier");
+}
+
+/*
+ * Sets the 'hand' icon on a GtkToolButton.
+ */
+void set_hand_icon(GtkToolButton *toolbutton)
+{
+  set_icon(toolbutton, "hand");
+}
+
+/* Read from bar data and setup modifier on bar */
+void
+setup_bar_mode(GtkToolButton *toolbutton, BarData *bar_data)
+{
+  if (! bar_data->rectifier)
+    {
+      if (! bar_data->rounder)
+        {
+          /* Select the rounder mode. */
+          set_rounder_icon(toolbutton);
+  
+          bar_data->rounder   = TRUE;
+          bar_data->rectifier = FALSE;
+          replace_status_message (gettext ("Rounder mode selected"));
+        }
+      else                       
+        {
+          /* Select the rectifier mode. */
+          set_rectifier_icon(toolbutton);
+          bar_data->rectifier = TRUE;
+          bar_data->rounder   = FALSE;
+          replace_status_message (gettext ("Polygon mode selected"));
+        }
+    }
+  else
+    {
+      /* Select the free hand writing mode. */
+      set_hand_icon(toolbutton);
+      bar_data->rectifier = FALSE;
+      bar_data->rounder   = FALSE;
+      replace_status_message (gettext ("Freehand mode selected"));
+    }
+
+}
+
+/*
+ * Sets the rounder or rectifier icon on the buttonMode GtkToolButton
+ * depending in bar_data settings.
+ */
+static void
+update_modifiers_in_bar (BarData *bar_data)
+{
+  GObject *obj = gtk_builder_get_object (bar_gtk_builder, "buttonMode");
+  GtkToolButton *tool_button = GTK_TOOL_BUTTON (obj);
+  if (bar_data->rectifier)
+    {
+      set_rectifier_icon(tool_button);
+    }
+  if (bar_data->rounder)
+    {
+      set_rounder_icon(tool_button);
+    }
+}
+
+/*
+ * Sets AnnotateData modifier settings compliant with bar_data settings.
+ */
+static void
+set_modifiers (BarData *bar_data, AnnotateData *data)
+{
+  if (data->rectify)
+    {
+      bar_data->rectifier = TRUE;
+    }
+  if (data->roundify)
+    {
+      bar_data->rounder = TRUE;
+    }
+}
+
+/* Read annotate data and and activate tools. */
+void
+activate_tools(AnnotateData *data)
+{
+  switch (data->cur_context->type)
+    {
+      case ANNOTATE_ERASER:
+        activate_tool_button ("buttonEraser");
+        break;
+      case ANNOTATE_PEN:
+        if (data->is_opaque)
+	  {
+            activate_tool_button ("buttonPencil");
+          }
+        else
+	  {
+            activate_tool_button ("buttonHighlighter");
+          }
+        break;
+      case ANNOTATE_FILLER:
+        activate_tool_button ("buttonFiller");
+        break;
+      case ANNOTATE_POINTER:
+        activate_tool_button ("buttonPointer");
+        break;
+      default:
+        break;
+    }
+
+  if (data->arrow)
+    {
+      activate_tool_button ("buttonArrow");
+    }
+
+  if (data->text_tool)
+    {
+      activate_tool_button("buttonText");
+    }
+}
+
+/* Update bar data from the state of AnnotateData comimg from config file. */
+static void
+update_bar_data_state (BarData *bar_data, AnnotateData *data)
+{
+  activate_tools(data);
+
+  set_thickness (data->thickness);
+  gchar *thickness_label = annotate_thickness_pixel_to_label(bar_data->thickness);
+  update_thickness_in_bar (thickness_label);
+  
+  bar_data->color = data->color;
+  update_color_in_bar (bar_data->color);
+  
+  set_modifiers (bar_data, data);
+  update_modifiers_in_bar (bar_data);
+}
+
+/**
+ * get_xdg_config_file:
+ * @name: The name of the configuration file (e.g., "app-name/settings.conf").
+ *
+ * Finds a configuration file by searching directories specified by the
+ * XDG Base Directory Specification.
+ *
+ * It prioritizes the user's personal configuration directory
+ * (from g_get_user_config_dir()) before searching the system-wide
+ * directories (from g_get_system_config_dirs()). The function returns
+ * the full path to the first matching file found.
+ *
+ * Returns: (transfer full): A newly allocated string containing the file path,
+ * or %NULL if the file was not found in any of the standard
+ * locations. The caller is responsible for freeing the returned
+ * string with g_free().
+ */
 gchar *
 get_xdg_config_file (const char *name)
 {
@@ -243,6 +511,8 @@ create_bar_window (CommandLine *commandline,
     }
 
   bar_data         = init_bar_data ();
+  update_bar_data_state (bar_data, annotation_data);
+
   GObject *bar_obj = gtk_builder_get_object (bar_gtk_builder, BAR_WIDGET_NAME);
 
   bar_window = GTK_WIDGET (bar_obj);
@@ -272,26 +542,8 @@ create_bar_window (CommandLine *commandline,
   /* Move the window in the desired position. */
   gtk_window_move (GTK_WINDOW (bar_window), rect->x + x, rect->y + y);
   
+  start_tool(bar_data);
   return bar_window;
-}
-
-GtkStatusbar *
-get_statusbar ()
-{
-  GObject *g_object = gtk_builder_get_object (bar_gtk_builder,
-                                              gettext ("statusbar"));
-  return GTK_STATUSBAR (g_object);
-}
-
-void
-replace_status_message (gchar *message)
-{
-  GtkStatusbar *bar = get_statusbar ();
-  if (bar != NULL)
-    {
-      gtk_statusbar_pop (bar, 0);
-      gtk_statusbar_push (bar, 0, message);
-    }
 }
 
 void

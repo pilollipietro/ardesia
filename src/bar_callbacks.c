@@ -97,8 +97,9 @@ G_MODULE_EXPORT gboolean
 on_bar_quit (GtkToolButton *toolbutton, gpointer func_data)
 {
   g_debug ("on_bar_quit\n");
+  
   BarData *bar_data = (BarData *) func_data;
-
+  
   stop_recorder ();
 
   bar_data->grab = FALSE;
@@ -108,8 +109,17 @@ on_bar_quit (GtkToolButton *toolbutton, gpointer func_data)
   export_iwb (get_iwb_filename ());
   quit_pdf_saver ();
   // start_share_dialog ();
+  
+  if (is_text_toggle_tool_button_active ())
+    {
+      annotation_data->text_tool = TRUE;
+    }
+  else
+    {
+      annotation_data->text_tool = FALSE;
+    }
 
-  // handles removal of background and text data structures
+  /* handles removal of background and text data structures */
   annotate_quit ();
 
   /* Quit the gtk engine. */
@@ -139,8 +149,8 @@ on_bar_info (GtkToolButton *toolbutton, gpointer func_data)
 /* Called when leave the window. */
 G_MODULE_EXPORT gboolean
 on_bar_leave_notify_event (GtkWidget *widget,
-		           GdkEvent *event,
-			   gpointer func_data)
+                           GdkEvent *event,
+                           gpointer func_data)
 {
   BarData *bar_data = (BarData *) func_data;
   start_tool (bar_data);
@@ -150,8 +160,8 @@ on_bar_leave_notify_event (GtkWidget *widget,
 /* Called when enter the window. */
 G_MODULE_EXPORT gboolean
 on_bar_enter_notify_event (GtkWidget *widget,
-		           GdkEvent *event,
-			   gpointer func_data)
+                           GdkEvent *event,
+                           gpointer func_data)
 {
   g_debug ("bar enter notify event\n");
   if (is_text_toggle_tool_button_active ())
@@ -184,44 +194,7 @@ on_bar_mode_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
   BarData *bar_data = (BarData *) func_data;
   take_pen_tool ();
-  if (! bar_data->rectifier)
-    {
-      if (! bar_data->rounder)
-        {
-          /* Select the rounder mode. */
-          GObject *rounder_obj = gtk_builder_get_object (bar_gtk_builder,
-                                                         "rounder");
-
-          gtk_tool_button_set_icon_widget (toolbutton,
-			                   GTK_WIDGET (rounder_obj));
-
-          bar_data->rounder   = TRUE;
-          bar_data->rectifier = FALSE;
-          replace_status_message (gettext ("Rounder mode selected"));
-        }
-      else
-        {
-          /* Select the rectifier mode. */
-          GObject *rectifier_obj = gtk_builder_get_object (bar_gtk_builder,
-                                                           "rectifier");
-
-          gtk_tool_button_set_icon_widget (toolbutton,
-			                   GTK_WIDGET (rectifier_obj));
-
-          bar_data->rectifier = TRUE;
-          bar_data->rounder   = FALSE;
-          replace_status_message (gettext ("Polygon mode selected"));
-        }
-    }
-  else
-    {
-      /* Select the free hand writing mode. */
-      GObject *hand_obj = gtk_builder_get_object (bar_gtk_builder, "hand");
-      gtk_tool_button_set_icon_widget (toolbutton, GTK_WIDGET (hand_obj));
-      bar_data->rectifier = FALSE;
-      bar_data->rounder   = FALSE;
-      replace_status_message (gettext ("Freehand mode selected"));
-    }
+  setup_bar_mode (toolbutton, bar_data);
 }
 
 /* Push thickness button. */
@@ -234,32 +207,28 @@ on_bar_thick_activate (GtkToolButton *toolbutton, gpointer func_data)
     {
       replace_status_message (gettext ("Brush thickness set to thin"));
       /* Set the thin icon. */
-      GObject *thin_obj = gtk_builder_get_object (bar_gtk_builder, "thin");
-      gtk_tool_button_set_icon_widget (toolbutton, GTK_WIDGET (thin_obj));
+      select_thickness (toolbutton, "thin");
       bar_data->thickness = THIN_THICKNESS;
     }
   else if (bar_data->thickness == THIN_THICKNESS)
     {
       replace_status_message (gettext ("Brush thickness set to medium"));
       /* Set the medium icon. */
-      GObject *medium_obj = gtk_builder_get_object (bar_gtk_builder, "medium");
-      gtk_tool_button_set_icon_widget (toolbutton, GTK_WIDGET (medium_obj));
+      select_thickness (toolbutton, "medium");
       bar_data->thickness = MEDIUM_THICKNESS;
     }
   else if (bar_data->thickness == MEDIUM_THICKNESS)
     {
       replace_status_message (gettext ("Brush thickness set to thick"));
       /* Set the thick icon. */
-      GObject *thick_obj = gtk_builder_get_object (bar_gtk_builder, "thick");
-      gtk_tool_button_set_icon_widget (toolbutton, GTK_WIDGET (thick_obj));
+      select_thickness (toolbutton, "thick");
       bar_data->thickness = THICK_THICKNESS;
     }
   else if (bar_data->thickness == THICK_THICKNESS)
     {
       replace_status_message (gettext ("Brush thickness set to micro"));
       /* Set the micro icon. */
-      GObject *micro_obj = gtk_builder_get_object (bar_gtk_builder, "micro");
-      gtk_tool_button_set_icon_widget (toolbutton, GTK_WIDGET (micro_obj));
+      select_thickness (toolbutton, "micro");
       bar_data->thickness = MICRO_THICKNESS;
     }
 }

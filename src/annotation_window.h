@@ -61,6 +61,11 @@
   ANNOTATION_UI_FOLDER "/icons/desktop_transparent.png"
 #endif
 
+#define MICRO_THICKNESS  3
+#define THIN_THICKNESS   6
+#define MEDIUM_THICKNESS 12
+#define THICK_THICKNESS  18
+
 /* Enumeration containing tools. */
 typedef enum
 {
@@ -220,7 +225,10 @@ typedef struct
 
   /* Arrow. */
   gboolean arrow;
-
+  
+  /* Text tool. */
+  gboolean text_tool;
+  
   /* Is the cursor grabbed. */
   gboolean is_grabbed;
 

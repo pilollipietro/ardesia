@@ -22,6 +22,8 @@ ardesia_SOURCES = \
 	bar.h                                     \
 	bar_callbacks.c                           \
 	bar_callbacks.h                           \
+	annotation_config.c                       \
+	annotation_config.h                       \
 	annotation_window_callbacks.c             \
 	annotation_window_callbacks.h             \
 	background_config.c                       \

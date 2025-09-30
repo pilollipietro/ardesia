@@ -260,46 +260,26 @@ clear_if_empty ()
 static void
 set_cursor_height (GtkWidget *widget)
 {
+  PangoLayout *layout = gtk_widget_create_pango_layout (widget, "|");
 
-  int width  = gtk_widget_get_allocated_width (widget);
-  int height = gtk_widget_get_allocated_width (widget);
+  pango_layout_set_font_description (layout, annotation_data->font);
 
-  /*
-   * Determine the appropriate size for the cursor.
-   * We do not need an actual window Cairo context for this,
-   * so we simply create a blank surface for the calculation.
-   */
-  cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-		                                         width,
-							 height);
-  cairo_t *cr = cairo_create (surface);
-  cairo_save (cr);
-  cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
-  cairo_set_line_width (cr, text_data->pen_width);
-  cairo_set_source_color_from_string (cr, text_data->color);
-  cairo_set_font_size (cr, text_data->pen_width * 5);
+  PangoRectangle ink_rect;
+  pango_layout_get_extents (layout, &ink_rect, NULL);
 
-  /* Select the font. */
-  cairo_select_font_face (cr,
-		          text_config->fontfamily,
-			  CAIRO_FONT_SLANT_NORMAL,
-                          CAIRO_FONT_WEIGHT_NORMAL);
+  /* Convert from Pango units to pixels. */
+  text_data->max_font_height = (gdouble) (ink_rect.height / PANGO_SCALE);
 
-  /* This is a trick; we must found the maximum height of the font. */
-  cairo_text_extents (cr, "|", &text_data->extents);
-  text_data->max_font_height = text_data->extents.height;
-  cairo_restore (cr);
+  g_debug ("[cursor height] using layout extents: %.2f px",
+           text_data->max_font_height);
 
-  cairo_surface_destroy (surface);
-  cairo_destroy (cr);
+  g_object_unref (layout);
 }
 
 /* Initialization routine. Called on text expose. */
 void
 init_text_widget (GtkWidget *widget)
 {
-  // embed_tools_window (widget);
-
   set_cursor_height (widget);
   assign_text_cursor_to_window (widget);
 
@@ -346,7 +326,9 @@ start_text_widget (GtkWidget *widget, gchar *color, gint thickness)
   g_debug ("start_text_widget (%s)\n", color);
   create_text_data ();
   text_data->color     = color;
-  text_data->pen_width = thickness;
+  //text_data->pen_width = pango_font_description_get_size (font) / PANGO_SCALE;
+  text_data->pen_width = (gdouble) thickness;
+
   text_data->cr = create_new_context (gtk_widget_get_allocated_width (widget),
                                       gtk_widget_get_allocated_height (widget));
   init_text_widget (widget);

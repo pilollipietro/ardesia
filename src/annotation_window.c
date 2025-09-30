@@ -26,6 +26,7 @@
 #endif
 
 #include "annotation_window.h"
+#include "annotation_config.h"
 #include "annotation_window_callbacks.h"
 #include "background_window.h"
 #include "bar.h"
@@ -280,7 +281,7 @@ annotate_draw_curve (AnnotateDeviceData *devdata, GSList *list)
             {
               /* It is a point. */
               annotate_draw_point (devdata,
-			           first_point->x,
+                                   first_point->x,
 				   first_point->y,
                                    first_point->pressure);
             }
@@ -1445,6 +1446,7 @@ annotate_quit ()
 
   if (annotation_data)
     {
+      annotation_config_save_state (annotation_data);
       if (annotation_data->color)
         {
           g_free (annotation_data->color);
@@ -1679,7 +1681,6 @@ create_annotation_data ()
   annotation_data->default_filler =
     annotate_paint_context_new (ANNOTATE_FILLER);
 
-  annotation_data->cur_context = annotation_data->default_pen;
   annotation_data->monitor     = NULL;
 
   annotation_data->recordingstudio_window_gtk_builder = NULL;
@@ -1721,6 +1722,8 @@ annotate_init (Monitor *monitor)
 
   /* Setup AnnotateData object. */
   create_annotation_data ();
+
+  annotation_config_load_state (annotation_data);
 
   /* Initialize the pen context. */
   annotation_data->monitor = monitor;

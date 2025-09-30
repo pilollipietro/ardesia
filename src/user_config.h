@@ -32,4 +32,7 @@
  */
 void user_config_ensure_file (void);
 
+/* Load a GKeyFile either from user or system config. */
+GKeyFile *user_config_load_keyfile (void);
+
 #endif

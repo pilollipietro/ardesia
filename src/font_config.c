@@ -21,10 +21,12 @@
  *
  */
 
-#include "font_config.h"
-#include "config_path.h"
 #include <glib.h>
 #include <pango/pango.h>
+
+#include "font_config.h"
+#include "config_path.h"
+#include "user_config.h"
 
 #define FONT_SECTION "font"
 #define FONT_KEY_FAMILY "family"
@@ -37,18 +39,7 @@
 PangoFontDescription *
 font_config_load (void)
 {
-  gchar *cfg = get_config_file ();
-  if (cfg == NULL)
-    return NULL;
-
-  GKeyFile *kf = g_key_file_new ();
-  if (!g_key_file_load_from_file (kf, cfg, G_KEY_FILE_NONE, NULL))
-    {
-      g_key_file_unref (kf);
-      g_free (cfg);
-      return NULL;
-    }
-
+  GKeyFile *kf = user_config_load_keyfile ();
   gchar *family = g_key_file_get_string (kf, FONT_SECTION, FONT_KEY_FAMILY, NULL);
   gint size = g_key_file_get_integer (kf, FONT_SECTION, FONT_KEY_SIZE, NULL);
   gchar *style = g_key_file_get_string (kf, FONT_SECTION, FONT_KEY_STYLE, NULL);
@@ -82,7 +73,6 @@ font_config_load (void)
   g_free (family);
   g_free (style);
   g_key_file_unref (kf);
-  g_free (cfg);
   return desc;
 }
 

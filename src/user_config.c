@@ -21,10 +21,13 @@
  *
  */
 
-#include "user_config.h"
-#include "config.h"
 #include <gio/gio.h>
 #include <glib/gstdio.h>
+
+#include "user_config.h"
+#include "config.h"
+#include "config_path.h"
+
 
 /* Copy system config to user config if needed */
 void
@@ -74,4 +77,24 @@ user_config_ensure_file (void)
   g_free (user_conf_path);
 }
 
+/* Load a GKeyFile either from user or system config. */
+GKeyFile *
+user_config_load_keyfile (void)
+{
+  GKeyFile *kf = g_key_file_new ();
 
+  /*
+   * Use helper to get the correct config file for reading.
+   * get_config_file() returns the user config path if it exists,
+   * otherwise the system config path, or NULL if none exists.
+   */
+  gchar *cfg = get_config_file ();
+  if (cfg != NULL)
+    {
+      /* load_from_file will tolerate missing groups; errors are ignored */
+      g_key_file_load_from_file (kf, cfg, G_KEY_FILE_NONE, NULL);
+      g_free (cfg);
+    }
+
+  return kf;
+}

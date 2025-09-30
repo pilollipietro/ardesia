@@ -191,7 +191,7 @@ draw_character (cairo_t *cr, CharInfo *char_info)
 	       char_info->font_family);
 
       cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
-
+      
       cairo_set_line_width (cr, char_info->pen_width);
       cairo_set_source_color_from_string (cr, char_info->color);
 

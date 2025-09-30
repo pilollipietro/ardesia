@@ -270,7 +270,6 @@ main (int argc, char *argv[])
   replace_status_message (status_msg);
 
   initialize_font ();
-
   gtk_main ();
 
   destroy_workspace (workspace);

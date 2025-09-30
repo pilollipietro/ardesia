@@ -39,11 +39,6 @@
 /* Distance space from border to the ardesia bar in pixel unit. */
 #define SPACE_FROM_BORDER 35
 
-#define MICRO_THICKNESS  3
-#define THIN_THICKNESS   6
-#define MEDIUM_THICKNESS 12
-#define THICK_THICKNESS  18
-
 /* Semi opaque (and then semi transparent) alpha;
  * this is used to make the highlighter effect.
  */
@@ -131,3 +126,9 @@ void     set_options (BarData *bar_data);
 void     start_tool (BarData *bar_data);
 
 void     begin_clapperboard_countdown ();
+
+/* Activate tool button by name. */
+void     select_thickness (GtkToolButton *toolbutton, gchar *thickness);
+
+/* Read from bar data and setup modifier on bar */
+void setup_bar_mode(GtkToolButton *toolbutton, BarData *bar_data);
