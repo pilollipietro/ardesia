@@ -56,6 +56,45 @@ is_above_virtual_keyboard (gint x, gint y)
 }
 #endif
 
+/**
+ * Draws a PangoLayout by first stroking its path to create a thicker
+ * outline, and then filling it. This gives the text a variable weight
+ * based on the pen width.
+ */
+static void
+draw_layout_with_thickness (cairo_t     *cr,
+                            PangoLayout *layout,
+                            CharInfo    *char_info)
+{
+  GdkRGBA *color = rgba_to_gdkcolor (char_info->color);
+  if (!color)
+    {
+      /* Fallback to solid black if color conversion fails */
+      cairo_set_source_rgb (cr, 0.0, 0.0, 0.0);
+    }
+  else
+    {
+      cairo_set_source_rgba (cr, color->red, color->green, color->blue, color->alpha);
+      g_free (color);
+    }
+
+  /* Convert the text glyphs into a vector path. */
+  pango_cairo_layout_path (cr, layout);
+
+  /* Set the outline thickness from the character's properties. */
+  cairo_set_line_width (cr, char_info->pen_width);
+  cairo_set_line_join (cr, CAIRO_LINE_JOIN_ROUND);
+
+  /*
+   * Draw the outline (stroke) to "thicken" the letter.
+   * We use _preserve to keep the path for the fill operation.
+   */
+  cairo_stroke_preserve (cr);
+
+  /* 4. Fill the inside of the letter */
+  cairo_fill (cr);
+}
+
 /*
  * The windows has been exposed.
  * Need Double Buffering to be activated for this to work properly
@@ -209,9 +248,11 @@ draw_character (cairo_t *cr, CharInfo *char_info)
       gint baseline = pango_layout_get_baseline (layout);
       cairo_move_to (cr, char_info->x, char_info->y - (baseline / PANGO_SCALE));
 
-      pango_cairo_show_layout (cr, layout);
+      draw_layout_with_thickness(cr, layout, char_info);
+
       char_info->text_width  = text_width;
       char_info->text_height = text_height;
+      
       char_info->baseline    = baseline;
       cairo_surface_flush (cairo_get_target (cr));
       cairo_restore (cr);
