@@ -89,28 +89,33 @@ stop_blink_cursor ()
 gboolean
 blink_cursor (gpointer data)
 {
-
   if ((text_data->pos) && (text_data->cr))
     {
-
-      gint     height = text_data->max_font_height;
-      cairo_t *cr     = text_data->cr;
+      /* height already derived from Pango font and stored as gdouble */
+      gdouble height = text_data->max_font_height;
+      cairo_t *cr = text_data->cr;
 
       cairo_save (cr);
       cairo_set_line_cap (cr, CAIRO_LINE_CAP_ROUND);
       cairo_set_line_join (cr, CAIRO_LINE_JOIN_ROUND);
 
+      /* compute rect width from pen_width, guarantee minimum 1.0 */
+      gdouble rect_w = text_data->pen_width;
+      if (rect_w < 1.0)
+        rect_w = 1.0;
+
       if (text_data->blink_show)
         {
           cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+          /* stroke width for outline (if you stroke) */
           cairo_set_line_width (cr, text_data->pen_width);
           cairo_set_source_color_from_string (cr, text_data->color);
 
           cairo_rectangle (cr,
-			   text_data->pos->x,
-			   text_data->pos->y - height,
-                           TEXT_CURSOR_WIDTH,
-			   height);
+                           text_data->pos->x,
+                           text_data->pos->y - height,
+                           rect_w,
+                           height);
 
           text_data->blink_show = FALSE;
         }
@@ -119,16 +124,16 @@ blink_cursor (gpointer data)
           cairo_set_operator (cr, CAIRO_OPERATOR_CLEAR);
 
           cairo_rectangle (cr,
-			   text_data->pos->x,
-			   text_data->pos->y - height,
-                           TEXT_CURSOR_WIDTH,
-			   height);
+                           text_data->pos->x,
+                           text_data->pos->y - height,
+                           rect_w,
+                           height);
 
           cairo_rectangle (cr,
-			   text_data->pos->x - 1,
-			   text_data->pos->y - height - 1,
-                           TEXT_CURSOR_WIDTH + 2,
-			   height + 2);
+                           text_data->pos->x - 1,
+                           text_data->pos->y - height - 1,
+                           rect_w + 2,
+                           height + 2);
 
           text_data->blink_show = TRUE;
         }
