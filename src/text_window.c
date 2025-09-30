@@ -147,87 +147,75 @@ blink_cursor (gpointer data)
   return TRUE;
 }
 
-/* Set the text cursor. */
 static gboolean
 assign_text_cursor_to_window (GtkWidget *window)
 {
+  gdouble font_h = text_data->max_font_height;
+  gdouble thickness = text_data->pen_width;
+  if (thickness < 1.0)
+    thickness = 1.0;
 
-  gdouble decoration_height = 4;
-  gint    height = text_data->max_font_height + decoration_height * 2;
-  gint    width  = TEXT_CURSOR_WIDTH * 3;
+  /* Defines a width for the horizontal "serifs" of the "I" cursor. */
+  gdouble serif_width = thickness + 4.0 * sqrt(thickness);
 
-  g_debug ("assign new cursor to window %d %d %s\n",
-           width,
-	   height,
-	   text_data->color);
+  gint width  = (gint) ceil (serif_width);
+  gint height = (gint) ceil (font_h) + 2; /* Add a vertical padding*/
 
-  cairo_surface_t *text_surface_t;
-  text_surface_t = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-                                               width,
-					       height);
+  cairo_surface_t *text_surface_t =
+      cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);
+  cairo_t *cr = cairo_create (text_surface_t);
 
-  cairo_t   *text_pointer_cr    = cairo_create (text_surface_t);
-  GdkRGBA   *foreground_color_p = rgba_to_gdkcolor (text_data->color);
-  GdkCursor *cursor             = (GdkCursor *) NULL;
-  GdkPixbuf *pixbuf             = (GdkPixbuf *) NULL;
+  clear_cairo_context (cr);
+  cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
 
-  if (text_pointer_cr)
-    {
-      clear_cairo_context (text_pointer_cr);
-      cairo_save (text_pointer_cr);
-      cairo_set_source_color_from_string (text_pointer_cr, text_data->color);
-      cairo_set_operator (text_pointer_cr, CAIRO_OPERATOR_SOURCE);
-      cairo_set_line_width (text_pointer_cr, 2);
+  GdkRGBA *fg_ptr = rgba_to_gdkcolor (text_data->color);
+  if (fg_ptr)
+  {
+    cairo_set_source_rgba (cr, fg_ptr->red, fg_ptr->green, fg_ptr->blue, fg_ptr->alpha);
+    g_free (fg_ptr);
+  }
+  else
+  {
+    cairo_set_source_rgb (cr, 0.0, 0.0, 0.0);
+  }
 
-      cairo_line_to (text_pointer_cr, 1, 1);
-      cairo_line_to (text_pointer_cr, width - 1, 1);
-      cairo_line_to (text_pointer_cr, width - 1, decoration_height);
-      cairo_line_to (text_pointer_cr, 2 * width / 3 + 1, decoration_height);
+  cairo_set_line_width (cr, thickness);
+  cairo_set_line_cap (cr, CAIRO_LINE_CAP_BUTT);
 
-      cairo_line_to (text_pointer_cr,
-		     2 * width / 3 + 1,
-		     height - decoration_height);
+  gdouble center_x = width / 2.0;
 
-      cairo_line_to (text_pointer_cr, width - 1, height - decoration_height);
-      cairo_line_to (text_pointer_cr, width - 1, height - 1);
-      cairo_line_to (text_pointer_cr, 1, height - 1);
-      cairo_line_to (text_pointer_cr, 1, height - decoration_height);
+  /* Draw the central vertical line */
+  cairo_move_to (cr, center_x, 1.0);
+  cairo_line_to (cr, center_x, 1.0 + font_h);
 
-      cairo_line_to (text_pointer_cr,
-		     width / 3 - 1,
-		     height - decoration_height);
+  /* Draw top horizontal serif */
+  cairo_move_to (cr, center_x - serif_width / 2.0, 1.0);
+  cairo_line_to (cr, center_x + serif_width / 2.0, 1.0);
 
-      cairo_line_to (text_pointer_cr, width / 3 - 1, decoration_height);
-      cairo_line_to (text_pointer_cr, 1, decoration_height);
-      cairo_close_path (text_pointer_cr);
+  /* Draw bottom horizontal serif */
+  cairo_move_to (cr, center_x - serif_width / 2.0, 1.0 + font_h);
+  cairo_line_to (cr, center_x + serif_width / 2.0, 1.0 + font_h);
 
-      cairo_stroke (text_pointer_cr);
-      cairo_restore (text_pointer_cr);
+  cairo_stroke (cr);
+  
+  GdkPixbuf *pixbuf = gdk_pixbuf_get_from_surface (text_surface_t, 0, 0, width, height);
+  
+  GdkCursor *cursor = gdk_cursor_new_from_pixbuf (
+    gdk_window_get_display (gtk_widget_get_window (window)),
+    pixbuf,
+    width / 2,
+    (gint) (1.0 + font_h));
 
-      cairo_destroy (text_pointer_cr);
-      pixbuf = gdk_pixbuf_get_from_surface (text_surface_t,
-		                            0,
-					    0,
-					    width,
-					    height);
-
-      cursor = gdk_cursor_new_from_pixbuf (
-          gdk_window_get_display (gtk_widget_get_window (window)),
-	  pixbuf,
-          width / 2 - decoration_height,
-	  height - decoration_height);
-
-      gdk_window_set_cursor (gtk_widget_get_window (window), cursor);
-      gtk_widget_queue_draw (window);
-    }
+  gdk_window_set_cursor (gtk_widget_get_window (window), cursor);
 
   g_object_unref (cursor);
   g_object_unref (pixbuf);
+  cairo_destroy (cr);
   cairo_surface_destroy (text_surface_t);
-  g_free (foreground_color_p);
 
   return TRUE;
 }
+
 
 /* Add a save-point with the text. Called from stop_text_widget. */
 void
