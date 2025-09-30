@@ -89,6 +89,7 @@ on_bar_configure_event (GtkWidget *widget, GdkEvent *event, gpointer func_data)
     {
       set_options (bar_data);
     }
+  start_tool(bar_data);
   return TRUE;
 }
 
