@@ -154,33 +154,21 @@ typedef struct
 extern TextData   *text_data;
 extern TextConfig *text_config;
 
-TextConfig *create_text_config ();
+void destroy_text_properties (gpointer data);
 
-void make_cairo_context_for_text_window ();
+TextConfig *create_text_config (void);
 
-cairo_t *create_new_text_window_context ();
+void start_blink_cursor (void);
 
-cairo_t *create_copy_of_text_window_context (cairo_t *current_context);
+void stop_blink_cursor (void);
 
-void stop_timer ();
-
-void start_blink_cursor ();
-
-void stop_blink_cursor ();
-
-void draw_test_text (cairo_t *cr, gchar *text);
-
-gboolean blink_cursor (gpointer data);
-
-void save_text ();
-
-void init_text_widget (GtkWidget *widget);
+void save_text (void);
 
 /* Start text widget. */
 void start_text_widget (GtkWidget *parent, gchar *color, gint thickness);
 
 /* Stop text widget. */
-void stop_text_widget ();
+void stop_text_widget (void);
 
 gdouble calculate_visual_thickness (gdouble pen_width, gint font_size);
 

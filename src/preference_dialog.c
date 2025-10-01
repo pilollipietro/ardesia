@@ -31,7 +31,13 @@
 #include "preference_dialog.h"
 #include "utils.h"
 
-/* Show the permission denied to access to file dialog. */
+/**
+ * show_permission_denied_dialog:
+ * @parent: the parent #GtkWindow for the dialog.
+ *
+ * Shows a modal error dialog indicating that access to a file
+ * was denied due to insufficient permissions.
+ **/
 void
 show_permission_denied_dialog (GtkWindow *parent)
 {
@@ -57,10 +63,15 @@ show_permission_denied_dialog (GtkWindow *parent)
     }
 }
 
-/*
- * Start the dialog that ask to the user
- * the background setting.
- */
+/**
+ * start_preference_dialog:
+ * @parent: the parent #GtkWindow for the preference dialog.
+ *
+ * Starts the preferences dialog, allowing the user to choose
+ * the background (color or image) and other settings.
+ * Initializes the virtual keyboard, sets up GTK widgets and signals,
+ * and runs the modal dialog.
+ **/
 void
 start_preference_dialog (GtkWindow *parent)
 {

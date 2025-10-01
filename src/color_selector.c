@@ -32,10 +32,25 @@
 /* old picked color in RGBA format */
 static gchar *picked_color = NULL;
 
-/*
- * Start the color selector dialog
- * it return the selected color.
- */
+/**
+ * start_color_selector_dialog:
+ * @toolbutton: The toggle tool button that triggered the action.
+ * @parent: (nullable): The parent #GtkWindow for this dialog.
+ * @color: The initial color to display if no other color has been
+ * previously picked.
+ *
+ * Displays a #GtkColorChooserDialog, allowing the user to pick a new color.
+ *
+ * The function only shows the dialog if the provided @toolbutton is
+ * currently in an active (toggled) state. The dialog is initialized
+ * with a previously selected global color or the provided @color as a
+ * fallback. It allows the selection of colors with an alpha channel.
+ *
+ * Returns: (transfer full) (nullable): A newly allocated string representing
+ * the selected RGBA color (e.g., "FF0000FF") if the user clicks "OK",
+ * or %NULL otherwise. The caller is responsible for freeing the
+ * returned string with g_free().
+ **/
 gchar *
 start_color_selector_dialog (GtkToolButton *toolbutton,
                              GtkWindow *parent,

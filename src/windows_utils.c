@@ -29,10 +29,21 @@
 BOOL (WINAPI *setLayeredWindowAttributesProc)
 (HWND hwnd, COLORREF cr_key, BYTE b_alpha, DWORD dw_flags) = NULL;
 
-/*
- * This is needed to wrap the setLayeredWindowAttributes
- * throught the windows user32 dll.
- * */
+/**
+ * setLayeredGdkWindowAttributes:
+ * @gdk_window: The #GdkWindow to modify.
+ * @cr_key: The COLORREF value of the transparency color key.
+ * @b_alpha: The BYTE alpha value for uniform transparency.
+ * @dw_flags: A DWORD specifying the action (e.g., %LWA_COLORKEY).
+ *
+ * A Windows-specific wrapper for the `SetLayeredWindowAttributes` Win32 API
+ * function.
+ *
+ * This function is used to set advanced transparency effects on a layered
+ * window, such as color keying or uniform alpha blending. It dynamically
+ * loads `user32.dll` to call the native function. For details on the
+ * parameters, see the Microsoft documentation for `SetLayeredWindowAttributes`.
+ **/
 void
 setLayeredGdkWindowAttributes (GdkWindow *gdk_window,
                                COLORREF cr_key,
@@ -52,7 +63,22 @@ setLayeredGdkWindowAttributes (GdkWindow *gdk_window,
   setLayeredWindowAttributesProc (hwnd, cr_key, b_alpha, dw_flags);
 }
 
-/* Send an email with MAPI. */
+/**
+ * windows_send_email:
+ * @to: The primary recipient's email address.
+ * @subject: The subject line of the email.
+ * @body: The main text content of the email.
+ * @attachment_list: (element-type filename): A #GSList of strings, where
+ * each string is a full path to a file to be attached.
+ *
+ * A Windows-specific function that sends an email using the Simple MAPI
+ * interface.
+ *
+ * This function opens the user's default email client with a new message
+ * window pre-filled with the provided recipient, subject, body, and
+ * attachments. It dynamically loads `MAPI32.DLL` at runtime to make the
+ * API call.
+ **/
 void
 windows_send_email (gchar *to,
                     gchar *subject,
@@ -105,7 +131,22 @@ windows_send_email (gchar *to,
   MAPISendMail (0, 0, &m_msg, MAPI_LOGON_UI | MAPI_DIALOG, 0L);
 }
 
-/* Create a link with icon. */
+/**
+ * windows_create_link:
+ * @src: The full path to the target that the link will point to.
+ * @dest: The destination path for the link file, without the .lnk
+ * extension.
+ * @icon_path: The path to the file containing the icon for the link.
+ * @icon_index: The index of the icon within the @icon_path file.
+ *
+ * A Windows-specific function that creates a shortcut (.lnk file) using
+ * the COM IShellLink interface.
+ *
+ * This function will not overwrite an existing link file at the same
+ * destination. It sets the link's target path, its custom icon location,
+ * and then saves the link to disk, correctly handling character encoding
+ * for the file path.
+ **/
 void
 windows_create_link (gchar *src,
                      gchar *dest,

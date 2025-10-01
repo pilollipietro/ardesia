@@ -26,13 +26,19 @@
 #include "font_selector.h"
 
 /**
- * @brief Handles the response from the font dialog.
+ * on_font_selector_response:
+ * @dialog: The #GtkFontChooserDialog that emitted the signal.
+ * @response_id: The response ID from the dialog (e.g., %GTK_RESPONSE_OK).
+ * @user_data: (unused): User data.
  *
- * @param dialog The GtkDialog instance.
- * @param response_id The response ID from the user
- *        (e.g., GTK_RESPONSE_OK, GTK_RESPONSE_CANCEL).
- * @param user_data User data passed to the callback.
- */
+ * Handles the "response" signal from the font chooser dialog.
+ *
+ * If the user accepts the dialog (%GTK_RESPONSE_OK), this function
+ * retrieves the selected font description, updates the global
+ * application font, and saves the new choice to the configuration
+ * file. The dialog widget is destroyed upon exit, regardless of the
+ * response.
+ **/
 void
 on_font_selector_response (GtkDialog *dialog,
                            gint response_id,
@@ -57,6 +63,18 @@ on_font_selector_response (GtkDialog *dialog,
   gtk_widget_destroy (GTK_WIDGET (dialog));
 }
 
+/**
+ * on_font_selector_destroy:
+ * @window: The #GtkWidget (the font window) that is being destroyed.
+ * @user_data: (unused): User data.
+ *
+ * A callback connected to the "destroy" signal of the font chooser window.
+ *
+ * Its purpose is to set the global pointer to the font window
+ * (`annotation_data->font_window`) to %NULL. This prevents dangling
+ * pointers and allows other parts of the code to know that the window is
+ * no longer available.
+ **/
 void
 on_font_selector_destroy (GtkWidget *window, gpointer user_data)
 {

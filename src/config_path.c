@@ -46,14 +46,28 @@ extern void user_config_ensure_file (void);
 #define SYSTEM_CONFIG_BASENAME "ardesia.conf"
 #define USER_CONFIG_BASENAME   "ardesiarc"
 
-/* Return system-wide config path (caller must g_free()). */
+/**
+ * get_system_config_file:
+ *
+ * Returns the full path to the system-wide configuration file.
+ *
+ * Returns: (transfer full): a newly-allocated string containing the path,
+ * which must be freed with g_free().
+ **/
 gchar *
 get_system_config_file (void)
 {
   return g_build_filename (ARDESIA_SYSCONFDIR, SYSTEM_CONFIG_BASENAME, NULL);
 }
 
-/* Return the user config path (caller must g_free()). */
+/**
+ * get_user_config_file:
+ *
+ * Returns the full path to the user-specific configuration file.
+ *
+ * Returns: (transfer full): a newly-allocated string containing the path,
+ * which must be freed with g_free().
+ **/
 gchar *
 get_user_config_file (void)
 {
@@ -61,9 +75,16 @@ get_user_config_file (void)
   return g_build_filename (user_config_dir, USER_CONFIG_BASENAME, NULL);
 }
 
-/* For reads: prefer user config if present, otherwise the system file.
- * Returns newly-allocated string or NULL if no file exists.
- */
+/**
+ * get_config_file:
+ *
+ * Returns the configuration file path to be used for reading. If the user
+ * configuration file exists, it is preferred; otherwise, the system
+ * configuration file is returned. If neither file exists, returns NULL.
+ *
+ * Returns: (transfer full): a newly-allocated string with the file path
+ * or NULL if no configuration file exists.
+ **/
 gchar *
 get_config_file (void)
 {
@@ -84,9 +105,15 @@ get_config_file (void)
   return NULL;
 }
 
-/* For writes: ensure a user config exists (copy from system if needed),
- * then return the user config path (newly allocated).
- */
+/**
+ * get_user_file:
+ *
+ * Ensures that the user configuration file exists (creating it from the
+ * system configuration if necessary) and returns its path.
+ *
+ * Returns: (transfer full): a newly-allocated string containing the user
+ * configuration file path.
+ **/
 gchar *
 get_user_file (void)
 {

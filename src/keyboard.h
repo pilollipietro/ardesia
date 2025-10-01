@@ -27,8 +27,6 @@
 #define VIRTUALKEYBOARD_WINDOW_NAME "IPTip_Main_Window"
 #endif
 
-/* Start the virtual keyboard. */
-void start_virtual_keyboard ();
+void start_virtual_keyboard (void);
 
-/* Stop the virtual keyboard. */
-void stop_virtual_keyboard ();
+void stop_virtual_keyboard (void);

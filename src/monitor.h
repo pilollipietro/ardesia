@@ -40,14 +40,6 @@ typedef struct
   GdkRectangle *rect;
 } Monitor;
 
-Monitor *copy_monitor_struct (Monitor *m);
-
-void destroy_monitor_struct (gpointer data);
-
-void debug_monitor_struct (gpointer data, gpointer userdata);
-
-int is_to_left_of (gconstpointer a, gconstpointer b, gpointer data);
-
 GList *create_monitor_list ();
 
 void destroy_monitor_list ();

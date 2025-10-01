@@ -37,19 +37,16 @@
 /* Define other symbols needed to create the transparent layered window */
 #define LWA_COLORKEY 0x00000001
 
-/* Set layered window attributes to a gdk window */
-void setLayeredGdkWindowAttributes (GdkWindow *gdk_window,
-                                    COLORREF cr_key,
-                                    BYTE b_alpha,
-                                    DWORD dw_flags);
+void set_layered_gdk_window_attributes (GdkWindow *gdk_window,
+                                        COLORREF cr_key,
+                                        BYTE b_alpha,
+                                        DWORD dw_flags);
 
-/* Send an email with MAPI. */
 void windows_send_email (gchar *to, 
                          gchar *subject,
                          gchar *body,
                          GSList *attachment_list);
 
-/* Create a link with icon. */
 void windows_create_link (gchar *src,
                           gchar *dest,
                           gchar *icon_path,

@@ -23,7 +23,7 @@
 
 #include "text_window_callbacks.h"
 #include "annotation_window.h"
-#include "bar_callbacks.h"
+#include "bar.h"
 #include "keyboard.h"
 #include "text_window.h"
 #include "utils.h"
@@ -122,6 +122,22 @@ on_text_window_expose_event (GtkWidget *widget, cairo_t *cr, gpointer data)
   return FALSE;
 }
 
+/**
+ * on_text_window_button_release:
+ *
+ * Handle a button release event in the text annotation window.
+ *
+ * This function updates the text cursor position when the user releases
+ * the mouse button (only button 1 is considered). It may save the current
+ * text, updates internal cursor coordinates, presents the annotation
+ * window and related UI panels, and manages the virtual keyboard and
+ * blinking cursor.
+ *
+ * On Windows, if the release occurs above the virtual keyboard, it
+ * re-grabs the pointer and ignores the event for the text input.
+ *
+ * Returns TRUE to indicate that the event has been handled.
+ **/
 gboolean
 on_text_window_button_release (GtkWidget *win, GdkEventButton *ev,
                                TextData *data)
@@ -193,7 +209,7 @@ on_text_window_cursor_motion (GtkWidget *win, GdkEventMotion *ev,
 }
 
 static CharInfo *
-make_new_character ()
+make_new_character (void)
 {
   CharInfo *char_info = g_malloc ((gsize) sizeof (CharInfo));
   if (char_info == NULL)
@@ -318,25 +334,13 @@ assign_text_properties (CharInfo *char_info)
     }
 }
 
-void
-destroy_text_properties (gpointer data)
-{
-  CharInfo *char_info = (CharInfo *) data;
-  g_free (char_info->character);
-  g_free (char_info->color);
-  g_free (char_info->font_family);
-  if (char_info->background_color)
-    g_free (char_info->background_color);
-  g_free (char_info);
-}
-
 /*
  * Deletes the last character by clearing its exact stroked bounding box.
  * This seems a robust method that avoids both anti-aliasing
  * artifacts and overlapping with adjacent characters.
  */
 static void
-delete_character ()
+delete_character (void)
 {
   if (! text_data->cr)
     return;
@@ -404,13 +408,13 @@ delete_character ()
 }
 
 static void
-handle_delete_char ()
+handle_delete_char (void)
 {
   delete_character (); // undo the last character inserted
 }
 
 static void
-handle_return_char ()
+handle_return_char (void)
 {
   /* select the x indentation */
   CharInfo *char_info  = make_new_character ();
@@ -425,7 +429,7 @@ handle_return_char ()
 }
 
 static void
-handle_tab_char ()
+handle_tab_char (void)
 {
   /* Simple Tab-Implementation */
   CharInfo *char_info  = make_new_character ();
@@ -451,6 +455,24 @@ handle_printable_char (char ch)
   text_data->pos->x += char_info->text_width;
 }
 
+/**
+ * on_text_window_key_press_event:
+ *
+ * Handle key press events in the text annotation window.
+ *
+ * This function processes user input when typing in the text window. It stops
+ * the blinking cursor temporarily, interprets the key event, and performs
+ * the corresponding action:
+ *   - Deletes a character if a delete key is pressed.
+ *   - Inserts a line break if the return key is pressed or the text reaches
+ *     the window width.
+ *   - Inserts a tab character if the tab key is pressed.
+ *   - Inserts printable characters otherwise.
+ *
+ * After handling the key, the blinking cursor is restarted.
+ *
+ * Returns TRUE to indicate that the event has been handled.
+ **/
 G_MODULE_EXPORT gboolean
 on_text_window_key_press_event (GtkWidget *widget, GdkEvent *event,
                                 gpointer user_data)

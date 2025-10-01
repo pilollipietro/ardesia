@@ -149,7 +149,7 @@ cairo_image_surface_create_from_svg_repl (const gchar *file,
 
 /* Get the eraser image surface. */
 static cairo_surface_t *
-get_eraser_image_surface ()
+get_eraser_image_surface (void)
 {
   if (eraser_image_surface)
     {
@@ -228,7 +228,7 @@ get_pen_image_surface (const gchar *old_color,
 
 /* Destroy the eraser image surface. */
 static void
-destroy_eraser_image_surface ()
+destroy_eraser_image_surface (void)
 {
   if (eraser_image_surface)
     {
@@ -238,7 +238,7 @@ destroy_eraser_image_surface ()
 
 /* Destroy the highlighter image surface. */
 static void
-destroy_highlighter_image_surface ()
+destroy_highlighter_image_surface (void)
 {
   if (highlighter_image_surface)
     {
@@ -248,7 +248,7 @@ destroy_highlighter_image_surface ()
 
 /* Destroy the pen image surface. */
 static void
-destroy_pen_image_surface ()
+destroy_pen_image_surface (void)
 {
   if (pen_image_surface)
     {
@@ -258,7 +258,7 @@ destroy_pen_image_surface ()
 
 /* Destroy the filler image surface. */
 static void
-destroy_filler_image_surface ()
+destroy_filler_image_surface (void)
 {
   if (filler_image_surface)
     {
@@ -321,11 +321,12 @@ get_eraser_pixbuf (gdouble thickness,
 
   guchar *pixels = gdk_pixbuf_get_pixels (*pixbuf);
 
-  surface = cairo_image_surface_create_for_data (pixels,
-                                                 CAIRO_FORMAT_RGB24,
-                                                 gdk_pixbuf_get_width (*pixbuf),
-                                                 gdk_pixbuf_get_height (*pixbuf),
-                                                 gdk_pixbuf_get_rowstride (*pixbuf));
+  surface =
+      cairo_image_surface_create_for_data (pixels,
+                                           CAIRO_FORMAT_RGB24,
+                                           gdk_pixbuf_get_width (*pixbuf),
+                                           gdk_pixbuf_get_height (*pixbuf),
+                                           gdk_pixbuf_get_rowstride (*pixbuf));
 
   eraser_cr = cairo_create (surface);
 
@@ -380,11 +381,12 @@ get_filler_pixbuf (GdkPixbuf **pixbuf,
 
   guchar *pixels = gdk_pixbuf_get_pixels (*pixbuf);
 
-  surface = cairo_image_surface_create_for_data (pixels,
-                                                 CAIRO_FORMAT_RGB24,
-                                                 gdk_pixbuf_get_width (*pixbuf),
-                                                 gdk_pixbuf_get_height (*pixbuf),
-                                                 gdk_pixbuf_get_rowstride (*pixbuf));
+  surface =
+      cairo_image_surface_create_for_data (pixels,
+                                           CAIRO_FORMAT_RGB24,
+                                           gdk_pixbuf_get_width (*pixbuf),
+                                           gdk_pixbuf_get_height (*pixbuf),
+                                           gdk_pixbuf_get_rowstride (*pixbuf));
 
   filler_cr = cairo_create (surface);
 
@@ -459,11 +461,12 @@ get_pen_pixbuf (GdkPixbuf **pixbuf,
                             cursor_height);
 
   guchar *pixels = gdk_pixbuf_get_pixels (*pixbuf);
-  surface = cairo_image_surface_create_for_data (pixels,
-                                                 CAIRO_FORMAT_RGB24,
-                                                 gdk_pixbuf_get_width (*pixbuf),
-                                                 gdk_pixbuf_get_height (*pixbuf),
-                                                 gdk_pixbuf_get_rowstride (*pixbuf));
+  surface =
+      cairo_image_surface_create_for_data (pixels,
+                                           CAIRO_FORMAT_RGB24,
+                                           gdk_pixbuf_get_width (*pixbuf),
+                                           gdk_pixbuf_get_height (*pixbuf),
+                                           gdk_pixbuf_get_rowstride (*pixbuf));
 
   pen_cr = cairo_create (surface);
 
@@ -493,7 +496,7 @@ get_pen_pixbuf (GdkPixbuf **pixbuf,
 
 /* Destroy the image surfaces used for the cursors. */
 static void
-destroy_cached_image_surfaces ()
+destroy_cached_image_surfaces (void)
 {
   destroy_eraser_image_surface ();
   destroy_pen_image_surface ();
@@ -501,14 +504,30 @@ destroy_cached_image_surfaces ()
   destroy_filler_image_surface ();
 }
 
-/* Initialize the cursors variables. */
+/**
+ * cursors_main:
+ *
+ * Initializes the cursors module.
+ *
+ * This function is intended to be the main entry point for setting up
+ * cursor-related variables and resources. It currently serves as a
+ * placeholder, as specific cursor data is loaded on demand at runtime.
+ **/
 void
-cursors_main ()
+cursors_main (void)
 {
   // The data will be loaded on runtime.
 }
 
-/* Allocate a invisible cursor that can be used to hide the cursor icon. */
+/**
+ * allocate_invisible_cursor:
+ * @cursor: (out): A location to store the newly created invisible cursor.
+ *
+ * Creates a new, invisible cursor by wrapping the standard %GDK_BLANK_CURSOR.
+ *
+ * The object returned in @cursor has a reference count of 1 and must be
+ * freed by the caller using g_object_unref().
+ **/
 void
 allocate_invisible_cursor (GdkCursor **cursor)
 {
@@ -516,7 +535,21 @@ allocate_invisible_cursor (GdkCursor **cursor)
   *cursor             = gdk_cursor_new_for_display (display, GDK_BLANK_CURSOR);
 }
 
-/* Set the pen cursor. */
+/**
+ * set_pen_cursor:
+ * @cursor: (out): A location to store the newly created pen cursor.
+ * @thickness: The thickness of the pen, used for the cursor's size.
+ * @color: A string representing the color of the cursor.
+ * @arrow: %TRUE if the cursor should have an arrow shape, %FALSE otherwise.
+ *
+ * Creates a new custom cursor that visually represents a pen with a given
+ * thickness, color, and optional arrow shape.
+ *
+ * This function internally generates a #GdkPixbuf for the cursor's
+ * appearance, calculates the hotspot to be at the pen's tip, and creates
+ * the final #GdkCursor. The object returned in @cursor is newly allocated
+ * and the caller is responsible for freeing it with g_object_unref().
+ **/
 void
 set_pen_cursor (GdkCursor **cursor,
                 gdouble thickness,
@@ -541,7 +574,20 @@ set_pen_cursor (GdkCursor **cursor,
   g_object_unref (pixbuf);
 }
 
-/* Set the eraser cursor. */
+/**
+ * set_eraser_cursor:
+ * @cursor: (out): A location to store the newly created eraser cursor.
+ * @size:   The size of the eraser, used to determine the cursor's
+ * dimensions and hotspot.
+ *
+ * Creates a new custom cursor that visually represents an eraser of a
+ * given size.
+ *
+ * This function generates a #GdkPixbuf for the cursor's appearance,
+ * calculates the hotspot to be at the eraser's center, and creates
+ * the final #GdkCursor. The object returned in @cursor is newly
+ * allocated and must be freed by the caller using g_object_unref().
+ **/
 void
 set_eraser_cursor (GdkCursor **cursor, gint size)
 {
@@ -561,7 +607,19 @@ set_eraser_cursor (GdkCursor **cursor, gint size)
   g_object_unref (pixbuf);
 }
 
-/* Set the filler cursor. */
+/**
+ * set_filler_cursor:
+ * @cursor: (out): A location to store the newly created filler cursor.
+ * @color:  A string representing the color of the filler tool.
+ *
+ * Creates a new custom cursor that visually represents the filler
+ * (paint bucket) tool with a given color.
+ *
+ * This function generates a #GdkPixbuf for the cursor's appearance and
+ * sets the hotspot to the bottom-right corner of the image. The cursor
+ * returned in the @cursor out-parameter is newly allocated and must be
+ * freed by the caller using g_object_unref().
+ **/
 void
 set_filler_cursor (GdkCursor **cursor, gchar *color)
 {
@@ -574,9 +632,17 @@ set_filler_cursor (GdkCursor **cursor, gchar *color)
                                         gdk_pixbuf_get_height (pixbuf) - 1);
 }
 
-/* Quit the cursors and free the inners variables. */
+/**
+ * cursors_main_quit:
+ *
+ * Finalizes and cleans up the cursors module.
+ *
+ * This function should be called during application shutdown to release
+ * resources allocated by the module, such as cached image surfaces used
+ * for custom cursors.
+ **/
 void
-cursors_main_quit ()
+cursors_main_quit (void)
 {
   destroy_cached_image_surfaces ();
 }

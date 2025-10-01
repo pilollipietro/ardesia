@@ -33,9 +33,15 @@
 #define FONT_KEY_SIZE   "size"
 #define FONT_KEY_STYLE  "style"
 
-/* Load font settings from configuration (user first, then system).
- * Returns a newly-allocated PangoFontDescription or NULL if none found.
- */
+/**
+ * font_config_load:
+ *
+ * Loads the font settings from the configuration, checking the user
+ * configuration first, then falling back to the system configuration.
+ *
+ * Returns: (transfer full): a newly-allocated #PangoFontDescription
+ *          containing the font settings, or NULL if no settings are found.
+ **/
 PangoFontDescription *
 font_config_load (void)
 {
@@ -80,10 +86,13 @@ font_config_load (void)
   return desc;
 }
 
-/* Save font settings into the user config file.
- * This will ensure the user config exists (copying the system file
- * if necessary) before writing.
- */
+/**
+ * font_config_save:
+ * @font_desc: a #PangoFontDescription containing the font settings to save.
+ *
+ * Saves the given font settings into the user's configuration file,
+ * creating the user config if necessary. Overwrites existing font keys.
+ **/
 void
 font_config_save (const PangoFontDescription *font_desc)
 {

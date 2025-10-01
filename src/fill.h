@@ -118,17 +118,6 @@
 #define UINT_RGBA_B  (x) ((((guint) (x)) >> 8) & 0xff)
 #define UINT_RGBA_A  (x) (((guint) (x)) & 0xff)
 
-/*
- * Perform a fill operation starting from the specified point (x, y)
- * within a closed path in the provided annotation data.
- *
- * Parameters:
- *   annotation_data - pointer to the annotation data containing the path
- *   x, y            - coordinates of the starting point for the fill
- *
- * This function fills the interior of a closed shape starting at
- * the given point.
- */
 void fill (AnnotateData *annotation_data,
            gdouble x,
            gdouble y);

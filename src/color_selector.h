@@ -23,9 +23,5 @@
 
 #include <gtk/gtk.h>
 
-/*
- * Start the dialog that ask to the user where save the image
- * containing the screenshot; it return the selected color.
- */
 gchar *start_color_selector_dialog (GtkToolButton *toolbutton,
                                     GtkWindow *parent, gchar *color);

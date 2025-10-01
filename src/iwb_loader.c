@@ -232,8 +232,11 @@ register_namespaces (xmlXPathContextPtr context)
 {
   xmlXPathRegisterNs (context, (xmlChar *) "iwb",
                       (xmlChar *) "http://www.becta.org.uk/iwb");
+
   xmlXPathRegisterNs (context,
-                      (xmlChar *) "xlink", (xmlChar *) "http://www.w3.org/1999/xlink");
+                      (xmlChar *) "xlink",
+                      (xmlChar *) "http://www.w3.org/1999/xlink");
+
   xmlXPathRegisterNs (context, (xmlChar *) "svg",
                       (xmlChar *) "http://www.w3.org/2000/svg");
   return context;
@@ -286,7 +289,16 @@ load_savepoints_by_iwb (GSList *savepoint_list,
   return savepoint_list;
 }
 
-/* Load an iwb file and create the list of save-point. */
+/**
+ * load_iwb:
+ * @iwbfile: a path to the iwb file to load
+ *
+ * Loads an iwb file, decompresses it to a temporary directory, parses
+ * the content XML, and returns a #GSList of save points extracted from
+ * the file.
+ *
+ * Returns: (transfer full): a #GSList of save points, or NULL on error.
+ **/
 GSList *
 load_iwb (gchar *iwbfile)
 {

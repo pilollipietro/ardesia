@@ -40,8 +40,4 @@ typedef struct
 
 } ProjectData;
 
-/*
- * Start the dialog that ask to the user
- * the project settings.
- */
-gchar *start_project_dialog ();
+gchar *start_project_dialog (void);

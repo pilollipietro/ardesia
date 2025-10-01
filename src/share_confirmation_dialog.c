@@ -28,12 +28,15 @@
 #include "share_confirmation_dialog.h"
 #include "utils.h"
 
-/*
- * Start the dialog that ask to the user
- * if he wants share his work.
- */
+/**
+ * start_share_dialog:
+ *
+ * Starts a dialog prompting the user to share their work. If there are
+ * artifacts to share, it creates and displays the share dialog, connects
+ * signal handlers, runs the dialog, and cleans up afterwards.
+ **/
 void
-start_share_dialog ()
+start_share_dialog (void)
 {
   GSList *artifact_list = get_artifacts ();
 

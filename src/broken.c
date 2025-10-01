@@ -23,7 +23,7 @@
 
 #include "broken.h"
 #include "annotation_window.h"
-#include "bar_callbacks.h"
+#include "bar.h"
 #include "utils.h"
 
 /* Number x is roundable to y. */
@@ -502,10 +502,38 @@ straighten (GSList *list)
   return list_out;
 }
 
-/*
- * Return a new list containing a sub-path of list_inp that contains
- * the meaningful points using the standard deviation algorithm.
- */
+/**
+ * build_meaningful_point_list:
+ * @list_inp:          a GSList of AnnotatePoint representing a stroke or path
+ * @rectify:           whether to rectify points
+ *                     (currently unused in this function)
+ * @pixel_tollerance:  threshold in pixels for determining meaningful deviation
+ *
+ * This function returns a new GSList containing a subset of points from
+ * @list_inp, filtering out redundant points based on the standard deviation
+ * (or geometric deviation) algorithm. It approximates the original stroke
+ * by keeping only points that contribute significant visual deviation.
+ *
+ * Algorithm:
+ * 1. Calculate a medium pressure value over all points for
+ *    consistent point width.
+ * 2. Always add the first point of the stroke to the output list.
+ * 3. If the input contains only two points, also add the second point.
+ * 4. For three or more points, iterate over points in order and compute the
+ *    signed area of the triangle formed by points A, B, C. This gives a measure
+ *    of deviation of point C from the line AB.
+ * 5. Compute height h from area to determine if the deviation exceeds the 
+ *    pixel_tolerance threshold.
+ * 6. If deviation is meaningful, add point B to the output list, reset the
+ *    accumulated area, and continue with B as the new reference.
+ * 7. Always add the last point of the stroke to the output list.
+ * 8. Reverse the list to preserve the original input order.
+ *
+ * Returns:
+ * - A new GSList containing AnnotatePoint objects. Each point is allocated
+ *   using allocate_point(). The caller is responsible for freeing the list
+ *   and its points.
+ **/
 GSList *
 build_meaningful_point_list (GSList *list_inp,
                              gboolean rectify,
@@ -556,8 +584,8 @@ build_meaningful_point_list (GSList *list_inp,
       gdouble x2   = 0.0;
       gdouble y2   = 0.0;
 
-      AnnotatePoint *last_point = (AnnotatePoint *) g_slist_nth_data (list_inp,
-                                                                      length - 1);
+      AnnotatePoint *last_point =
+          (AnnotatePoint *) g_slist_nth_data (list_inp, length - 1);
 
       AnnotatePoint *last_point_copy = (AnnotatePoint *) NULL;
 
@@ -612,7 +640,35 @@ build_meaningful_point_list (GSList *list_inp,
   return list_out;
 }
 
-/* Return the out-bounded rectangle outside the path described to list_in. */
+/**
+ * build_outbounded_rectangle:
+ * @list: a GSList of AnnotatePoint representing a stroke or path
+ *
+ * This function computes the axis-aligned bounding rectangle that fully
+ * encloses all points in the input list @list.
+ *
+ * Algorithm:
+ * 1. Determine the minimum and maximum x and y coordinates from all points
+ *    in the list using the helper function found_min_and_max().
+ * 2. Create four AnnotatePoint instances representing the corners of the
+ *    bounding rectangle:
+ *       - Bottom-left (minx, miny)
+ *       - Top-left    (minx, maxy)
+ *       - Top-right   (maxx, maxy)
+ *       - Bottom-right(maxx, miny)
+ * 3. Add an extra point equal to the first corner to "close" the rectangle
+ *    path for drawing purposes.
+ * 4. Return a new GSList containing these AnnotatePoint objects in order.
+ *
+ * Notes:
+ * - The width and pressure values are copied from the middle point of the
+ *   input list to maintain consistent visual properties.
+ * - The caller is responsible for freeing the returned GSList and its points.
+ *
+ * Returns:
+ * - A GSList of AnnotatePoint representing the bounding rectangle around
+ *   the input stroke/path.
+ **/
 GSList *
 build_outbounded_rectangle (GSList *list)
 {
@@ -666,7 +722,39 @@ build_outbounded_rectangle (GSList *list)
   return ret_list;
 }
 
-/* The path in list is similar to an ellipse. */
+/**
+ * is_similar_to_an_ellipse:
+ * @list: a GSList of AnnotatePoint representing a closed path
+ * @pixel_tollerance: a tolerance threshold in pixels
+ *
+ * Determines if the path represented by the points in @list is similar
+ * to an ellipse, using the geometric definition of an ellipse:
+ *   - For an ellipse, the sum of the distances from any point on the
+ *     ellipse to the two foci is constant.
+ *
+ * Algorithm:
+ * 1. Compute the bounding box of the path (minx, miny, maxx, maxy).
+ * 2. Compute the semi-axes a (horizontal) and b (vertical) of the ellipse.
+ * 3. Compute the focal distance c = sqrt(|a^2 - b^2|).
+ * 4. Determine the coordinates of the two foci (f1, f2) depending on the
+ *    orientation (horizontal or vertical).
+ * 5. Compute the sum of distances from the first point (minx, miny) to
+ *    both foci. This serves as the "ideal sum" for a perfect ellipse.
+ * 6. Iterate over all points in the path, compute the sum of distances to
+ *    the foci, and check if the difference from the ideal sum exceeds
+ *    the tolerance.
+ * 7. If any point violates the tolerance, the path is not considered
+ *    similar to an ellipse; otherwise, it is.
+ *
+ * Notes:
+ * - The tolerance is increased slightly based on the average semi-axis
+ *   length to account for larger ellipses.
+ * - Uses Euclidean distance (get_distance function) for computation.
+ *
+ * Returns:
+ * - TRUE if the path approximates an ellipse within the given tolerance.
+ * - FALSE otherwise.
+ **/
 gboolean
 is_similar_to_an_ellipse (GSList *list, gdouble pixel_tollerance)
 {
@@ -862,7 +950,28 @@ build_rectified_list (GSList *list_inp,
   return ret_list;
 }
 
-/* Take a list of point and return magically the new recognized path. */
+/**
+ * broken:
+ * @list_inp: a GSList of AnnotatePoint representing the original path
+ * @close_path: whether the path should be considered closed
+ * @rectify: whether to further smooth/rectify the meaningful points
+ * @pixel_tollerance: tolerance in pixels for determining meaningful points
+ *
+ * Processes a list of points and returns a "recognized" or simplified path.
+ * 
+ * Steps:
+ * 1. Calls build_meaningful_point_list() to extract only the points that
+ *    contribute significantly to the path shape (removes small deviations).
+ * 2. If @rectify is TRUE, calls build_rectified_list() on the meaningful points
+ *    to further smooth or regularize the path.
+ * 3. Frees the intermediate meaningful points list if rectification is applied.
+ * 4. Returns the processed list of points, either rectified or just the
+ *    meaningful points.
+ *
+ * Returns:
+ * - A GSList of AnnotatePoint representing the simplified/smoothed path.
+ * - The caller is responsible for freeing the returned list.
+ */
 GSList *
 broken (GSList *list_inp,
         gboolean close_path,

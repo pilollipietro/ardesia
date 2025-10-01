@@ -32,19 +32,12 @@
 
 #include <glib.h>
 
-/* Return system config file path (e.g. /etc/ardesia.conf). */
 gchar *get_system_config_file (void);
 
-/* Return user config file path (e.g. $XDG_CONFIG_HOME/ardesiarc). */
 gchar *get_user_config_file (void);
 
-/*
- * Return config path for reading:
- * user path if it exists, otherwise the system
- */
 gchar *get_config_file (void);
 
-/* Return config path for writing: ensure user file exists then return it */
 gchar *get_user_file (void);
 
 #endif /* CONFIG_PATH_H */

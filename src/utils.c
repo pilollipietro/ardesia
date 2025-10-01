@@ -21,8 +21,11 @@
  *
  */
 
+#include <assert.h>
 #include <gdk/gdk.h>
 #include <glib.h>
+#include <math.h>
+#include <time.h>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -37,11 +40,19 @@
 #include "bar.h"
 #include "workspace.h"
 
-/* The list of the artefacts created in the current session. */
-static GSList *artifacts = (GSList *) NULL;
+/** The list of the artefacts created in the current session. */
+static GSList *artifacts = NULL;
 
+/** Builder for the bar window. */
 GtkBuilder *bar_gtk_builder = NULL;
 
+/**
+ * intersect:
+ * @a: First rectangle.
+ * @b: Second rectangle.
+ *
+ * Returns TRUE if the two rectangles intersect, FALSE otherwise.
+ */
 gboolean
 intersect (GdkRectangle *a, GdkRectangle *b)
 {
@@ -51,6 +62,12 @@ intersect (GdkRectangle *a, GdkRectangle *b)
            a->y > b->y + b->height);
 }
 
+/**
+ * draw_test_square:
+ * @context: Cairo context to draw into.
+ *
+ * Draws a white test square in the Cairo context.
+ */
 void
 draw_test_square (cairo_t *context)
 {
@@ -64,6 +81,15 @@ draw_test_square (cairo_t *context)
   cairo_restore (cr);
 }
 
+/**
+ * draw_test_square_with_color:
+ * @context: Cairo context to draw into.
+ * @r: Red component (0-255).
+ * @g: Green component (0-255).
+ * @b: Blue component (0-255).
+ *
+ * Draws a colored test square in the Cairo context.
+ */
 void
 draw_test_square_with_color (cairo_t *context, int r, int g, int b)
 {
@@ -77,56 +103,100 @@ draw_test_square_with_color (cairo_t *context, int r, int g, int b)
   cairo_restore (cr);
 }
 
-/* Get the name of the current project. */
+/**
+ * get_project_name:
+ *
+ * Returns the name of the current project.
+ *
+ * Returns: pointer to the project name string.
+ */
 gchar *
-get_project_name ()
+get_project_name (void)
 {
   return workspace->project_name;
 }
 
-/* Set the name of the current project. */
+/**
+ * set_project_name:
+ * @name: New project name.
+ *
+ * Sets the name of the current project.
+ */
 void
 set_project_name (gchar *name)
 {
   workspace->project_name = name;
 }
 
-/* Get the dir of the current project. */
+/**
+ * get_project_dir:
+ *
+ * Returns the directory of the current project.
+ *
+ * Returns: pointer to the project directory string.
+ */
 gchar *
-get_project_dir ()
+get_project_dir (void)
 {
   return workspace->project_dir;
 }
 
-/* Set the directory of the current project. */
+/**
+ * set_project_dir:
+ * @dir: New project directory.
+ *
+ * Sets the directory of the current project.
+ */
 void
 set_project_dir (gchar *dir)
 {
   workspace->project_dir = dir;
 }
 
-/* Get the iwb file of the current project. */
+/**
+ * get_iwb_filename:
+ *
+ * Returns the iwb file of the current project.
+ *
+ * Returns: pointer to the iwb filename string.
+ */
 gchar *
-get_iwb_filename ()
+get_iwb_filename (void)
 {
   return workspace->iwb_filename;
 }
 
-/* Set the iwb file of the current project. */
+/**
+ * set_iwb_filename:
+ * @file: New iwb file name.
+ *
+ * Sets the iwb file of the current project.
+ */
 void
 set_iwb_filename (gchar *file)
 {
   workspace->iwb_filename = file;
 }
 
-/* Get the list of the path of the artefacts created in the session. */
+/**
+ * get_artifacts:
+ *
+ * Returns the list of paths of the artefacts created in the session.
+ *
+ * Returns: GSList of artefact paths.
+ */
 GSList *
-get_artifacts ()
+get_artifacts (void)
 {
   return artifacts;
 }
 
-/* Add the path of an artefacts created in the session to the list. */
+/**
+ * add_artifact:
+ * @path: Path of the artefact to add.
+ *
+ * Adds the path of an artefact to the session's artefact list.
+ */
 void
 add_artifact (gchar *path)
 {
@@ -134,37 +204,59 @@ add_artifact (gchar *path)
   artifacts          = g_slist_prepend (artifacts, copied_path);
 }
 
-/* Free the structure containing the artefact list created in the session. */
+/**
+ * free_artifacts:
+ *
+ * Frees the artefact list structure created in the session.
+ */
 void
-free_artifacts ()
+free_artifacts (void)
 {
   g_slist_foreach (artifacts, (GFunc) g_free, NULL);
 }
 
-/* Get the bar window widget. */
+/**
+ * get_bar_widget:
+ *
+ * Returns the bar window widget.
+ *
+ * Returns: GtkWidget pointer for the bar.
+ */
 GtkWidget *
-get_bar_widget ()
+get_bar_widget (void)
 {
   return GTK_WIDGET (gtk_builder_get_object (bar_gtk_builder, BAR_WIDGET_NAME));
 }
 
-/** Get the distance between two points. */
+/**
+ * get_distance:
+ * @x1: X coordinate of the first point.
+ * @y1: Y coordinate of the first point.
+ * @x2: X coordinate of the second point.
+ * @y2: Y coordinate of the second point.
+ *
+ * Returns the Euclidean distance between two points.
+ */
 gdouble
 get_distance (gdouble x1, gdouble y1, gdouble x2, gdouble y2)
 {
-  /* Apply the Pitagora theorem to calculate the distance. */
   gdouble x_delta  = fabs (x2 - x1);
   gdouble y_delta  = fabs (y2 - y1);
-  gdouble quad_sum = pow (x_delta, 2);
-  quad_sum         = quad_sum + pow (y_delta, 2);
+  gdouble quad_sum = pow (x_delta, 2) + pow (y_delta, 2);
   return sqrt (quad_sum);
 }
 
-/* Take a GdkColor and return the equivalent RGBA string. */
+/**
+ * gdkcolor_to_rgb:
+ * @gdkcolor: GdkRGBA pointer.
+ *
+ * Converts a GdkRGBA color to an RGB string (hex format, e.g. "FF0000").
+ *
+ * Returns: newly-allocated string representing RGB color.
+ */
 gchar *
 gdkcolor_to_rgb (GdkRGBA *gdkcolor)
 {
-  /* Transform in the  RGB format e.g. FF0000. */
   gchar *ret_str = g_strdup_printf ("%02X%02X%02X",
                                     (int) gdkcolor->red / 255,
                                     (int) gdkcolor->green / 255,
@@ -173,10 +265,17 @@ gdkcolor_to_rgb (GdkRGBA *gdkcolor)
   return ret_str;
 }
 
+/**
+ * gdkrgba_to_rgba:
+ * @gdkcolor: GdkRGBA pointer.
+ *
+ * Converts a GdkRGBA color to an RGBA string (hex format, e.g. "FF0000FF").
+ *
+ * Returns: newly-allocated string representing RGBA color.
+ */
 gchar *
 gdkrgba_to_rgba (GdkRGBA *gdkcolor)
 {
-  /* Transform in the  RGB format e.g. FF0000. */
   gchar *ret_str = g_strdup_printf ("%02X%02X%02X%02X",
                                     (int) (gdkcolor->red * 255),
                                     (int) (gdkcolor->green * 255),
@@ -206,7 +305,12 @@ rgba_to_gdkcolor (gchar *rgba)
   return gdkcolor;
 }
 
-/* Clear cairo context. */
+/**
+ * clear_cairo_context:
+ * @cr: Cairo context to clear.
+ *
+ * Clears the entire Cairo context to transparent.
+ */
 void
 clear_cairo_context (cairo_t *cr)
 {
@@ -219,16 +323,27 @@ clear_cairo_context (cairo_t *cr)
     }
 }
 
-/* Scale the surface with the width and height requested. */
+/**
+ * scale_surface:
+ * @surface: Source Cairo surface.
+ * @width: Desired width.
+ * @height: Desired height.
+ *
+ * Scales the given surface to the requested width and height.
+ *
+ * Returns: Newly allocated cairo_surface_t with scaled content.
+ */
 cairo_surface_t *
 scale_surface (cairo_surface_t *surface, gdouble width, gdouble height)
 {
   gdouble old_width  = cairo_image_surface_get_width (surface);
   gdouble old_height = cairo_image_surface_get_height (surface);
 
-  cairo_surface_t *new_surface = cairo_surface_create_similar (surface,
-                                                               CAIRO_CONTENT_COLOR_ALPHA,
-                                                               width, height);
+  cairo_surface_t *new_surface =
+      cairo_surface_create_similar (surface,
+                                    CAIRO_CONTENT_COLOR_ALPHA,
+                                    width,
+                                    height);
 
   cairo_t *cr = cairo_create (new_surface);
 
@@ -252,7 +367,13 @@ scale_surface (cairo_surface_t *surface, gdouble width, gdouble height)
   return new_surface;
 }
 
-/* Set the cairo surface color to the RGBA string. */
+/**
+ * cairo_set_source_color_from_string:
+ * @cr: Cairo context.
+ * @color: RGBA string (e.g., "FF0000FF").
+ *
+ * Sets the source color of the Cairo context using a hex RGBA string.
+ */
 void
 cairo_set_source_color_from_string (cairo_t *cr, gchar *color)
 {
@@ -268,7 +389,15 @@ cairo_set_source_color_from_string (cairo_t *cr, gchar *color)
     }
 }
 
-/* Save the contents of the pixbuf in the file with name file name. */
+/**
+ * save_pixbuf_on_png_file:
+ * @pixbuf: GdkPixbuf to save.
+ * @filename: Destination filename.
+ *
+ * Saves the GdkPixbuf content into a PNG file.
+ *
+ * Returns: TRUE on success.
+ */
 gboolean
 save_pixbuf_on_png_file (GdkPixbuf *pixbuf, const gchar *filename)
 {
@@ -290,8 +419,16 @@ save_pixbuf_on_png_file (GdkPixbuf *pixbuf, const gchar *filename)
   return TRUE;
 }
 
+
+/**
+ * is_bar_window_over_annotation_window:
+ *
+ * Checks if the bar window overlaps the annotation window.
+ *
+ * Returns: TRUE if overlapping, FALSE otherwise.
+ */
 gboolean
-is_bar_window_over_annotation_window ()
+is_bar_window_over_annotation_window (void)
 {
   GtkWidget *bar = get_bar_widget ();
   gint       x, y, width, height;
@@ -322,14 +459,30 @@ is_bar_window_over_annotation_window ()
   return result;
 }
 
+/**
+ * take_screenshot_now:
+ *
+ * Takes a screenshot of the annotation window, temporarily hiding the bar.
+ *
+ * Returns: GdkPixbuf with the screenshot.
+ */
 GdkPixbuf *
-take_screenshot_now ()
+take_screenshot_now (void)
 {
   GtkWidget *widget = annotation_data->annotation_window;
 
   GtkWidget *bar_widget = GTK_WIDGET (get_bar_widget ());
   gdouble    opacity    = gtk_widget_get_opacity (bar_widget);
   gtk_widget_set_opacity (bar_widget, 0.0);
+
+  /*
+   * This loop is the only way to force a synchronous wait for the UI
+   * to update before proceeding in a synchronous function.
+   */
+  while (gtk_events_pending ())
+    {
+      gtk_main_iteration ();
+    }
 
   gint ann_width = 0, ann_height = 0, ann_x = 0, ann_y = 0;
   gtk_window_get_position (GTK_WINDOW (widget), &ann_x, &ann_y);
@@ -346,7 +499,12 @@ take_screenshot_now ()
   return snapshot;
 }
 
-/* Grab the screenshoot and put it in the image buffer. */
+/**
+ * grab_screenshot:
+ * @screenshot_callback: Callback function to handle the captured screenshot.
+ *
+ * Grabs a screenshot and passes it to the callback.
+ */
 void
 grab_screenshot (void (*screenshot_callback) (GdkPixbuf *))
 {
@@ -355,8 +513,12 @@ grab_screenshot (void (*screenshot_callback) (GdkPixbuf *))
   screenshot_callback (buffer);
 }
 
-/*
- * This is function return if the point (x,y) in inside the ardesia bar window.
+/**
+ * inside_bar_window:
+ * @xp: X coordinate.
+ * @yp: Y coordinate.
+ *
+ * Returns TRUE if the point is inside the bar window.
  */
 gboolean
 inside_bar_window (gdouble xp, gdouble yp)
@@ -386,12 +548,15 @@ inside_bar_window (gdouble xp, gdouble yp)
   return FALSE;
 }
 
-/*
- * Get the current date and format in a printable format;
- * the returned value must be free with the g_free.
+/**
+ * get_date:
+ *
+ * Returns the current date in a printable format.
+ *
+ * Returns: Newly allocated string containing the date.
  */
 gchar *
-get_date ()
+get_date (void)
 {
   struct tm *t;
   time_t     now;
@@ -408,19 +573,27 @@ get_date ()
   return date;
 }
 
-/* Return if a file exists. */
+/**
+ * file_exists:
+ * @filename: File path to check.
+ *
+ * Returns TRUE if the file exists.
+ */
 gboolean
 file_exists (gchar *filename)
 {
   return g_file_test (filename, G_FILE_TEST_EXISTS);
 }
 
-/*
- * Return a file name containing
- * the project name and the current date.
+/**
+ * get_default_filename:
+ *
+ * Returns a default file name based on the project name and current date.
+ *
+ * Returns: Newly allocated string with the filename.
  */
 gchar *
-get_default_filename ()
+get_default_filename (void)
 {
   gchar *date     = get_date ();
   gchar *filename = g_strdup_printf ("%s_%s", workspace->project_name, date);
@@ -429,8 +602,12 @@ get_default_filename ()
   return filename;
 }
 
-/*
- * Get the home directory.
+/**
+ * get_home_dir:
+ *
+ * Returns the home directory.
+ *
+ * Returns: Path to the home directory.
  */
 const gchar *
 get_home_dir (void)
@@ -443,8 +620,12 @@ get_home_dir (void)
   return homedir;
 }
 
-/*
- * Get the desktop directory.
+/**
+ * get_desktop_dir:
+ *
+ * Returns the desktop directory.
+ *
+ * Returns: Path to the desktop directory.
  */
 const gchar *
 get_desktop_dir (void)
@@ -452,8 +633,12 @@ get_desktop_dir (void)
   return g_get_user_special_dir (G_USER_DIRECTORY_DESKTOP);
 }
 
-/*
- * Get the documents directory.
+/**
+ * get_documents_dir:
+ *
+ * Returns the documents directory, or home if unavailable.
+ *
+ * Returns: Path to the documents directory.
  */
 const gchar *
 get_documents_dir (void)
@@ -467,7 +652,12 @@ get_documents_dir (void)
   return documents_dir;
 }
 
-/* Delete a directory recursively. */
+/**
+ * rmdir_recursive:
+ * @path: Directory path to remove recursively.
+ *
+ * Deletes a directory and all its contents.
+ */
 void
 rmdir_recursive (gchar *path)
 {
@@ -502,7 +692,12 @@ rmdir_recursive (gchar *path)
   g_rmdir (path);
 }
 
-/* Remove directory if it is empty */
+/**
+ * remove_dir_if_empty:
+ * @dir_path: Directory path.
+ *
+ * Removes the directory if it is empty.
+ */
 void
 remove_dir_if_empty (gchar *dir_path)
 {
@@ -523,7 +718,17 @@ remove_dir_if_empty (gchar *dir_path)
     }
 }
 
-/* Allocate a new point belonging to the stroke passing the values. */
+/**
+ * allocate_point:
+ * @x: X coordinate.
+ * @y: Y coordinate.
+ * @width: Stroke width.
+ * @pressure: Pressure value.
+ *
+ * Allocates a new AnnotatePoint structure.
+ *
+ * Returns: Newly allocated AnnotatePoint.
+ */
 AnnotatePoint *
 allocate_point (gdouble x, gdouble y, gdouble width, gdouble pressure)
 {
@@ -535,7 +740,16 @@ allocate_point (gdouble x, gdouble y, gdouble width, gdouble pressure)
   return point;
 }
 
-/* Send an email. */
+/**
+ * send_email:
+ * @to: Recipient email address.
+ * @subject: Email subject.
+ * @body: Email body text.
+ * @attachment_list: List of file paths to attach.
+ *
+ * Sends an email with optional attachments. Uses platform-specific
+ * implementation: windows_send_email on Windows, xdg-email on Linux.
+ */
 void
 send_email (gchar *to,
             gchar *subject,
@@ -586,7 +800,12 @@ send_email (gchar *to,
 #endif
 }
 
-/* Send artifacts with email. */
+/**
+ * send_artifacts_with_email:
+ * @attachment_list: List of artifact file paths.
+ *
+ * Sends created artifacts to the Ardesia developer group via email.
+ */
 void
 send_artifacts_with_email (GSList *attachment_list)
 {
@@ -602,7 +821,12 @@ send_artifacts_with_email (GSList *attachment_list)
   g_free (body);
 }
 
-/* Send trace with email. */
+/**
+ * send_trace_with_email:
+ * @attachment: Path to stack trace file.
+ *
+ * Sends an application error report to the Ardesia developer group.
+ */
 void
 send_trace_with_email (gchar *attachment)
 {
@@ -621,9 +845,15 @@ send_trace_with_email (gchar *attachment)
   g_free (body);
 }
 
-/* Is the desktop manager gnome. */
+/**
+ * is_gnome:
+ *
+ * Checks if the current desktop environment is GNOME.
+ *
+ * Returns: TRUE if GNOME, FALSE otherwise.
+ */
 gboolean
-is_gnome ()
+is_gnome (void)
 {
 #ifdef _WIN32
   return FALSE;
@@ -640,7 +870,16 @@ is_gnome ()
   return TRUE;
 }
 
-/* Create desktop entry passing value. */
+/**
+ * xdg_create_desktop_entry:
+ * @filename: Path to create the .desktop file.
+ * @type: Entry type, e.g., "Application".
+ * @name: Display name.
+ * @icon: Icon file path.
+ * @exec: Executable command.
+ *
+ * Creates a .desktop entry with the specified parameters.
+ */
 void
 xdg_create_desktop_entry (gchar *filename,
                           gchar *type,
@@ -661,7 +900,14 @@ xdg_create_desktop_entry (gchar *filename,
     }
 }
 
-/* Create a desktop link. */
+/**
+ * xdg_create_link:
+ * @src: Source file path.
+ * @dest: Destination name without extension.
+ * @icon: Icon path.
+ *
+ * Creates a desktop link (.desktop file) pointing to @src.
+ */
 void
 xdg_create_link (gchar *src, gchar *dest, gchar *icon)
 {
@@ -682,7 +928,15 @@ xdg_create_link (gchar *src, gchar *dest, gchar *icon)
   g_free (link_filename);
 }
 
-/* Get the last position where sub-string occurs in the string. */
+/**
+ * g_substrlastpos:
+ * @str: Input string.
+ * @substr: Substring to search for.
+ *
+ * Finds the last occurrence of @substr in @str.
+ *
+ * Returns: Index of the last occurrence, or -1 if not found.
+ */
 gint
 g_substrlastpos (const char *str, const char *substr)
 {
@@ -700,7 +954,16 @@ g_substrlastpos (const char *str, const char *substr)
   return -1;
 }
 
-/* Sub-string of string from start to end position. */
+/**
+ * g_substr:
+ * @string: Input string.
+ * @start: Start index.
+ * @end: End index (inclusive).
+ *
+ * Returns a newly allocated substring from start to end.
+ *
+ * Returns: Newly allocated string.
+ */
 gchar *
 g_substr (const gchar *string, gint start, gint end)
 {
@@ -709,12 +972,14 @@ g_substr (const gchar *string, gint start, gint end)
   return g_strndup (&string[start], size);
 }
 
-/*
- * This function create a segmentation fault;
- * it is useful to test the segmentation fault handler.
+/**
+ * create_segmentation_fault:
+ *
+ * Function that intentionally causes a segmentation fault.
+ * Useful for testing the segmentation fault handler.
  */
 void
-create_segmentation_fault ()
+create_segmentation_fault (void)
 {
   int *f = NULL;
   *f     = 0;
@@ -747,21 +1012,13 @@ get_context_size (cairo_t *cr, int *width, int *height)
 
 /**
  * save_cairo_context:
- * @cr:         The Cairo drawing context to capture.
- * @savedir:    Directory path where the PNG will be saved.
- * @category:   Logical category name used in the output filename.
- * @index:      Index number used in the output filename.
+ * @cr: Cairo drawing context.
+ * @savedir: Directory to save the PNG.
+ * @category: Logical category name for the file.
+ * @index: Index number.
  *
- * Takes a snapshot of the current Cairo drawing context @cr,
- * copies its content into a new ARGB32 surface and writes that
- * surface as a PNG file named:
- *
- *     <PACKAGE_NAME>_<category>_<index>_vellum.png
- *
- * inside the @savedir directory.
- *
- * Example:
- *     save_cairo_context (text_data->cr, "/tmp", "text", 1);
+ * Saves a snapshot of the Cairo context to a PNG file:
+ * <PACKAGE_NAME>_<category>_<index>_vellum.png
  */
 void
 save_cairo_context (cairo_t *cr, gchar *savedir, gchar *category, int index)

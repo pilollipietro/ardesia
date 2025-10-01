@@ -250,159 +250,54 @@ typedef struct
 
 extern AnnotateData *annotation_data;
 
-/* Initialize the annotation cairo context */
 void initialize_annotation_cairo_context (AnnotateData *data);
 
 GtkWidget *create_annotation_window (Workspace *workspace,
                                      CommandLine *commandline);
 
-void position_annotation_window ();
+void position_annotation_window (int x, int y, int width, int height);
 
-/* Initialize the annotation window. */
 void annotate_init (Monitor *monitor);
 
 void annotation_window_change (int width, int height);
 
-/* Set-up input device. */
-void setup_input_devices ();
+GtkWidget *get_annotation_window (void);
 
-/* Get the annotation window. */
-GtkWidget *get_annotation_window ();
-
-/* Set the cairo context that contains the background. */
-void set_annotation_cairo_background_context (cairo_t *background_cr);
-
-/* Draw the last save point on the window restoring the surface. */
-void annotate_restore_surface ();
-
-/* Get the cairo context that contains the background. */
-cairo_t *get_annotation_cairo_background_context ();
-
-/* Paint the context over the annotation window. */
 void annotate_push_context (cairo_t *cr);
 
-/* Free the coord list belonging to the the owner devdata device. */
 void annotate_coord_dev_list_free (AnnotateDeviceData *devdata);
 
-/* Free the coord list belonging to all the devices. */
-void annotate_coord_list_free ();
+void annotate_undo (void);
 
-/* Undo to the last save point. */
-void annotate_undo ();
+void annotate_redo (void);
 
-/* Redo to the last save point. */
-void annotate_redo ();
+void annotate_quit (void);
 
-/* Quit the annotation. */
-void annotate_quit ();
-
-/* Set the pen color. */
 void annotate_set_color (gchar *color);
 
-/* Modify color according to the pressure. */
-void annotate_modify_color (AnnotateDeviceData *devdata,
-                            AnnotateData *data,
-                            gdouble pressure);
-
-/* Set the line thickness. */
 void annotate_set_thickness (gdouble thickness);
 
-/* Get the line thickness. */
-gdouble annotate_get_thickness ();
+gdouble annotate_get_thickness (void);
 
-/* Set rectifier. */
 void annotate_set_rectifier (gboolean rectify);
 
-/* Set rounder. */
 void annotate_set_rounder (gboolean rounder);
 
-/* Set arrow. */
 void annotate_set_arrow (gboolean arrow);
 
-/* Start to paint. */
-void annotate_toggle_grab ();
+void annotate_release_grab (void);
 
-/* Start to erase. */
-void annotate_eraser_grab ();
+void annotate_acquire_grab (void);
 
-/* Release pointer grab. */
-void annotate_release_grab ();
+void annotate_clear_screen (void);
 
-/* Acquire pointer grab. */
-void annotate_acquire_grab ();
+void annotate_select_pen (void);
 
-/* Clear the annotations windows. */
-void annotate_clear_screen ();
+void annotate_select_eraser (void);
 
-/* Set a new cairo path with the new options. */
-void annotate_reset_cairo ();
+void annotate_select_filler (void);
 
-/* Hide the cursor. */
-void annotate_hide_cursor ();
-
-/* Un-hide the cursor. */
-void annotate_unhide_cursor ();
-
-/*
- * Add to the coordinate list the point (x,y)
- * storing the line width and the pressure.
- */
-void annotate_coord_list_prepend (AnnotateDeviceData *devdata, gdouble x,
-                                  gdouble y, gdouble width, gdouble pressure);
-
-/* Draw line from the last point drawn to (x2,y2). */
-void annotate_draw_line (AnnotateDeviceData *devdata,
-                         gdouble x2,
-                         gdouble y2,
-                         gboolean stroke);
-
-/* Draw a point in x,y respecting the context. */
-void annotate_draw_point (AnnotateDeviceData *devdata,
-                          gdouble x,
-                          gdouble y,
-                          gdouble pressure);
-
-/* Draw the point list. */
-void annotate_draw_point_list (AnnotateDeviceData *devdata,
-                               GSList *list);
-
-/* Draw an arrow using some polygons. */
-void annotate_draw_arrow (AnnotateDeviceData *devdata,
-                          gdouble distance);
-
-/* Fill the contiguos area around point with coordinates (x,y). */
-void annotate_fill (AnnotateDeviceData *devdata,
-                    AnnotateData *data,
-                    gdouble x,
-                    gdouble y);
-
-/* Select eraser, pen or other tool for tablet. */
-void annotate_select_tool (AnnotateData *data,
-                           GdkDevice *masterdevice,
-                           GdkDevice *slavedevice,
-                           guint state);
-
-/* Select the default pen tool. */
-void annotate_select_pen ();
-
-/* Select the default highlighter tool. */
-void annotate_select_highlighter ();
-
-/* Select the default eraser tool. */
-void annotate_select_eraser ();
-
-/* Select the default filler tool. */
-void annotate_select_filler ();
-
-/* Call the geometric shape recognizer. */
-void annotate_shape_recognize (AnnotateDeviceData *devdata,
-                               gboolean closed_path);
-
-/* Add a save point for the undo/redo. */
-void annotate_add_savepoint ();
-
-/* Configure pen option for cairo context. */
-void annotate_configure_pen_options (AnnotateData *data);
+void annotate_add_savepoint (void);
 
 gboolean annotation_window_button_press (GdkEventButton *ev,
                                          AnnotateData *data);
@@ -413,12 +308,6 @@ gboolean annotation_window_mouse_move (GdkEventMotion *ev,
 gboolean annotation_window_button_release (GdkEventButton *ev,
                                            AnnotateData *data);
 
-void create_text_settings_window ();
-
-void show_text_settings_window ();
-
 void initialize_font ();
-
-void save_closed_path ();
 
 #endif

@@ -37,7 +37,7 @@ static FILE *fp = NULL;
 
 /* Add the xml header. */
 static void
-add_header ()
+add_header (void)
 {
   const gchar *becta_ns    = "http://www.becta.org.uk/iwb";
   const gchar *svg_ns      = "http://www.w3.org/2000/svg";
@@ -56,14 +56,14 @@ add_header ()
 
 /* Close the iwb xml tag. */
 static void
-close_iwb ()
+close_iwb (void)
 {
   fprintf (fp, "</iwb>\n");
 }
 
 /* Open the svg tag. */
 static void
-open_svg ()
+open_svg (void)
 {
   GtkWidget *annotation_window = get_annotation_window ();
   gint       width  = gtk_widget_get_allocated_width (annotation_window);
@@ -79,7 +79,7 @@ open_svg ()
 
 /* Close the svg tag. */
 static void
-close_svg ()
+close_svg (void)
 {
   fprintf (fp, "\t</svg:svg>\n");
 }
@@ -182,7 +182,7 @@ add_background (gchar *img_dir_path, gchar *background_image)
 
 /* Add the background reference. */
 static void
-add_background_reference ()
+add_background_reference (void)
 {
   fprintf (fp, "\t<iwb:element ref=\"id1\" background=\"true\"/>\n");
 }
@@ -343,7 +343,23 @@ create_iwb (gchar *zip_filename,
   gsf_shutdown ();
 }
 
-/* Export in the iwb format. */
+/**
+ * export_iwb:
+ * @iwb_location: (nullable): The full path where the .iwb file should be
+ * saved. If %NULL, a default path is generated in the project directory.
+ *
+ * Exports the current annotation session to a .iwb (Interactive Whiteboard)
+ * file format.
+ *
+ * The export is only performed if there is content to save, meaning at
+ * least one annotation savepoint exists or a background image is set.
+ * The function gathers all session assets from a temporary directory,
+ * generates a `content.xml` manifest, and packages them into the .iwb
+ * archive (which is a zip file).
+ *
+ * If @iwb_location is provided, any existing file at that path is
+ * overwritten.
+ **/
 void
 export_iwb (gchar *iwb_location)
 {

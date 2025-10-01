@@ -28,8 +28,17 @@
 #include "info_dialog.h"
 #include "utils.h"
 
-/*
- * Start the info dialog.
+/**
+ * start_info_dialog:
+ * @toolbutton: the GtkToolButton that triggered the dialog (can be NULL).
+ * @parent: the parent GtkWindow for transient behavior.
+ *
+ * Creates and runs the "About" dialog showing application information
+ * such as the version number. The dialog is modal and will block
+ * interaction with @parent until closed.
+ *
+ * The dialog UI is loaded from a GtkBuilder XML file (INFO_UI_FILE).
+ * Signals from the builder are connected automatically by reflection.
  */
 void
 start_info_dialog (GtkToolButton *toolbutton, GtkWindow *parent)

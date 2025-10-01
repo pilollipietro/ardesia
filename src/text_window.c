@@ -43,9 +43,22 @@ TextData *text_data = (TextData *) NULL;
 /* The structure used to configure text input. */
 TextConfig *text_config = (TextConfig *) NULL;
 
-/** Setup text configuration, used from ardesia.c */
+/**
+ * create_text_config:
+ *
+ * Allocate and initialize a new TextConfig structure.
+ *
+ * This function sets default values for text rendering, including:
+ *   - font family ("monospace")
+ *   - left margin (0)
+ *   - tab size (80)
+ *   - starting X position (0)
+ *
+ * Returns:
+ *   A pointer to the newly allocated and initialized TextConfig structure.
+ **/
 TextConfig *
-create_text_config ()
+create_text_config (void)
 {
   TextConfig *text_config = g_malloc ((gsize) sizeof (TextConfig));
   text_config->fontfamily = "monospace";
@@ -55,9 +68,39 @@ create_text_config ()
   return text_config;
 }
 
-/* Stop the timer to handle the blocking cursor. */
+/**
+ * destroy_text_properties:
+ *
+ * Free the memory associated with a CharInfo structure.
+ *
+ * This function releases the character string, color, font family,
+ * optional background color, and the CharInfo structure itself.
+ *
+ * Parameters:
+ *   data - pointer to a CharInfo structure to be freed.
+ **/
 void
-stop_timer ()
+destroy_text_properties (gpointer data)
+{
+  CharInfo *char_info = (CharInfo *) data;
+  g_free (char_info->character);
+  g_free (char_info->color);
+  g_free (char_info->font_family);
+  if (char_info->background_color)
+    g_free (char_info->background_color);
+  g_free (char_info);
+}
+
+/**
+ * stop_timer:
+ *
+ * Stop the timer used for managing the blinking text cursor.
+ *
+ * If the timer is active (greater than 0), it removes the timer source
+ * and resets the timer identifier to -1.
+ **/
+void
+stop_timer (void)
 {
   if (text_data->timer > 0)
     {
@@ -66,104 +109,11 @@ stop_timer ()
     }
 }
 
-void
-start_blink_cursor ()
-{
-  /* Start blink cursor every second. */
-  text_data->blink_show = TRUE;
-  blink_cursor (NULL);
-  text_data->timer = g_timeout_add (750, blink_cursor, NULL);
-}
-
-void
-stop_blink_cursor ()
-{
-  stop_timer ();
-  text_data->blink_show = FALSE;
-  blink_cursor (NULL);
-}
-
-/*
- * Calculates and stores the exact font metrics (ascent/descent).
- * This provides a stable "source of truth" for all vertical alignment.
- */
-static void
-set_cursor_height (GtkWidget *widget)
-{
-  PangoLayout *layout = gtk_widget_create_pango_layout (widget, "|");
-  pango_layout_set_font_description (layout, annotation_data->font);
-
-  PangoContext     *context = pango_layout_get_context (layout);
-  PangoFontMetrics *metrics = pango_context_get_metrics (context,
-                                                         annotation_data->font,
-                                                         NULL);
-
-  /* Calculate and store the fundamental metrics in pixels */
-  text_data->font_ascent =
-      (gdouble) pango_font_metrics_get_ascent (metrics) / PANGO_SCALE;
-  text_data->font_descent =
-      (gdouble) pango_font_metrics_get_descent (metrics) / PANGO_SCALE;
-  text_data->max_font_height =
-    text_data->font_ascent + text_data->font_descent;
-
-  pango_font_metrics_unref (metrics);
-  g_object_unref (layout);
-}
-
-/*
- * Calculates an effective visual thickness by linearly interpolating
- * the pen_width between a minimum visual stroke and a maximum limit
- * relative to the font size.
- * This provides a direct and tunable control over the stroke's appearance.
- */
-gdouble
-calculate_visual_thickness (gdouble pen_width, gint font_size)
-{
-  /* Set these to your defined min/max thickness values */
-  const gdouble INPUT_MIN = 3.0;
-  const gdouble INPUT_MAX = 18.0;
-
-  /*
-   * The absolute minimum visual thickness you want to see
-   * (for MICRO_THICKNESS)
-   */
-  const gdouble OUTPUT_MIN = 1.5;
-
-  /*
-   * This is the main control knob.
-   * A SMALLER number makes the maximum stroke THICKER.
-   * A LARGER number makes the maximum stroke THINNER.
-   * 6.0 is a good starting point for a very noticeable effect.
-   */
-  const gdouble FONT_SIZE_DIVISOR = 6;
-
-  /* Calculate the maximum allowed thickness for this font size */
-  gdouble output_max = (gdouble) font_size / FONT_SIZE_DIVISOR;
-  if (output_max < OUTPUT_MIN)
-    {
-      output_max = OUTPUT_MIN;
-    }
-
-  /* Normalize the input pen_width to a 0.0-1.0 range */
-  gdouble normalized_value = (pen_width - INPUT_MIN) / (INPUT_MAX - INPUT_MIN);
-  /* Clamp the value between 0.0 and 1.0 to be safe */
-  if (normalized_value < 0.0)
-    normalized_value = 0.0;
-  if (normalized_value > 1.0)
-    normalized_value = 1.0;
-
-  /*
-   * Linearly interpolate (lerp) the normalized value within the output range.
-   * This maps the input [3-18] to the output [OUTPUT_MIN - output_max].
-   */
-  return OUTPUT_MIN + normalized_value * (output_max - OUTPUT_MIN);
-}
-
 /*
  * Draws the blinking cursor using the stable, unified font metrics.
  * The rectangle's height perfectly matches the font's ascent/descent.
  */
-gboolean
+static gboolean
 blink_cursor (gpointer data)
 {
   if (text_data && text_data->pos && text_data->cr)
@@ -205,6 +155,133 @@ blink_cursor (gpointer data)
       gtk_widget_queue_draw (annotation_data->annotation_window);
     }
   return TRUE;
+}
+
+/**
+ * start_blink_cursor:
+ *
+ * Start the blinking cursor in the text annotation window.
+ *
+ * This function sets the blink state to visible, triggers an initial
+ * cursor redraw, and starts a timer to toggle the cursor visibility
+ * every 750 milliseconds.
+ **/
+void
+start_blink_cursor (void)
+{
+  /* Start blink cursor every second. */
+  text_data->blink_show = TRUE;
+  blink_cursor (NULL);
+  text_data->timer = g_timeout_add (750, blink_cursor, NULL);
+}
+
+/**
+ * stop_blink_cursor:
+ *
+ * Stop the blinking cursor in the text annotation window.
+ *
+ * This function stops the blink timer, sets the blink state to hidden,
+ * and redraws the cursor in its final state.
+ **/
+void
+stop_blink_cursor (void)
+{
+  stop_timer ();
+  text_data->blink_show = FALSE;
+  blink_cursor (NULL);
+}
+
+/*
+ * Calculates and stores the exact font metrics (ascent/descent).
+ * This provides a stable "source of truth" for all vertical alignment.
+ */
+static void
+set_cursor_height (GtkWidget *widget)
+{
+  PangoLayout *layout = gtk_widget_create_pango_layout (widget, "|");
+  pango_layout_set_font_description (layout, annotation_data->font);
+
+  PangoContext     *context = pango_layout_get_context (layout);
+  PangoFontMetrics *metrics = pango_context_get_metrics (context,
+                                                         annotation_data->font,
+                                                         NULL);
+
+  /* Calculate and store the fundamental metrics in pixels */
+  text_data->font_ascent =
+      (gdouble) pango_font_metrics_get_ascent (metrics) / PANGO_SCALE;
+  text_data->font_descent =
+      (gdouble) pango_font_metrics_get_descent (metrics) / PANGO_SCALE;
+  text_data->max_font_height =
+    text_data->font_ascent + text_data->font_descent;
+
+  pango_font_metrics_unref (metrics);
+  g_object_unref (layout);
+}
+
+/**
+ * calculate_visual_thickness:
+ *
+ * Compute an effective visual stroke thickness for drawing tools.
+ *
+ * This function linearly interpolates the given `pen_width` within a
+ * defined minimum and maximum range and scales it relative to the
+ * `font_size`. It ensures that the resulting visual thickness is
+ * perceptible and proportional to the text size.
+ *
+ * Parameters:
+ *   pen_width - the raw pen width (input) to be normalized
+ *   font_size - the current font size to scale the stroke
+ *
+ * Returns:
+ *   A gdouble representing the effective visual thickness for rendering.
+ *
+ * The mapping ensures:
+ *   - A minimum visible thickness (`OUTPUT_MIN`) is always respected.
+ *   - Maximum thickness scales with the font size but is tunable via
+ *     `FONT_SIZE_DIVISOR`.
+ *   - Input pen_width outside the expected range is clamped safely.
+ **/
+gdouble
+calculate_visual_thickness (gdouble pen_width, gint font_size)
+{
+  /* Set these to your defined min/max thickness values */
+  const gdouble INPUT_MIN = 3.0;
+  const gdouble INPUT_MAX = 18.0;
+
+  /*
+   * The absolute minimum visual thickness you want to see
+   * (for MICRO_THICKNESS)
+   */
+  const gdouble OUTPUT_MIN = 1.5;
+
+  /*
+   * This is the main control knob.
+   * A SMALLER number makes the maximum stroke THICKER.
+   * A LARGER number makes the maximum stroke THINNER.
+   * 6.0 is a good starting point for a very noticeable effect.
+   */
+  const gdouble FONT_SIZE_DIVISOR = 6;
+
+  /* Calculate the maximum allowed thickness for this font size */
+  gdouble output_max = (gdouble) font_size / FONT_SIZE_DIVISOR;
+  if (output_max < OUTPUT_MIN)
+    {
+      output_max = OUTPUT_MIN;
+    }
+
+  /* Normalize the input pen_width to a 0.0-1.0 range */
+  gdouble normalized_value = (pen_width - INPUT_MIN) / (INPUT_MAX - INPUT_MIN);
+  /* Clamp the value between 0.0 and 1.0 to be safe */
+  if (normalized_value < 0.0)
+    normalized_value = 0.0;
+  if (normalized_value > 1.0)
+    normalized_value = 1.0;
+
+  /*
+   * Linearly interpolate (lerp) the normalized value within the output range.
+   * This maps the input [3-18] to the output [OUTPUT_MIN - output_max].
+   */
+  return OUTPUT_MIN + normalized_value * (output_max - OUTPUT_MIN);
 }
 
 /*
@@ -292,9 +369,20 @@ assign_text_cursor_to_window (GtkWidget *window)
   return TRUE;
 }
 
-/* Add a save-point with the text. Called from stop_text_widget. */
+/**
+ * save_text:
+ *
+ * Add a save-point for the current text content.
+ *
+ * This function is called from `stop_text_widget`. It stops the blinking
+ * cursor, pushes the current Cairo context to the annotation stack, and
+ * frees the list of text characters (`letterlist`) after saving their
+ * properties.
+ *
+ * If no text data or Cairo context is available, the function does nothing.
+ **/
 void
-save_text ()
+save_text (void)
 {
   if (text_data != NULL)
     {
@@ -314,7 +402,7 @@ save_text ()
 
 /*Clear cairo context of text window. */
 static void
-clear_if_empty ()
+clear_if_empty (void)
 {
   if (! text_data->letterlist)
     {
@@ -342,7 +430,7 @@ init_text_widget (GtkWidget *widget)
 
 /* Create text data. */
 static void
-create_text_data ()
+create_text_data (void)
 {
   g_debug ("create_text_data\n");
   if (text_data == NULL)
@@ -367,10 +455,21 @@ create_text_data ()
     }
 }
 
-/*
- * Start the widget for the text insertion.
- * Triggered by the leaving of the mouse of the tool bar.
- */
+/**
+ * start_text_widget:
+ *
+ * Start the text insertion widget for annotations.
+ *
+ * This function is triggered when the mouse leaves the toolbar. It creates
+ * a new `TextData` structure, sets the pen color and thickness, creates a
+ * new Cairo context for the text, initializes the text widget, and marks
+ * the text editor as visible.
+ *
+ * Parameters:
+ *   widget    - the GTK widget in which the text will be inserted
+ *   color     - the color of the text
+ *   thickness - the pen thickness for text rendering
+ **/
 void
 start_text_widget (GtkWidget *widget, gchar *color, gint thickness)
 {
@@ -387,9 +486,18 @@ start_text_widget (GtkWidget *widget, gchar *color, gint thickness)
   annotation_data->is_text_editor_visible = TRUE;
 }
 
-/* Stop the text insertion widget. Triggered when mouse enters the bar again. */
+/**
+ * stop_text_widget:
+ *
+ * Stop the text insertion widget for annotations.
+ *
+ * This function is triggered when the mouse enters the toolbar again. It
+ * hides the text editor, stops the blinking cursor and virtual keyboard,
+ * saves the current text as a save-point, destroys the Cairo context,
+ * frees allocated position and text data, and resets `text_data` to NULL.
+ **/
 void
-stop_text_widget ()
+stop_text_widget (void)
 {
   annotation_data->is_text_editor_visible = FALSE;
   g_debug ("stop_text_widget\n");

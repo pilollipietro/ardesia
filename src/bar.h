@@ -90,29 +90,29 @@ typedef struct
 
 extern BarData *bar_data;
 
-/* Create the ardesia bar window. */
 GtkWidget *create_bar_window (CommandLine *commandline,
                               GdkRectangle *rect,
                               GtkWidget *parent);
 
-gboolean  bar_to_top (gpointer data);
-gboolean  is_toggle_tool_button_active (gchar *toggle_tool_button_name);
 GtkImage *get_image_from_builder (gchar *image_name);
-gboolean  is_text_toggle_tool_button_active ();
-gboolean  is_highlighter_toggle_tool_button_active ();
-gboolean  is_filler_toggle_tool_button_active ();
 
-gboolean is_eraser_toggle_tool_button_active ();
+gboolean is_text_toggle_tool_button_active (void);
 
-gboolean is_pen_toggle_tool_button_active ();
+gboolean is_highlighter_toggle_tool_button_active (void);
 
-gboolean is_pointer_toggle_tool_button_active ();
+gboolean is_filler_toggle_tool_button_active (void);
 
-gboolean is_arrow_toggle_tool_button_active ();
+gboolean is_eraser_toggle_tool_button_active (void);
+
+gboolean is_pen_toggle_tool_button_active (void);
+
+gboolean is_pointer_toggle_tool_button_active (void);
+
+gboolean is_arrow_toggle_tool_button_active (void);
 
 void add_alpha (BarData *bar_data);
 
-void take_pen_tool ();
+void take_pen_tool (void);
 
 void release_lock (BarData *bar_data);
 
@@ -124,10 +124,10 @@ void set_options (BarData *bar_data);
 
 void start_tool (BarData *bar_data);
 
-void begin_clapperboard_countdown ();
+void begin_clapperboard_countdown (void);
 
-/* Activate tool button by name. */
 void select_thickness (GtkToolButton *toolbutton, gchar *thickness);
 
-/* Read from bar data and setup modifier on bar */
 void setup_bar_mode (GtkToolButton *toolbutton, BarData *bar_data);
+
+void replace_status_message (gchar *message);

@@ -33,8 +33,20 @@
 
 BackgroundData *background_data;
 
+/**
+ * create_background_data:
+ *
+ * Allocates and initializes a new #BackgroundData structure.
+ *
+ * All fields within the structure are set to their default zero or
+ * %NULL values.
+ *
+ * Returns: (transfer full): A pointer to the newly allocated #BackgroundData
+ * struct. The caller is responsible for freeing this memory with
+ * g_free().
+ **/
 BackgroundData *
-create_background_data ()
+create_background_data (void)
 {
   g_debug ("Creating background data object\n");
   BackgroundData *background_data = g_malloc ((gsize) sizeof (BackgroundData));
@@ -45,9 +57,18 @@ create_background_data ()
   return background_data;
 }
 
-/* Destroy the background data structure */
+/**
+ * destroy_background_data:
+ *
+ * Frees all memory associated with the global #BackgroundData object.
+ *
+ * This function safely checks for %NULL pointers before freeing them. It
+ * destroys the Cairo context, frees the color string, and then frees the
+ * #BackgroundData structure itself. Finally, it sets the global
+ * `background_data` pointer to %NULL to prevent dangling pointer issues.
+ **/
 void
-destroy_background_data ()
+destroy_background_data (void)
 {
   if (background_data)
     {
@@ -68,9 +89,19 @@ destroy_background_data ()
     }
 }
 
-/* Clear the background. */
+/**
+ * clear_background_context:
+ *
+ * Clears the visual content of the background, effectively making it
+ * transparent.
+ *
+ * This function resets the background type, clears the associated Cairo
+ * context, and updates the application state to hide the background layer.
+ * It then queues a redraw of the main annotation window to apply the
+ * changes visually.
+ **/
 void
-clear_background_context ()
+clear_background_context (void)
 {
   g_debug ("clear background window, destroying cairo context\n");
   background_data->type = 0;
@@ -80,7 +111,18 @@ clear_background_context ()
   gtk_widget_queue_draw (annotation_data->annotation_window);
 }
 
-/* Update the background image. */
+/**
+ * update_background_image:
+ * @name: The filename of the image to set as the background.
+ *
+ * Sets a new background image.
+ *
+ * This function updates the background state to 'image' mode, stores the
+ * provided @name pointer, and calls a helper to render the image onto the
+ * background's Cairo context. It then queues a redraw of the main
+ * window. Note: This function stores the @name pointer directly; the caller
+ * must ensure the string remains valid for the lifetime of the object.
+ **/
 void
 update_background_image (gchar *name)
 {
@@ -92,7 +134,16 @@ update_background_image (gchar *name)
   gtk_widget_queue_draw (annotation_data->annotation_window);
 }
 
-/* Update the background color. */
+/**
+ * update_background_color:
+ * @rgba: An RGBA color string (e.g., "FF0000FF").
+ *
+ * Sets a new solid color as the background.
+ *
+ * This function updates the background state to 'color' mode and renders
+ * the color onto the background's Cairo context. It allocates and stores
+ * a new copy of the @rgba string, then queues a redraw of the main window.
+ **/
 void
 update_background_color (gchar *rgba)
 {
@@ -104,9 +155,17 @@ update_background_color (gchar *rgba)
   gtk_widget_queue_draw (annotation_data->annotation_window);
 }
 
-/* Restore background. */
+/**
+ * restore_background:
+ *
+ * Restores the last used background from the user's configuration.
+ *
+ * This function retrieves the last saved background setting (either a color
+ * or an image) and calls the appropriate update function to apply it to
+ * the screen.
+ **/
 void
-restore_background ()
+restore_background (void)
 {
   BackgroundRestored *br = background_config_restore_last_background ();
   if (br)

@@ -152,7 +152,7 @@ init_pdf_saver (GtkWindow *parent, GdkPixbuf *pixbuf)
 
 /* Save the surfaces in the pdf file. */
 static void
-pdf_save ()
+pdf_save (void)
 {
   GtkWidget *annotation_window = get_annotation_window ();
   int        width  = gtk_widget_get_allocated_width (annotation_window);
@@ -190,20 +190,13 @@ pdf_save ()
 
 /* Wait if there is a pending thread. */
 static void
-wait_for_pdf_save_pending_thread ()
+wait_for_pdf_save_pending_thread (void)
 {
   if (pdf_data->thread)
     {
       g_thread_join (pdf_data->thread);
       pdf_data->thread = NULL;
     }
-}
-
-/* Add the screenshot to pdf. */
-void
-add_pdf_page (GtkWindow *parent)
-{
-  grab_screenshot (add_pdf_page_callback);
 }
 
 void
@@ -268,9 +261,31 @@ add_pdf_page_callback (GdkPixbuf *pixbuf)
     }
 }
 
-/* Quit the pdf saver. */
+/**
+ * add_pdf_page:
+ * @parent: Parent GTK window for any dialogs or notifications.
+ *
+ * Captures a screenshot of the current annotation window and adds it
+ * as a new page to the PDF document. Uses the grab_screenshot() function
+ * and delegates the actual PDF addition to add_pdf_page_callback().
+ */
 void
-quit_pdf_saver ()
+add_pdf_page (GtkWindow *parent)
+{
+  grab_screenshot (add_pdf_page_callback);
+}
+
+/**
+ * quit_pdf_saver:
+ *
+ * Cleans up the PDF saver state. Waits for any pending PDF saving
+ * thread to finish, removes all temporary input files, and frees
+ * all allocated memory associated with the pdf_data structure.
+ *
+ * After this call, pdf_data is set to NULL.
+ */
+void
+quit_pdf_saver (void)
 {
   if (pdf_data)
     {

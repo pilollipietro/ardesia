@@ -125,14 +125,23 @@ activate_tool_button (gchar *tool_button_name)
 
 /* Get status bar. */
 GtkStatusbar *
-get_statusbar ()
+get_statusbar (void)
 {
   GObject *g_object = gtk_builder_get_object (bar_gtk_builder,
                                               gettext ("statusbar"));
   return GTK_STATUSBAR (g_object);
 }
 
-/* Replace staus message of status bar. */
+/**
+ * replace_status_message:
+ * @message: the message string to display in the status bar
+ *
+ * Replaces the current message on the application's status bar with
+ * the provided message. If no status bar exists, the function does nothing.
+ *
+ * This function first removes the top message from the status bar stack
+ * and then pushes the new message.
+ **/
 void
 replace_status_message (gchar *message)
 {
@@ -146,7 +155,7 @@ replace_status_message (gchar *message)
 
 /* Allocate and initialize the bar data structure. */
 static BarData *
-init_bar_data ()
+init_bar_data (void)
 {
   BarData *bar_data = (BarData *) g_malloc ((gsize) sizeof (BarData));
   bar_data->annotation_is_visible       = TRUE;
@@ -215,7 +224,19 @@ set_thickness (gint thickness)
   bar_data->thickness = thickness;
 }
 
-/* Activate tool button by name. */
+/**
+ * select_thickness:
+ * @toolbutton: The #GtkToolButton whose icon will be updated.
+ * @thickness:  The string ID of the widget (e.g., a #GtkImage) to use
+ * as the new icon.
+ *
+ * Updates the icon of a tool button to visually represent a selected
+ * thickness.
+ *
+ * This function retrieves a widget, identified by the @thickness string
+ * ID, from the global `bar_gtk_builder` and sets it as the new icon for
+ * the @toolbutton.
+ **/
 void
 select_thickness (GtkToolButton *toolbutton, gchar *thickness)
 {
@@ -273,7 +294,23 @@ set_hand_icon (GtkToolButton *toolbutton)
   set_icon (toolbutton, "hand");
 }
 
-/* Read from bar data and setup modifier on bar */
+/**
+ * setup_bar_mode:
+ * @toolbutton: The #GtkToolButton that was clicked, whose icon will be updated.
+ * @bar_data: (inout): The #BarData struct containing the current drawing mode
+ * state, which will be modified.
+ *
+ * Cycles through the three main drawing modes: Freehand, Rounder, and
+ * Rectifier (Polygon).
+ *
+ * This function is intended to be a callback for a single button. Each
+ * time it is called, it transitions to the next mode in the cycle:
+ * Freehand -> Rounder -> Rectifier -> Freehand.
+ *
+ * It updates the `rectifier` and `rounder` flags in the @bar_data
+ * struct and changes the icon of the @toolbutton to reflect the new
+ * active mode.
+ **/
 void
 setup_bar_mode (GtkToolButton *toolbutton, BarData *bar_data)
 {
@@ -448,10 +485,29 @@ get_xdg_config_file (const char *name)
   return NULL;
 }
 
-/*
- * Create the ardesia bar window.
- * @rect    the monitor rectangle to place toolbar on
- */
+/**
+ * create_bar_window:
+ * @commandline: Command line options that influence the bar's layout,
+ * decoration, and position.
+ * @rect: The geometry of the monitor on which the bar will be placed.
+ * @parent: (nullable): The main application window, to be set as the
+ * transient parent for the bar window.
+ *
+ * Creates and initializes the main Ardesia toolbar window.
+ *
+ * This function handles several setup tasks:
+ * - Loads custom user styles from `ardesia/gtk.css` if it exists.
+ * - Selects the appropriate GtkBuilder UI file (horizontal or vertical)
+ * based on the requested position and screen resolution, forcing a
+ * horizontal layout on low-resolution screens.
+ * - Loads the UI, retrieves the main window widget, and connects all
+ * signal handlers.
+ * - Calculates the bar's initial on-screen position and moves the
+ * window into place.
+ *
+ * Returns: (transfer none): A pointer to the newly created toolbar #GtkWidget,
+ * or %NULL on failure.
+ **/
 GtkWidget *
 create_bar_window (CommandLine *commandline,
                    GdkRectangle *rect,
@@ -563,23 +619,6 @@ set_statusbar_label (gchar *message)
   gtk_label_set_label (label, gettext (message));
 }
 
-/*
- * Try to up-rise the window;
- * this is used for the window manager
- * that does not support the stay above directive.
- */
-gboolean
-bar_to_top (gpointer data)
-{
-  if (! gtk_widget_get_visible (GTK_WIDGET (data)))
-    {
-      gtk_window_present (GTK_WINDOW (data));
-      gtk_widget_grab_focus (data);
-      gdk_window_lower (gtk_widget_get_window (GTK_WIDGET (data)));
-    }
-  return TRUE;
-}
-
 /* Is the toggle tool button specified with name is active? */
 gboolean
 is_toggle_tool_button_active (gchar *toggle_tool_button_name)
@@ -590,8 +629,18 @@ is_toggle_tool_button_active (gchar *toggle_tool_button_name)
   return gtk_toggle_tool_button_get_active (toggle_tool_button);
 }
 
-/* Get GtkImage object from builder
- */
+/**
+ * get_image_from_builder:
+ * @image_name: The string ID of the #GtkImage widget in the UI
+ * definition file.
+ *
+ * Retrieves a pointer to a #GtkImage widget from the global
+ * `bar_gtk_builder`.
+ *
+ * Returns: (transfer none) (nullable): A pointer to the #GtkImage
+ * widget, or %NULL if an object with the given ID is not found. The
+ * returned widget is owned by the builder and must not be unreferenced.
+ **/
 GtkImage *
 get_image_from_builder (gchar *image_name)
 {
@@ -600,56 +649,132 @@ get_image_from_builder (gchar *image_name)
   return image;
 }
 
+/**
+ * is_text_toggle_tool_button_active:
+ *
+ * Checks if the text tool toggle button is currently active.
+ *
+ * This is a convenience wrapper around the generic
+ * is_toggle_tool_button_active() function, which it calls with the
+ * hardcoded button ID "buttonText".
+ *
+ * Returns: %TRUE if the text tool button is active, %FALSE otherwise.
+ **/
 gboolean
-is_text_toggle_tool_button_active ()
+is_text_toggle_tool_button_active (void)
 {
   return is_toggle_tool_button_active ("buttonText");
 }
 
-/* Is the highlighter toggle tool button active? */
-
+/**
+ * is_highlighter_toggle_tool_button_active:
+ *
+ * Checks if the highlighter tool toggle button is currently active.
+ *
+ * This is a convenience wrapper around the generic
+ * is_toggle_tool_button_active() function, which it calls with the
+ * hardcoded button ID "buttonHighlighter".
+ *
+ * Returns: %TRUE if the highlighter tool button is active, %FALSE otherwise.
+ **/
 gboolean
-is_highlighter_toggle_tool_button_active ()
+is_highlighter_toggle_tool_button_active (void)
 {
   return is_toggle_tool_button_active ("buttonHighlighter");
 }
 
-/* Is the filler toggle tool button active? */
+/**
+ * is_filler_toggle_tool_button_active:
+ *
+ * Checks if the filler tool toggle button is currently active.
+ *
+ * This is a convenience wrapper that calls is_toggle_tool_button_active()
+ * with the hardcoded button ID "buttonFiller".
+ *
+ * Returns: %TRUE if the filler tool button is active, %FALSE otherwise.
+ **/
 gboolean
-is_filler_toggle_tool_button_active ()
+is_filler_toggle_tool_button_active (void)
 {
   return is_toggle_tool_button_active ("buttonFiller");
 }
 
-/* Is the eraser toggle tool button active? */
+/**
+ * is_eraser_toggle_tool_button_active:
+ *
+ * Checks if the eraser tool toggle button is currently active.
+ *
+ * This is a convenience wrapper that calls is_toggle_tool_button_active()
+ * with the hardcoded button ID "buttonEraser".
+ *
+ * Returns: %TRUE if the eraser tool button is active, %FALSE otherwise.
+ **/
 gboolean
-is_eraser_toggle_tool_button_active ()
+is_eraser_toggle_tool_button_active (void)
 {
   return is_toggle_tool_button_active ("buttonEraser");
 }
 
-/* Is the eraser toggle tool button active? */
+/**
+ * is_pen_toggle_tool_button_active:
+ *
+ * Checks if the pen tool toggle button is currently active.
+ *
+ * This is a convenience wrapper that calls is_toggle_tool_button_active()
+ * with the hardcoded button ID "buttonPencil".
+ *
+ * Returns: %TRUE if the pen tool button is active, %FALSE otherwise.
+ **/
 gboolean
-is_pen_toggle_tool_button_active ()
+is_pen_toggle_tool_button_active (void)
 {
   return is_toggle_tool_button_active ("buttonPencil");
 }
 
-/* Is the pointer toggle tool button active? */
+/**
+ * is_pointer_toggle_tool_button_active:
+ *
+ * Checks if the pointer tool toggle button is currently active.
+ *
+ * This is a convenience wrapper that calls is_toggle_tool_button_active()
+ * with the hardcoded button ID "buttonPointer".
+ *
+ * Returns: %TRUE if the pointer tool button is active, %FALSE otherwise.
+ **/
 gboolean
-is_pointer_toggle_tool_button_active ()
+is_pointer_toggle_tool_button_active (void)
 {
   return is_toggle_tool_button_active ("buttonPointer");
 }
 
-/* Is the pointer toggle tool button active? */
+/**
+ * is_arrow_toggle_tool_button_active:
+ *
+ * Checks if the arrow tool toggle button is currently active.
+ *
+ * This is a convenience wrapper that calls is_toggle_tool_button_active()
+ * with the hardcoded button ID "buttonArrow".
+ *
+ * Returns: %TRUE if the arrow tool button is active, %FALSE otherwise.
+ **/
 gboolean
-is_arrow_toggle_tool_button_active ()
+is_arrow_toggle_tool_button_active (void)
 {
   return is_toggle_tool_button_active ("buttonArrow");
 }
 
-/* Add alpha channel to build the RGBA string. */
+/**
+ * add_alpha:
+ * @bar_data: (inout): The #BarData struct containing the color string
+ *                     to modify.
+ *
+ * Modifies the alpha component of the color string in @bar_data based on
+ * the currently active tool.
+ *
+ * This function assumes the color is an 8-character hexadecimal RGBA string.
+ * It sets the alpha to a semi-opaque value for the highlighter tool and a
+ * fully opaque value for the pen tool. Other tools are not affected.
+ **/
 void
 add_alpha (BarData *bar_data)
 {
@@ -664,9 +789,22 @@ add_alpha (BarData *bar_data)
     }
 }
 
-/* Select the pen tool. */
+/**
+ * take_pen_tool:
+ *
+ * Programmatically activates the pen or highlighter tool on the toolbar.
+ *
+ * This function is typically called to switch back to a drawing tool
+ * after an action with another tool (like the filler) is complete. It
+ * deactivates other currently active tools like the eraser, pointer, or
+ * filler.
+ *
+ * It includes special logic for the filler tool: if the current color
+ * is semi-transparent, this function will activate the highlighter tool
+ * instead of the standard pen tool. Otherwise, it activates the pen tool.
+ **/
 void
-take_pen_tool ()
+take_pen_tool (void)
 {
   GObject             *pencil_obj = gtk_builder_get_object (bar_gtk_builder,
                                                             "buttonPencil");
@@ -709,7 +847,18 @@ take_pen_tool ()
     }
 }
 
-/* Release to lock the mouse */
+/**
+ * release_lock:
+ * @bar_data: (inout): The #BarData struct containing the grab state.
+ *
+ * Releases the pointer grab from the annotation window, allowing mouse
+ * events to pass through to the desktop and other applications.
+ *
+ * This function is called to exit the drawing mode. It updates the `grab`
+ * flag in the @bar_data struct and triggers a redraw of the annotation window.
+ * On Windows, it includes a workaround to achieve input transparency by
+ * setting the annotation window's opacity to 0.
+ **/
 void
 release_lock (BarData *bar_data)
 {
@@ -720,10 +869,6 @@ release_lock (BarData *bar_data)
       bar_data->grab = FALSE;
       annotate_release_grab ();
 
-      /* Try to up-rise the window. */
-      timer = g_timeout_add (BAR_TO_TOP_TIMEOUT,
-                             bar_to_top,
-                             get_annotation_window ());
 #ifdef _WIN32 // WIN32
       if (gtk_window_get_opacity (GTK_WINDOW (get_annotation_window ())) != 0)
         {
@@ -742,7 +887,23 @@ release_lock (BarData *bar_data)
     }
 }
 
-/* Lock the mouse. */
+/**
+ * lock:
+ * @bar_data: (inout): The #BarData struct containing the grab state.
+ *
+ * Prepares the application to enter a pointer-grabbed ("locked") state.
+ *
+ * If the pointer is not already grabbed, this function sets the `grab`
+ * flag to %TRUE and cancels any pending timers. It is intended to be
+ * called before a pointer grab is initiated elsewhere.
+ *
+ * Note that this function only updates internal state flags and does not
+ * perform the actual GDK pointer grab itself.
+ *
+ * On Windows, it includes a workaround to ensure the background window
+ * can receive mouse input by setting its opacity to a small, non-zero
+ * value.
+ **/
 void
 lock (BarData *bar_data)
 {
@@ -774,7 +935,18 @@ lock (BarData *bar_data)
     }
 }
 
-/* Set color; this is called each time that the user want change color. */
+/**
+ * set_color:
+ * @bar_data: (inout): The #BarData struct to update with the new color.
+ * @selected_color: The new color string (e.g., "FF0000").
+ *
+ * Sets a new color for the drawing tools.
+ *
+ * This function is called when the user selects a new color. It ensures a
+ * drawing tool is active, updates the color in the #BarData struct, and
+ * then adjusts the color's alpha channel based on whether the pen or
+ * highlighter is active.
+ **/
 void
 set_color (BarData *bar_data, gchar *selected_color)
 {
@@ -785,7 +957,19 @@ set_color (BarData *bar_data, gchar *selected_color)
   add_alpha (bar_data);
 }
 
-/* Pass the options to the annotation window. */
+/**
+ * set_options:
+ * @bar_data: The #BarData struct containing the current tool options.
+ *
+ * Synchronizes the state of the annotation engine with the current
+ * options selected in the toolbar.
+ *
+ * This function reads various settings (e.g., thickness, rectifier,
+ * rounder, arrow mode) from the @bar_data struct and applies them to
+ * the annotation module. It also selects the appropriate drawing tool
+ * (pen or eraser) in the annotation engine based on which toolbar
+ * button is currently active.
+ **/
 void
 set_options (BarData *bar_data)
 {
@@ -811,7 +995,21 @@ set_options (BarData *bar_data)
     }
 }
 
-/* Start to paint with the selected tool. */
+/**
+ * start_tool:
+ * @bar_data: The #BarData struct containing the current application state.
+ *
+ * Activates the currently selected tool in the annotation engine.
+ *
+ * This function is called when a tool is selected while a pointer grab is
+ * already active. It determines which tool is currently toggled in the
+ * toolbar.
+ *
+ * If the text tool is active, it initializes and starts the text editing
+ * widget. For any other drawing tool (pen, eraser, etc.), it ensures the
+ * text widget is stopped and then applies the current settings (color,
+ * thickness, etc.) to the main annotation engine by calling set_options().
+ **/
 void
 start_tool (BarData *bar_data)
 {
@@ -843,6 +1041,20 @@ start_tool (BarData *bar_data)
     }
 }
 
+/**
+ * end_clapperboard_countdown:
+ * @user_data: (unused): Data passed from the timeout source.
+ *
+ * This function is a timeout callback executed after the clapperboard
+ * countdown has finished.
+ *
+ * It hides the clapperboard overlay, releases the pointer grab, and then
+ * re-activates the previously selected tool to return the application to
+ * its prior state. It triggers a redraw of the annotation window to
+ * reflect these changes.
+ *
+ * Returns: %G_SOURCE_REMOVE to ensure the timeout is not called again.
+ **/
 gboolean
 end_clapperboad_countdown (gpointer user_data)
 {
@@ -864,8 +1076,16 @@ end_clapperboad_countdown (gpointer user_data)
   return FALSE;
 }
 
+/**
+ * begin_clapperboard_countdown:
+ *
+ * Starts a timer that triggers the end of the clapperboard sequence.
+ *
+ * It schedules the end_clapperboard_countdown() function to be called
+ * after the timeout specified by %BAR_TO_TOP_TIMEOUT has elapsed.
+ **/
 void
-begin_clapperboard_countdown ()
+begin_clapperboard_countdown (void)
 {
   timer = g_timeout_add (BAR_TO_TOP_TIMEOUT, end_clapperboad_countdown, NULL);
 }

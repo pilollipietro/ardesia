@@ -40,10 +40,6 @@ typedef struct
 
 } PdfData;
 
-/* Add the screenshot to pdf. */
 void add_pdf_page (GtkWindow *parent);
 
-/* Quit the pdf saver. */
-void quit_pdf_saver ();
-
-void add_pdf_page_callback (GdkPixbuf *pixbuf);
+void quit_pdf_saver (void);

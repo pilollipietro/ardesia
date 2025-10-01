@@ -40,10 +40,17 @@ new_crash_data (gchar *crash_report)
   return crash_data;
 }
 
-/*
- * Start the dialog that ask to the user
- * if he wants crash you work.
- */
+/**
+ * start_crash_dialog:
+ * @parent: the parent window for the crash dialog
+ * @crash_report: textual content describing the crash
+ *
+ * Opens a modal dialog asking the user whether they want to save their work
+ * after a crash has occurred. The dialog is created from a GTK builder file
+ * (Glade) and connects all signals automatically.
+ *
+ * This function blocks until the user responds and then destroys the dialog.
+ **/
 void
 start_crash_dialog (GtkWindow *parent, gchar *crash_report)
 {

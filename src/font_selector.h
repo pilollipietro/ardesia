@@ -32,4 +32,5 @@
 #endif
 
 void create_font_selector_window (GtkWindow *parent);
-void show_font_selector_window ();
+
+void show_font_selector_window (void);

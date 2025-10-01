@@ -47,8 +47,4 @@ extern GtkWidget *background_window;
 extern GtkWidget *annotation_window;
 extern Workspace *workspace;
 
-// get drawable area for annotation, background and text windows
-GdkRectangle *get_drawable_area ();
-void          build_background_window ();
-
 #endif

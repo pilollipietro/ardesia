@@ -25,14 +25,25 @@
 #include "annotation_window.h"
 #include "utils.h"
 
-/*
- * Smooth a polyline with cubic Bézier curves.
+/**
+ * spline:
+ * @list: A #GSList of #AnnotatePoint structs representing a polyline.
  *
- * Given a list of AnnotatePoint (x,y,width,pressure), compute for each
- * segment (Xi, Xi+1) the two control points Pi and Qi that ensure C¹
- * continuity of the whole curve. The resulting GSList contains the control
- * points and end points to draw the smoothed curve.
- */
+ * Computes a smooth curve that passes through a given set of points
+ * using a C¹ continuous cubic Bézier spline.
+ *
+ * This function sets up and solves a system of linear equations to find
+ * the two control points for each segment of the input polyline. The
+ * resulting curve is visually smooth and lacks sharp corners at the
+ * original points. It relies on the GNU Scientific Library (GSL) for
+ * its linear algebra operations.
+ *
+ * Returns: (transfer full) (nullable): A new #GSList containing the
+ * points required to draw the smoothed curve. The list is composed of
+ * sequential triplets: (control point 1, control point 2, endpoint),
+ * intended for use with functions like cairo_curve_to(). The caller
+ * is responsible for freeing this list and its contents.
+ **/
 GSList *
 spline (GSList *list)
 {

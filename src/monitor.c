@@ -27,13 +27,72 @@ const guint DRAW_ON_MONITOR     = 0;
 const guint DRAW_ON_CLIPAREA    = 1;
 const guint DRAW_ON_FULLDESKTOP = 2;
 
+int
+is_to_left_of (gconstpointer a, gconstpointer b, gpointer data)
+{
+  Monitor *monitorA = (Monitor *) a;
+  Monitor *monitorB = (Monitor *) b;
+  if (monitorA->rect->x < monitorB->rect->x)
+    {
+      return -1; // A < B
+    }
+  else
+    {
+      return 1; // B < A
+    }
+}
+
+Monitor *
+copy_monitor_struct (Monitor *m)
+{
+  Monitor      *new_m  = g_new (Monitor, 1);
+  GdkRectangle *rect   = g_new (GdkRectangle, 1);
+  new_m->monitor_index = m->monitor_index;
+  new_m->rect          = rect;
+  new_m->rect->x       = m->rect->x;
+  new_m->rect->y       = m->rect->y;
+  new_m->rect->width   = m->rect->width;
+  new_m->rect->height  = m->rect->height;
+
+  return new_m;
+}
+
+void
+destroy_monitor_struct (gpointer data)
+{
+  Monitor *m = (Monitor *) data;
+  g_free (m->rect);
+}
+
+void
+debug_monitor_struct (gpointer data, gpointer userdata)
+{
+  Monitor *m = (Monitor *) data;
+  g_debug ("Monitor %d: %d %d %d %d\n",
+           m->monitor_index,
+           m->rect->x,
+           m->rect->y,
+           m->rect->width,
+           m->rect->height);
+}
+
 /**
- * Creates a GList of monitors sorted by the pixel area they service
- * top-leftmost monitor is monitor 1 to rightmost monitor
- * @return [description]
+ * create_monitor_list:
+ *
+ * Creates a GList of Monitor objects representing the connected displays.
+ * The list is sorted by the pixel area each monitor covers, from top-leftmost
+ * monitor to the rightmost monitor.
+ *
+ * Each Monitor struct contains:
+ * - the monitor index
+ * - its geometry (GdkRectangle)
+ * - whether it is the primary monitor
+ *
+ * Returns: a newly-allocated GList of Monitor pointers. The caller
+ *          is responsible for freeing the list with destroy_monitor_list().
  */
 GList *
-create_monitor_list ()
+create_monitor_list (void)
 {
   /* Lets get some information about the displays first. */
   GdkDisplay *display      = gdk_display_get_default ();
@@ -77,6 +136,12 @@ create_monitor_list ()
   return monitors;
 }
 
+/**
+ * debug_monitor_list:
+ * @monitors: a GList of Monitor objects.
+ *
+ * Prints debug information for each Monitor object in the list.
+ */
 void
 debug_monitor_list (GList *monitors)
 {
@@ -87,60 +152,17 @@ debug_monitor_list (GList *monitors)
     }
 }
 
+/**
+ * destroy_monitor_list:
+ * @monitors: a GList of Monitor objects.
+ *
+ * Frees the list and all associated Monitor structs.
+ */
 void
 destroy_monitor_list (GList *monitors)
 {
   if (monitors != NULL)
     {
       g_list_free_full (monitors, (GDestroyNotify) destroy_monitor_struct);
-    }
-}
-
-Monitor *
-copy_monitor_struct (Monitor *m)
-{
-  Monitor      *new_m  = g_new (Monitor, 1);
-  GdkRectangle *rect   = g_new (GdkRectangle, 1);
-  new_m->monitor_index = m->monitor_index;
-  new_m->rect          = rect;
-  new_m->rect->x       = m->rect->x;
-  new_m->rect->y       = m->rect->y;
-  new_m->rect->width   = m->rect->width;
-  new_m->rect->height  = m->rect->height;
-
-  return new_m;
-}
-
-void
-destroy_monitor_struct (gpointer data)
-{
-  Monitor *m = (Monitor *) data;
-  g_free (m->rect);
-}
-
-void
-debug_monitor_struct (gpointer data, gpointer userdata)
-{
-  Monitor *m = (Monitor *) data;
-  g_debug ("Monitor %d: %d %d %d %d\n",
-           m->monitor_index,
-           m->rect->x,
-           m->rect->y,
-           m->rect->width,
-           m->rect->height);
-}
-
-int
-is_to_left_of (gconstpointer a, gconstpointer b, gpointer data)
-{
-  Monitor *monitorA = (Monitor *) a;
-  Monitor *monitorB = (Monitor *) b;
-  if (monitorA->rect->x < monitorB->rect->x)
-    {
-      return -1; // A < B
-    }
-  else
-    {
-      return 1; // B < A
     }
 }

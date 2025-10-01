@@ -28,12 +28,23 @@
 #include "project_dialog.h"
 #include "utils.h"
 
-/*
- * Start the dialog that ask to the user
- * the project settings.
- */
+/**
+ * start_project_dialog:
+ *
+ * Open a modal dialog to ask the user for project settings.
+ *
+ * This function creates and initializes a GTK dialog using a Glade
+ * builder file, pre-fills the project name with a default value
+ * containing the current date, connects signals, and runs the dialog
+ * modally. After the user completes the dialog, it cleans up all
+ * allocated resources and returns the project name entered by the user.
+ *
+ * Returns:
+ *   A newly allocated string containing the project name chosen by the user.
+ *   The caller is responsible for freeing the returned string.
+ **/
 gchar *
-start_project_dialog ()
+start_project_dialog (void)
 {
   GtkWidget   *project_dialog = NULL;
   GObject     *project_obj    = NULL;

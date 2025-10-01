@@ -26,9 +26,13 @@
 #include "font_selector_callbacks.h"
 
 /**
- * @brief Creates and shows the font settings dialog.
- * @param parent_window The window to set as the dialog's parent.
- */
+ * create_font_selector_window:
+ * @parent_window: a #GtkWindow to set as the dialog's parent
+ *
+ * Creates the font selection dialog and initializes it with the current
+ * font settings if available. Sets up signal handlers for response and
+ * destroy events.
+ **/
 void
 create_font_selector_window (GtkWindow *parent)
 {
@@ -67,8 +71,13 @@ create_font_selector_window (GtkWindow *parent)
     }
 }
 
+/**
+ * show_font_selector_window:
+ *
+ * Shows the previously created font selection dialog.
+ **/
 void
-show_font_selector_window ()
+show_font_selector_window (void)
 {
   gtk_widget_show_all (annotation_data->font_window);
 }

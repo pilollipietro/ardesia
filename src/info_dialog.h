@@ -29,7 +29,4 @@
 #define INFO_UI_FILE PACKAGE_DATA_DIR "/ardesia/ui/info_dialog.glade"
 #endif
 
-/*
- * Start the dialog that give to the user the info about the tool.
- */
 void start_info_dialog (GtkToolButton *toolbutton, GtkWindow *parent);

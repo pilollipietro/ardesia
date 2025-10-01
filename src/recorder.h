@@ -30,33 +30,20 @@
 #define RECORDER_FILE PACKAGE_DATA_DIR "/ardesia/scripts/screencast.sh"
 #endif
 
-/*
- * Start the dialog that ask to the user where save the video
- * containing the screencast.
- * This function take as input the recorder tool button in ardesia bar
- * return true is the recorder is started.
- */
 gboolean start_save_video_dialog (GtkButton *toolbutton,
                                   GtkWindow *parent);
 
-/* Quit the recorder. */
-void stop_recorder ();
+void stop_recorder (void);
 
-/* Pause the recorder. */
-void pause_recorder ();
+void pause_recorder (void);
 
-/* Resume the recorder. */
-void resume_recorder ();
+void resume_recorder (void);
 
-/* Return if the recording is started. */
-gboolean is_started ();
+gboolean is_started (void);
 
-/* Return if the recording is paused. */
-gboolean is_paused ();
+gboolean is_paused (void);
 
-/* Is the recorder available. */
-gboolean is_recorder_available ();
+gboolean is_recorder_available (void);
 
-/* Missing program dialog. */
 void visualize_missing_recorder_program_dialog (GtkWindow *parent_window,
                                                 gchar *message);

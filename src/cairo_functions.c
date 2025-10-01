@@ -24,11 +24,16 @@
 #include "cairo_functions.h"
 #include "utils.h"
 
-/*
- * Paint from one context to another.
- * @param source the context on which we want to paint
- * @param dest   the context which has our pattern on it
- */
+/**
+ * draw_cairo_context:
+ * @dest: the #cairo_t context to paint onto
+ * @source: the #cairo_t context to copy from
+ * @use_paint: whether to use cairo_paint() (TRUE) or
+ *             cairo_fill_preserve() (FALSE)
+ *
+ * Copies the content of @source context onto @dest context, using the
+ * specified painting method.
+ **/
 void
 draw_cairo_context (cairo_t *dest, cairo_t *source, gboolean use_paint)
 {
@@ -68,7 +73,14 @@ scale_image (gchar *image, gint new_width, gint new_height)
   return scaled_surface;
 }
 
-/* Load a file image in the window. */
+/**
+ * load_file_onto_context:
+ * @image_filename: path to the image file to load
+ * @cr: the #cairo_t context where the image will be drawn
+ *
+ * Loads an image from the specified file and paints it onto the given
+ * Cairo context.
+ **/
 void
 load_file_onto_context (gchar *image_filename, cairo_t *cr)
 {
@@ -96,10 +108,15 @@ load_file_onto_context (gchar *image_filename, cairo_t *cr)
     }
 }
 
-/*
- * The windows has been exposed after the show_all request
- * to change the background color.
- */
+/**
+ * load_color_onto_context:
+ * @hex_color: a string representing the color in RGBA hex format
+ * @cr: the #cairo_t context where the color will be painted
+ *
+ * Fills the entire Cairo context with the specified color. This is
+ * typically called after the window has been exposed to update the
+ * background.
+ **/
 void
 load_color_onto_context (gchar *hex_color, cairo_t *cr)
 {
@@ -126,6 +143,14 @@ load_color_onto_context (gchar *hex_color, cairo_t *cr)
     }
 }
 
+/**
+ * create_new_context:
+ * @width: the width of the new Cairo surface
+ * @height: the height of the new Cairo surface
+ *
+ * Creates a new #cairo_t context with an ARGB32 image surface of the
+ * specified width and height.
+ **/
 cairo_t *
 create_new_context (int width, int height)
 {

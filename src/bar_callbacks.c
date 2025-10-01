@@ -669,6 +669,25 @@ on_background_selection_window_configure_event (GtkWidget *widget,
   return FALSE;
 }
 
+/**
+ * add_background_button:
+ * @label:   the text label for the button
+ * @mode:    background mode (color or image)
+ * @filename: path to the image file (if mode is image)
+ * @color:   color value (if mode is color)
+ *
+ * Creates a new radio tool button representing a background (color or image)
+ * and appends it to the annotation background selection container. If there
+ * is already at least one button, this button is linked to the previous ones
+ * as a radio button group. The button is inserted before the "Add" button
+ * if one exists, keeping the "Add" button at the end.
+ *
+ * Additional button metadata (mode, filename, color, index, size) is stored
+ * in a BackgroundButtonData structure attached to the button.
+ *
+ * Signal handlers are connected for toggled and button_press_event events.
+ * If more than 3 buttons exist, the background selection window is shown.
+ **/
 void
 add_background_button (gchar *label, gint mode, gchar *filename, gchar *color)
 {
@@ -725,8 +744,8 @@ add_background_button (gchar *label, gint mode, gchar *filename, gchar *color)
    * packing the button.
    */
   GtkWidget *add_btn =
-    g_object_get_data (G_OBJECT (background_selection_container),
-                       "background_add_button");
+      g_object_get_data (G_OBJECT (background_selection_container),
+                         "background_add_button");
 
   if (add_btn != NULL)
     {
@@ -792,7 +811,7 @@ on_background_selection_size_allocate (GtkWidget *widget,
 
 /* Load colors and images from config file. */
 static void
-load_backgrounds_from_config ()
+load_backgrounds_from_config (void)
 {
   gsize n_colors = 0;
   gchar **color_keys = background_config_get_color_keys (&n_colors);

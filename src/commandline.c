@@ -53,25 +53,6 @@ static struct option long_options[] = {
   { 0,                   0,                 0, 0    }
 };
 
-CommandLine *
-create_command_line ()
-{
-  CommandLine *commandline = g_malloc ((gsize) sizeof (CommandLine));
-  add_defaults_to_commandline (commandline);
-  return commandline;
-}
-
-void
-destroy_command_line (CommandLine *commandline)
-{
-  g_debug ("Destroying command line\n");
-  if (commandline->clipRect != NULL)
-    {
-      g_free (commandline->clipRect);
-    }
-  g_free (commandline);
-}
-
 void
 add_defaults_to_commandline (CommandLine *commandline)
 {
@@ -94,9 +75,49 @@ add_defaults_to_commandline (CommandLine *commandline)
   commandline->is_opaque        = FALSE;
 }
 
+/**
+ * create_command_line:
+ *
+ * Allocates and initializes a new #CommandLine structure with default values.
+ *
+ * This function creates a new #CommandLine object and populates it with
+ * default settings by calling add_defaults_to_commandline().
+ *
+ * Returns: (transfer full): A pointer to the newly allocated and
+ * initialized #CommandLine struct. The caller is responsible for freeing
+ * this memory with destroy_command_line().
+ **/
+CommandLine *
+create_command_line (void)
+{
+  CommandLine *commandline = g_malloc ((gsize) sizeof (CommandLine));
+  add_defaults_to_commandline (commandline);
+  return commandline;
+}
+
+/**
+ * destroy_command_line:
+ * @commandline: (transfer full): The #CommandLine object to free.
+ *
+ * Frees all memory associated with a #CommandLine object.
+ *
+ * This function first frees any internally allocated members (such as
+ * `clipRect`) before freeing the #CommandLine structure itself.
+ **/
+void
+destroy_command_line (CommandLine *commandline)
+{
+  g_debug ("Destroying command line\n");
+  if (commandline->clipRect != NULL)
+    {
+      g_free (commandline->clipRect);
+    }
+  g_free (commandline);
+}
+
 /* Print the version of the tool and exit. */
 static void
-print_version ()
+print_version (void)
 {
   g_printf ("Ardesia %s; the free digital sketchpad\n\n", PACKAGE_VERSION);
   exit (EXIT_SUCCESS);
@@ -104,7 +125,7 @@ print_version ()
 
 /* Print the command line help. */
 static void
-print_help ()
+print_help (void)
 {
   gchar *authors = "Tom McCallum (2018-2019), Pietro Pilolli (2009-2025)";
   g_printf ("Usage: %s [options] [filename]\n\n", PACKAGE_NAME);
@@ -149,7 +170,21 @@ print_help ()
   exit (EXIT_FAILURE);
 }
 
-/* Parse the command line in the standard getopt way. */
+/**
+ * parse_options:
+ * @commandline: (out): A #CommandLine struct to be populated with the
+ * parsed options.
+ * @argc: The argument count, as passed to main().
+ * @argv: The argument vector, as passed to main().
+ *
+ * Parses the application's command-line arguments using `getopt_long`.
+ *
+ * This function iterates through the provided @argv, processing both short
+ * and long options (defined in the `long_options` array), and populates
+ * the @commandline structure accordingly. It handles informational flags
+ * like --help and --version, and validates arguments where necessary. Any
+ * remaining non-option argument is treated as an input IWB filename.
+ **/
 void
 parse_options (CommandLine *commandline, gint argc, char *argv[])
 {
@@ -267,6 +302,18 @@ parse_options (CommandLine *commandline, gint argc, char *argv[])
     }
 }
 
+/**
+ * debug_commandline:
+ * @commandline: The #CommandLine struct whose contents will be printed.
+ *
+ * A debugging utility function that prints the fields of a #CommandLine
+ * struct to the debug log.
+ *
+ * It uses g_debug() to output the values of the main options, including
+ * drawing mode, monitor selection, clip rectangle geometry, and the
+ * opacity flag. The output is only visible if GLib debugging messages
+ * are enabled for the application.
+ **/
 void
 debug_commandline (CommandLine *commandline)
 {

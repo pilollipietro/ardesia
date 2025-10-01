@@ -27,13 +27,8 @@
 #include <glib.h>
 #include <pango/pango.h>
 
-/*
- * Load font from config (user first, then system).
- * Returns a new PangoFontDescription or NULL
- */
 PangoFontDescription *font_config_load (void);
 
-/* Save the given font into user config (ensures user file first) */
 void font_config_save (const PangoFontDescription *font);
 
 #endif

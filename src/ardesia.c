@@ -38,34 +38,12 @@ GtkWidget         *annotation_window;
 Workspace         *workspace;
 CommandLine       *commandline = NULL;
 
-GdkRectangle *
-get_toolbar_area ()
-{
-  if (commandline != NULL)
-    {
-      if (commandline->mode == DRAW_ON_MONITOR)
-        {
-          Monitor *monitor = g_list_nth_data (workspace->monitors,
-                                              commandline->tools_monitor);
-          return monitor->rect;
-        }
-      else
-        {
-          /*
-           * Non-monitor modes: use the drawable area as toolbar area.
-           */
-          return get_drawable_area ();
-        }
-    }
-  return NULL;
-}
-
 /**
  * Get the drawable area for annotation, text and background windows
  * @return NULL if not set, GdkRectangle if it is
  */
 GdkRectangle *
-get_drawable_area ()
+get_drawable_area (void)
 {
   if (commandline != NULL)
     {
@@ -129,11 +107,33 @@ get_drawable_area ()
   return NULL;
 }
 
+GdkRectangle *
+get_toolbar_area (void)
+{
+  if (commandline != NULL)
+    {
+      if (commandline->mode == DRAW_ON_MONITOR)
+        {
+          Monitor *monitor = g_list_nth_data (workspace->monitors,
+                                              commandline->tools_monitor);
+          return monitor->rect;
+        }
+      else
+        {
+          /*
+           * Non-monitor modes: use the drawable area as toolbar area.
+           */
+          return get_drawable_area ();
+        }
+    }
+  return NULL;
+}
+
 #ifndef _WIN32
 
 /* Call the dialog that inform the user to enable a composite manager. */
 static void
-run_missing_composite_manager_dialog ()
+run_missing_composite_manager_dialog (void)
 {
   GtkWidget *msg_dialog;
   msg_dialog = gtk_message_dialog_new (NULL,
@@ -157,7 +157,7 @@ run_missing_composite_manager_dialog ()
 
 /* Check if a composite manager is active. */
 static void
-check_composite_manager ()
+check_composite_manager (void)
 {
   GdkDisplay *display   = gdk_display_get_default ();
   GdkScreen  *screen    = gdk_display_get_default_screen (display);
@@ -174,7 +174,7 @@ check_composite_manager ()
 
 /* Enable the localization support with gettext. */
 static void
-enable_localization_support ()
+enable_localization_support (void)
 {
 #ifdef ENABLE_NLS
   setlocale (LC_ALL, "");
@@ -184,7 +184,7 @@ enable_localization_support ()
 }
 
 void
-build_annotation_window ()
+build_annotation_window (void)
 {
   annotation_window = create_annotation_window (workspace, commandline);
   if (annotation_window == NULL)
@@ -200,7 +200,7 @@ build_annotation_window ()
 }
 
 void
-build_toolbar_window ()
+build_toolbar_window (void)
 {
   GdkRectangle *rect = get_toolbar_area ();
   ardesia_bar_window = create_bar_window (commandline, rect, annotation_window);

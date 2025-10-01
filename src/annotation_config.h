@@ -25,11 +25,10 @@
 
 #include "annotation_window.h" /* for AnnotateData */
 
-/* Save the current annotation state to user config */
 void annotation_config_save_state (AnnotateData *data);
 
-/* Load the annotation state from config and apply to AnnotateData */
 void annotation_config_load_state (AnnotateData *data);
 
 gchar *annotate_thickness_pixel_to_label (gdouble thickness_pixel);
+
 #endif /* ANNOTATION_CONFIG_H */

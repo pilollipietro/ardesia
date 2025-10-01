@@ -29,6 +29,21 @@
 #include "config_path.h"
 #include "user_config.h"
 
+/**
+ * background_config_get_color_keys:
+ *
+ * Retrieve all color keys from the user configuration.
+ *
+ * This function loads the user configuration key file and returns
+ * an array of strings containing all keys under the "colors" group.
+ *
+ * Parameters:
+ *   n_colors - output parameter to store the number of keys returned
+ *
+ * Returns:
+ *   A NULL-terminated array of strings containing the color keys.
+ *   The caller is responsible for freeing the array and its elements.
+ **/
 gchar **
 background_config_get_color_keys (gsize *n_colors)
 {
@@ -38,6 +53,21 @@ background_config_get_color_keys (gsize *n_colors)
   return keys;
 }
 
+/**
+ * background_config_get_image_keys:
+ *
+ * Retrieve all image keys from the user configuration.
+ *
+ * This function loads the user configuration key file and returns
+ * an array of strings containing all keys under the "images" group.
+ *
+ * Parameters:
+ *   n_images - output parameter to store the number of keys returned
+ *
+ * Returns:
+ *   A NULL-terminated array of strings containing the image keys.
+ *   The caller is responsible for freeing the array and its elements.
+ **/
 gchar **
 background_config_get_image_keys (gsize *n_images)
 {
@@ -47,6 +77,19 @@ background_config_get_image_keys (gsize *n_images)
   return keys;
 }
 
+/**
+ * background_config_get_color:
+ *
+ * Retrieve the color value associated with a given key from
+ * the user configuration.
+ *
+ * Parameters:
+ *   key - the color key to lookup in the "colors" group
+ *
+ * Returns:
+ *   A newly allocated string containing the color value, or NULL if not found.
+ *   The caller is responsible for freeing the returned string.
+ **/
 gchar *
 background_config_get_color (const gchar *key)
 {
@@ -56,6 +99,19 @@ background_config_get_color (const gchar *key)
   return val;
 }
 
+/**
+ * background_config_get_image:
+ *
+ * Retrieve the image path associated with a given key from
+ * the user configuration.
+ *
+ * Parameters:
+ *   key - the image key to lookup in the "images" group
+ *
+ * Returns:
+ *   A newly allocated string containing the image path, or NULL if not found.
+ *   The caller is responsible for freeing the returned string.
+ **/
 gchar *
 background_config_get_image (const gchar *key)
 {
@@ -97,7 +153,15 @@ background_config_save (GKeyFile *kf)
   return ok;
 }
 
-/* Add color entry to the user configuration file */
+/**
+ * background_config_add_color:
+ *
+ * Add a color entry to the user configuration file.
+ *
+ * Parameters:
+ *   name - the name/key of the color
+ *   rgba - the color value in RGBA format
+ **/
 void
 background_config_add_color (const gchar *name, const gchar *rgba)
 {
@@ -107,7 +171,18 @@ background_config_add_color (const gchar *name, const gchar *rgba)
   g_key_file_unref (kf);
 }
 
-/* Utility to derive the label from a filename (without path and extension) */
+/**
+ * background_config_filename_to_label:
+ *
+ * Derive a label from a filename by removing the path and file extension.
+ *
+ * Parameters:
+ *   filename - the input filename
+ *
+ * Returns:
+ *   A newly allocated string containing the label (basename without extension).
+ *   The caller is responsible for freeing the returned string.
+ **/
 gchar *
 background_config_filename_to_label (const gchar *filename)
 {
@@ -134,7 +209,15 @@ background_config_filename_to_label (const gchar *filename)
   return label;
 }
 
-/* Add an image entry to the user configuration file */
+/**
+ * background_config_add_image:
+ *
+ * Add an image entry to the user configuration file.
+ *
+ * Parameters:
+ *   name - the name/key of the image
+ *   path - the path to the image file
+ **/
 void
 background_config_add_image (const gchar *name, const gchar *path)
 {
@@ -144,7 +227,15 @@ background_config_add_image (const gchar *name, const gchar *path)
   g_key_file_unref (kf);
 }
 
-/* Remove an entry from both color and image sections in user config file */
+/**
+ * background_config_remove_key:
+ *
+ * Remove an entry from both the "colors" and "images" sections
+ * in the user configuration file.
+ *
+ * Parameters:
+ *   key_name - the key to remove
+ **/
 void
 background_config_remove_key (const gchar *key_name)
 {
@@ -163,7 +254,15 @@ background_config_remove_key (const gchar *key_name)
   g_key_file_unref (kf);
 }
 
-/* Persist the currently selected background name/path */
+/**
+ * background_config_set_current_background:
+ *
+ * Persist the currently selected background name/path
+ * in the user configuration.
+ *
+ * Parameters:
+ *   background - the name or path of the current background
+ **/
 void
 background_config_set_current_background (const gchar *background)
 {
@@ -182,7 +281,15 @@ background_config_set_current_background (const gchar *background)
   g_key_file_unref (kf);
 }
 
-/* Retrieve the currently selected background from config */
+/**
+ * background_config_get_current_background:
+ *
+ * Retrieve the currently selected background from the user configuration.
+ *
+ * Returns:
+ *   A newly allocated string containing the current background name or path.
+ *   The caller is responsible for freeing the returned string.
+ **/
 gchar *
 background_config_get_current_background (void)
 {
@@ -195,9 +302,18 @@ background_config_get_current_background (void)
   return val; /* caller frees */
 }
 
-/*
- * Restore last background used.
- */
+/**
+ * background_config_restore_last_background:
+ *
+ * Restore the last background used by checking the configuration.
+ *
+ * Returns:
+ *   A newly allocated BackgroundRestored struct describing
+ *   the last used background.
+ *   Returns NULL if no background is found.
+ *   The caller is responsible for freeing the struct using
+ *   background_restored_free().
+ **/
 BackgroundRestored *
 background_config_restore_last_background (void)
 {
@@ -230,6 +346,14 @@ background_config_restore_last_background (void)
   return br;
 }
 
+/**
+ * background_restored_free:
+ *
+ * Free the memory allocated for a BackgroundRestored structure.
+ *
+ * Parameters:
+ *   br - the BackgroundRestored structure to free
+ **/
 void
 background_restored_free (BackgroundRestored *br)
 {

@@ -138,9 +138,19 @@ call_recorder (gchar *filename, gchar *option)
   return pid;
 }
 
-/* Is the recorder available. */
+/**
+ * is_recorder_available:
+ *
+ * Checks if the screencast recorder (VLC) is available on the system.
+ *
+ * On Windows, it first checks for the VLC installation in the standard
+ * Program Files directories. On all platforms, it tries to spawn VLC in
+ * dummy mode to see if it can run without errors.
+ *
+ * Returns: TRUE if the recorder is available, FALSE otherwise.
+ **/
 gboolean
-is_recorder_available ()
+is_recorder_available (void)
 {
 #ifdef _WIN32
   // dummy-quiet stops a dos command box from opening
@@ -185,23 +195,41 @@ is_recorder_available ()
                         NULL /*error*/);
 }
 
-/* Return if the recording is started. */
+/**
+ * is_started:
+ *
+ * Checks if the screencast recorder is currently running.
+ *
+ * Returns: TRUE if the recorder has been started and the process ID is valid,
+ *          FALSE otherwise.
+ **/
 gboolean
-is_started ()
+is_started (void)
 {
   return started && recorder_pid > 0;
 }
 
-/* Return if the recording is paused. */
+/**
+ * is_paused:
+ *
+ * Checks if the screencast recorder is currently paused.
+ *
+ * Returns: TRUE if the recorder is paused, FALSE otherwise.
+ **/
 gboolean
-is_paused ()
+is_paused (void)
 {
   return paused;
 }
 
-/* Pause the recorder. */
+/**
+ * pause_recorder:
+ *
+ * Pauses the currently running screencast recorder if it has been started.
+ * Updates the internal paused flag accordingly.
+ **/
 void
-pause_recorder ()
+pause_recorder (void)
 {
   if (is_started ())
     {
@@ -210,9 +238,14 @@ pause_recorder ()
     }
 }
 
-/* Resume the recorder. */
+/**
+ * resume_recorder:
+ *
+ * Resumes the paused screencast recorder if it was previously started.
+ * Updates the internal paused flag accordingly.
+ **/
 void
-resume_recorder ()
+resume_recorder (void)
 {
   if (is_started ())
     {
@@ -221,9 +254,14 @@ resume_recorder ()
     }
 }
 
-/* Stop the recorder. */
+/**
+ * stop_recorder:
+ *
+ * Stops the currently running screencast recorder.
+ * Closes the recorder process and updates the internal started flag.
+ **/
 void
-stop_recorder ()
+stop_recorder (void)
 {
   if (is_started ())
     {
@@ -234,7 +272,16 @@ stop_recorder ()
     }
 }
 
-/* Missing program dialog. */
+/**
+ * visualize_missing_recorder_program_dialog:
+ *
+ * Displays a modal GTK error dialog informing the user that the recorder
+ * program is missing or failed to start. Blocks until the user acknowledges.
+ *
+ * Parameters:
+ *   parent  - the parent GTK window for modal positioning
+ *   message - the error message to display
+ **/
 void
 visualize_missing_recorder_program_dialog (GtkWindow *parent, gchar *message)
 {
@@ -258,12 +305,23 @@ visualize_missing_recorder_program_dialog (GtkWindow *parent, gchar *message)
     }
 }
 
-/*
- * Start the dialog that ask to the user where save the video
- * containing the screencast.
- * This function take as input the recorder tool button in ardesia bar
- * return true is the recorder is started.
- */
+/**
+ * start_save_video_dialog:
+ *
+ * Opens a dialog asking the user where to save a screencast video.
+ *
+ * Parameters:
+ *   toolbutton - the recorder tool button from the Ardesia bar
+ *   parent     - the parent GTK window for modal dialog positioning
+ *
+ * Returns:
+ *   TRUE if the recorder was successfully started, FALSE otherwise.
+ *
+ * Notes:
+ *   - Ensures the filename does not overwrite existing files unless confirmed.
+ *   - Adds the .ogv extension automatically if missing.
+ *   - Handles virtual keyboard start/stop and user interaction.
+ **/
 gboolean
 start_save_video_dialog (GtkButton *toolbutton, GtkWindow *parent)
 {

@@ -30,8 +30,4 @@
   PACKAGE_DATA_DIR "/ardesia/ui/share_confirmation_dialog.glade"
 #endif
 
-/*
- * Start the dialog that ask to the user
- * if he wants share your work.
- */
-void start_share_dialog ();
+void start_share_dialog (void);

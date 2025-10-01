@@ -38,7 +38,7 @@ typedef struct
   GList *monitors;
 } Workspace;
 
-Workspace *create_workspace ();
+Workspace *create_workspace (void);
 
 void set_defaults_for_workspace (Workspace *workspace);
 

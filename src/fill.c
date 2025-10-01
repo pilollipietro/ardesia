@@ -28,18 +28,17 @@
 #include "fill.h"
 #include "utils.h"
 
-/*
- * Perform a fill operation starting from the specified point (x, y)
- * within a closed path in the provided annotation data.
+/**
+ * fill:
+ * @annotation_data: (nullable): a pointer to #AnnotateData
+ * @x: X coordinate of the starting point
+ * @y: Y coordinate of the starting point
  *
- * Parameters:
- *   annotation_data - pointer to the annotation data containing the path
- *   x, y            - coordinates of the starting point for the fill
- *
- * This function fills the interior of a closed shape starting at the
- * given point.
- */
-
+ * Performs a fill operation starting from the specified point (@x, @y)
+ * within a closed path in the provided annotation data. The function
+ * fills the interior of the shape starting at the given point using
+ * the current annotation color.
+ **/
 void
 fill (AnnotateData *annotation_data,
       gdouble x,

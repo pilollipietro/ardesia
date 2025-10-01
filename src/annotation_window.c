@@ -113,7 +113,7 @@ annotate_get_arrow_direction (AnnotateDeviceData *devdata)
  * else allocate the right color.
  */
 static void
-select_color ()
+select_color (void)
 {
   cairo_t *annotation_cairo_context;
   annotation_cairo_context = annotation_data->annotation_cairo_context;
@@ -149,25 +149,36 @@ select_color ()
 
 #ifdef _WIN32
 
-/* Acquire the grab pointer. */
+/**
+ * annotate_acquire_pointer_grab:
+ *
+ * Acquire the input pointer grab for the annotation window.
+ *
+ * This function calls `grab_pointer()` on the annotation window with
+ * `GDK_ALL_EVENTS_MASK`, allowing the annotation system to capture
+ * all input events (mouse, stylus, etc.) until the grab is released.
+ *
+ * It is used to ensure that all input events are directed to the
+ * annotation window during interactive operations.
+ **/
 static void
-annotate_acquire_pointer_grab ()
+annotate_acquire_pointer_grab (void)
 {
   grab_pointer (annotation_data->annotation_window, GDK_ALL_EVENTS_MASK);
 }
 
 /* Release the grab pointer. */
 static void
-annotate_release_pointer_grab ()
+annotate_release_pointer_grab (void)
 {
-  ungrab_pointer (gdk_display_get_default ());
+  ungrab_pointer ();
 }
 
 #endif
 
 /* Update the cursor icon. */
 static void
-update_cursor ()
+update_cursor (void)
 {
   GtkWidget *annotation_window = annotation_data->annotation_window;
   if (! annotation_window)
@@ -189,7 +200,7 @@ update_cursor ()
 
 /* Dis-allocate cursor. */
 static void
-disallocate_cursor ()
+disallocate_cursor (void)
 {
   if (annotation_data->cursor)
     {
@@ -200,7 +211,7 @@ disallocate_cursor ()
 
 /* Take the input mouse focus. */
 static void
-annotate_acquire_input_grab ()
+annotate_acquire_input_grab (void)
 {
   GtkWidget *annotation_window = annotation_data->annotation_window;
 #ifdef _WIN32
@@ -231,6 +242,70 @@ destroy_cairo (cairo_t *ctxt)
   ctxt = (cairo_t *) NULL;
 }
 
+/* Modify color according to the pressure. */
+void
+annotate_modify_color (AnnotateDeviceData *devdata,
+                       AnnotateData *data,
+                       gdouble pressure)
+{
+  /* Pressure value is from 0 to 1; this value modify the RGBA gradient. */
+  guint    r, g, b, a;
+  gdouble  old_pressure = pressure;
+  gdouble  new_alpha;
+  gdouble  contrast = 1.5;
+  cairo_t *annotation_cr;
+  annotation_cr = annotation_data->annotation_cairo_context;
+
+  if ((! annotation_cr) || (! annotation_data->color))
+    {
+      return;
+    }
+    if (pressure >= 1) {
+        cairo_set_source_color_from_string (annotation_cr,
+                                            annotation_data->color);
+        return;
+    }
+
+  assert (strlen (annotation_data->color) == 8);
+  sscanf (annotation_data->color, "%02X%02X%02X%02X", &r, &g, &b, &a);
+
+    if (devdata->coord_list != NULL) {
+        AnnotatePoint *last_point;
+
+        last_point = (AnnotatePoint *) g_slist_nth_data (devdata->coord_list,
+                                                         0);
+
+        old_pressure = last_point->pressure;
+    }
+
+  /*
+   * Use a squareroot function to give an exponential curve.
+   * This amplifies low pressure values,
+   * making the stroke more visible at the start and end.
+   */
+  gdouble smoothed_pressure = (3 * pressure + old_pressure) / 4;
+  gdouble curved_pressure   = sqrt (smoothed_pressure);
+
+  /*
+   * Calculate the final alpha value by combining the curved pressure
+   * and contrast factor.
+   */
+  new_alpha = curved_pressure * contrast;
+
+  /* Ensure the alpha value does not exceed the maximum of 1.0 */
+  if (new_alpha > 1.0)
+    {
+      new_alpha = 1.0;
+    }
+
+  g_debug ("pressure %f, new_alpha %f", pressure, new_alpha);
+  cairo_set_source_rgba (annotation_cr,
+                         (gdouble) r / 255.0,
+                         (gdouble) g / 255.0,
+                         (gdouble) b / 255.0,
+                         new_alpha * (gdouble) a / 255.0);
+}
+
 /*
  * This an ellipse taking the top left edge coordinates
  * and the width and the height of the bounded rectangle.
@@ -254,6 +329,90 @@ annotate_draw_ellipse (AnnotateDeviceData *devdata, gdouble x, gdouble y,
   cairo_scale (annotation_cairo_context, width / 2., height / 2.);
   cairo_arc (annotation_cairo_context, 0., 0., 1., 0., 2 * M_PI);
   cairo_restore (annotation_cairo_context);
+}
+
+/* Draw a point in x,y respecting the context. */
+void
+annotate_draw_point (AnnotateDeviceData *devdata,
+                     gdouble x,
+                     gdouble y,
+                     gdouble pressure)
+{
+  cairo_save (annotation_data->annotation_cairo_context);
+  /* Modify a little bit the color depending on pressure. */
+  annotate_modify_color (devdata, annotation_data, pressure);
+  cairo_move_to (annotation_data->annotation_cairo_context, x, y);
+  cairo_line_to (annotation_data->annotation_cairo_context, x, y);
+  cairo_restore (annotation_data->annotation_cairo_context);
+}
+
+/*
+ * Draw line from the last point drawn to (x2,y2);
+ * if stroke is false the cairo path is not forgotten.
+ */
+void
+annotate_draw_line (AnnotateDeviceData *devdata,
+                    gdouble x2,
+                    gdouble y2,
+                    gboolean stroke)
+{
+  cairo_save (annotation_data->annotation_cairo_context);
+  if (! stroke)
+    {
+      cairo_line_to (annotation_data->annotation_cairo_context, x2, y2);
+    }
+  else
+    {
+      AnnotatePoint *last_point;
+      last_point = (AnnotatePoint *) g_slist_nth_data (devdata->coord_list, 0);
+      if (last_point)
+        {
+          cairo_move_to (annotation_data->annotation_cairo_context,
+                         last_point->x,
+                         last_point->y);
+        }
+      else
+        {
+          cairo_move_to (annotation_data->annotation_cairo_context, x2, y2);
+        }
+      cairo_line_to (annotation_data->annotation_cairo_context, x2, y2);
+      cairo_stroke (annotation_data->annotation_cairo_context);
+    }
+  cairo_restore (annotation_data->annotation_cairo_context);
+}
+
+/* Draw the point list. */
+void
+annotate_draw_point_list (AnnotateDeviceData *devdata, GSList *list)
+{
+  cairo_save (annotation_data->annotation_cairo_context);
+  if (list)
+    {
+      guint i      = 0;
+      guint length = g_slist_length (list);
+      for (i = 0; i < length; i = i + 1)
+        {
+          AnnotatePoint *point = (AnnotatePoint *) g_slist_nth_data (list, i);
+          if (! point)
+            {
+              return;
+            }
+
+          if (length == 1)
+            {
+              /* It is a point. */
+              annotate_draw_point (devdata,
+                                   point->x,
+                                   point->y,
+                                   point->pressure);
+              break;
+            }
+          annotate_modify_color (devdata, annotation_data, point->pressure);
+          /* Draw line between the two points. */
+          annotate_draw_line (devdata, point->x, point->y, FALSE);
+        }
+    }
+  cairo_restore (annotation_data->annotation_cairo_context);
 }
 
 /*
@@ -323,6 +482,66 @@ annotate_draw_curve (AnnotateDeviceData *devdata, GSList *list)
             }
         }
     }
+}
+
+/* Draw the last save point on the window restoring the surface. */
+void
+annotate_restore_surface (void)
+{
+  g_debug ("annotate window restore surface\n");
+
+  if (annotation_data->annotation_cairo_context)
+    {
+      cairo_t *annotation_cr;
+      annotation_cr = annotation_data->annotation_cairo_context;
+
+      guint i = annotation_data->current_save_index;
+      if (g_slist_length (annotation_data->savepoint_list) == i)
+        {
+          /* clear path and current point */
+          cairo_new_path (annotation_cr);
+          clear_cairo_context (annotation_cr);
+          return;
+        }
+
+      AnnotateSavepoint *savepoint = (AnnotateSavepoint *) g_slist_nth_data (
+          annotation_data->savepoint_list, i);
+
+      if (! savepoint)
+        {
+          g_debug ("savepoint is FALSE\n");
+          return;
+        }
+
+      cairo_save (annotation_cr);
+      clear_cairo_context (annotation_cr);
+      cairo_new_path (annotation_cr);
+      cairo_set_operator (annotation_cr,
+                          CAIRO_OPERATOR_SOURCE);
+
+      if (savepoint->filename)
+        {
+          g_debug ("load savepoint from filename %s\n", savepoint->filename);
+          /* Load the file in the annotation surface. */
+          cairo_surface_t *image_surface = cairo_image_surface_create_from_png (
+              savepoint->filename);
+          g_debug ("The save-point %s has been loaded from file\n",
+                   savepoint->filename);
+
+          if (image_surface)
+            {
+              g_debug ("paint savepoint %s\n", savepoint->filename);
+              cairo_set_source_surface (annotation_cr, image_surface, 0, 0);
+              cairo_paint (annotation_cr);
+              cairo_stroke (annotation_cr);
+              cairo_surface_destroy (image_surface);
+            }
+        }
+      cairo_restore (annotation_cr);
+      // try and redraw
+    }
+
+  gtk_widget_queue_draw (annotation_data->annotation_window);
 }
 
 /* Rectify the line. */
@@ -438,7 +657,23 @@ splinify (AnnotateDeviceData *devdata)
   devdata->coord_list = splined_list;
 }
 
-/* Create the annotation window. */
+/**
+ * create_annotation_window:
+ * @workspace: (nullable): The #Workspace object, which may contain a
+ * session file to load.
+ * @commandline: The #CommandLine object containing startup options.
+ *
+ * Creates and initializes the main annotation window of the application.
+ *
+ * This function loads the user interface from a GtkBuilder file,
+ * retrieves the top-level window widget, and connects all its signal
+ * handlers. It also sets up extra signal handlers for hot-plugged
+ * input devices. If a session file is provided in the @workspace, it
+ * is loaded.
+ *
+ * Returns: (transfer none): A pointer to the newly created annotation
+ * #GtkWidget, or %NULL on failure.
+ **/
 GtkWidget *
 create_annotation_window (Workspace *workspace, CommandLine *commandline)
 {
@@ -510,7 +745,7 @@ create_annotation_window (Workspace *workspace, CommandLine *commandline)
 }
 
 static void
-make_annotation_window_transparent ()
+make_annotation_window_transparent (void)
 {
   if (annotation_data->is_opaque == FALSE)
     {
@@ -526,13 +761,29 @@ make_annotation_window_transparent ()
 #ifdef _WIN32
       /* @TODO Use RGBA colormap and avoid to use the layered window. */
       /* I use a layered window that use the black as transparent color. */
-      setLayeredGdkWindowAttributes (gtk_widget_get_window (annotation_window),
-                                     RGB (0, 0, 0), 0, LWA_COLORKEY);
+      set_layered_gdk_window_attributes (
+          gtk_widget_get_window (annotation_window),
+          RGB (0, 0, 0),
+          0,
+          LWA_COLORKEY);
 #endif
     }
 }
 
-/* Set-up the application. */
+/**
+ * position_annotation_window:
+ * @x: The X coordinate for the window's top-left corner.
+ * @y: The Y coordinate for the window's top-left corner.
+ * @width: The initial width to request for the window.
+ * @height: The initial height to request for the window.
+ *
+ * Positions, resizes, and shows the main annotation window.
+ *
+ * This function moves the window to the specified coordinates, sets its
+ * initial size request, and ensures it stays on top of other windows.
+ * It also calls a helper function to set up transparency before
+ * finally showing the window on screen.
+ **/
 void
 position_annotation_window (int x, int y, int width, int height)
 {
@@ -558,7 +809,7 @@ position_annotation_window (int x, int y, int width, int height)
 
 /* Create the directory where put the save-point files. */
 static void
-create_savepoint_dir ()
+create_savepoint_dir (void)
 {
   const gchar *tmpdir       = g_get_tmp_dir ();
   gchar       *images       = "images";
@@ -609,7 +860,7 @@ delete_savepoint (AnnotateSavepoint *savepoint)
 
 /* Free the list of the  save-point for the redo. */
 static void
-annotate_redolist_free ()
+annotate_redolist_free (void)
 {
   guint   i              = annotation_data->current_save_index;
   GSList *savepoint_list = NULL;
@@ -626,7 +877,7 @@ annotate_redolist_free ()
 
 /* Free the list of all the save-point. */
 static void
-annotate_savepoint_list_free ()
+annotate_savepoint_list_free (void)
 {
   g_slist_foreach (annotation_data->savepoint_list, (GFunc) delete_savepoint,
                    (gpointer) NULL);
@@ -636,7 +887,7 @@ annotate_savepoint_list_free ()
 
 /* Delete the ardesia temporary directory */
 static void
-delete_ardesia_tmp_dir ()
+delete_ardesia_tmp_dir (void)
 {
   gchar *ardesia_tmp_dir = g_build_filename (g_get_tmp_dir (),
                                              PACKAGE_NAME,
@@ -751,16 +1002,30 @@ annotate_configure_pen_options (AnnotateData *data)
   select_color ();
 }
 
-/*
- * Add a save point for the undo/redo;
- * this code must be called at the end of each painting action.
- * Called on_button_release
- * Called on annotate_push_context
- * Called on annotate_fill
- * Called on annotate_clear_screen
- */
+/**
+ * annotate_add_savepoint:
+ *
+ * Add a save point for undo/redo functionality.
+ *
+ * This function should be called at the end of each painting action, such as:
+ *   - on_button_release
+ *   - annotate_push_context
+ *   - annotate_fill
+ *   - annotate_clear_screen
+ *
+ * It creates a new `AnnotateSavepoint` structure, copies the current content
+ * of the annotation Cairo context into a new surface, writes the surface
+ * to a PNG file in the savepoint directory, and updates the savepoint list.
+ *
+ * The function also clears the redo history (future states) to maintain
+ * a consistent undo/redo stack.
+ *
+ * Postcondition:
+ *   The new savepoint is stored in the savepoint list, the current save index
+ *   is reset to 0, and the corresponding PNG file is written to disk.
+ **/
 void
-annotate_add_savepoint ()
+annotate_add_savepoint (void)
 {
   AnnotateSavepoint *savepoint = g_malloc ((gsize) sizeof (AnnotateSavepoint));
   cairo_surface_t   *saved_surface  = (cairo_surface_t *) NULL;
@@ -814,7 +1079,20 @@ annotate_add_savepoint ()
   cairo_destroy (cr);
 }
 
-/* Initialize the annotation cairo context */
+/**
+ * initialize_annotation_cairo_context:
+ * @data: (inout): The main #AnnotateData application context, which will
+ * hold the newly created Cairo context.
+ *
+ * Initializes the main Cairo drawing context for the annotation window if
+ * it has not been created yet.
+ *
+ * The function is idempotent and will only perform the initialization once.
+ * It creates a platform-specific Cairo surface matching the window's
+ * dimensions. If a session history (`savepoint_list`) exists, it restores
+ * the canvas from the last savepoint; otherwise, it clears the screen and
+ * creates a new, blank initial savepoint before acquiring the input grab.
+ **/
 void
 initialize_annotation_cairo_context (AnnotateData *data)
 {
@@ -881,111 +1159,132 @@ initialize_annotation_cairo_context (AnnotateData *data)
     }
 }
 
-/* Draw the last save point on the window restoring the surface. */
-void
-annotate_restore_surface ()
-{
-  g_debug ("annotate window restore surface\n");
-
-  if (annotation_data->annotation_cairo_context)
-    {
-      cairo_t *annotation_cr;
-      annotation_cr = annotation_data->annotation_cairo_context;
-
-      guint i = annotation_data->current_save_index;
-      if (g_slist_length (annotation_data->savepoint_list) == i)
-        {
-          /* clear path and current point */
-          cairo_new_path (annotation_cr);
-          clear_cairo_context (annotation_cr);
-          return;
-        }
-
-      AnnotateSavepoint *savepoint = (AnnotateSavepoint *) g_slist_nth_data (
-          annotation_data->savepoint_list, i);
-
-      if (! savepoint)
-        {
-          g_debug ("savepoint is FALSE\n");
-          return;
-        }
-
-      cairo_save (annotation_cr);
-      clear_cairo_context (annotation_cr);
-      cairo_new_path (annotation_cr);
-      cairo_set_operator (annotation_cr,
-                          CAIRO_OPERATOR_SOURCE);
-
-      if (savepoint->filename)
-        {
-          g_debug ("load savepoint from filename %s\n", savepoint->filename);
-          /* Load the file in the annotation surface. */
-          cairo_surface_t *image_surface = cairo_image_surface_create_from_png (
-              savepoint->filename);
-          g_debug ("The save-point %s has been loaded from file\n",
-                   savepoint->filename);
-
-          if (image_surface)
-            {
-              g_debug ("paint savepoint %s\n", savepoint->filename);
-              cairo_set_source_surface (annotation_cr, image_surface, 0, 0);
-              cairo_paint (annotation_cr);
-              cairo_stroke (annotation_cr);
-              cairo_surface_destroy (image_surface);
-            }
-        }
-      cairo_restore (annotation_cr);
-      // try and redraw
-    }
-
-  gtk_widget_queue_draw (annotation_data->annotation_window);
-}
-
-/* Get the annotation window. */
+/**
+ * get_annotation_window:
+ *
+ * Retrieves the main annotation window widget.
+ *
+ * Returns: (transfer none): the #GtkWidget representing the annotation
+ * window. The returned widget is owned by the application and must not
+ * be freed by the caller.
+ **/
 GtkWidget *
-get_annotation_window ()
+get_annotation_window (void)
 {
   return annotation_data->annotation_window;
 }
 
-/* Set color. */
+/**
+ * annotate_set_color:
+ * @color: a string representing the new drawing color
+ *         (e.g. in hex format "#RRGGBBAA").
+ *
+ * Set the current annotation color.
+ *
+ * This function updates the global annotation color used for drawing.
+ * The provided string is assigned directly to the annotation data without
+ * creating a copy, so the caller must ensure the string remains valid
+ * for the lifetime of the annotation session or until replaced.
+ *
+ * Typically, the color is expressed as an RGBA hex string, but other
+ * formats may be supported depending on the rest of the system.
+ *
+ * Since: 1.0
+ **/
 void
 annotate_set_color (gchar *color)
 {
   annotation_data->color = color;
 }
 
-/* Set rectifier. */
+/**
+ * annotate_set_rectifier:
+ * @rectify: %TRUE to enable rectangle rectification, %FALSE to disable.
+ *
+ * Enable or disable the rectifier mode for annotations.
+ *
+ * When enabled, drawn shapes may be automatically adjusted or
+ * rectified to cleaner rectangles depending on the current
+ * drawing context.
+ *
+ * Since: 1.0
+ */
 void
 annotate_set_rectifier (gboolean rectify)
 {
   annotation_data->rectify = rectify;
 }
 
-/* Set rounder. */
+/**
+ * annotate_set_rounder:
+ * @roundify: %TRUE to enable rounding mode, %FALSE to disable.
+ *
+ * Enable or disable the rounder mode for annotations.
+ *
+ * When enabled, drawn shapes may be automatically smoothed
+ * into rounded forms instead of sharp edges.
+ *
+ * Since: 1.0
+ */
 void
 annotate_set_rounder (gboolean roundify)
 {
   annotation_data->roundify = roundify;
 }
 
-/* Set arrow. */
+/**
+ * annotate_set_arrow:
+ * @arrow: %TRUE to enable arrow drawing, %FALSE to disable.
+ *
+ * Enable or disable arrow mode for annotations.
+ *
+ * When enabled, drawn strokes may automatically terminate
+ * with an arrowhead to emphasize direction.
+ *
+ * Since: 1.0
+ */
 void
 annotate_set_arrow (gboolean arrow)
 {
   annotation_data->arrow = arrow;
 }
 
-/* Set the line thickness. */
+/**
+ * annotate_set_thickness:
+ * @thickness: the base line thickness to use for annotation strokes.
+ *
+ * Set the base line thickness for drawing operations.
+ *
+ * The actual stroke thickness may be modified by tool-specific
+ * multipliers (e.g. eraser, highlighter, or pen) when rendering.
+ *
+ * Since: 1.0
+ */
 void
 annotate_set_thickness (gdouble thickness)
 {
   annotation_data->thickness = thickness;
 }
 
-/* Get the line thickness. */
+/**
+ * annotate_get_thickness:
+ *
+ * Get the effective line thickness for the current tool.
+ *
+ * This function returns the base thickness set with
+ * annotate_set_thickness(), multiplied by a corrective factor
+ * depending on the active tool:
+ *
+ * - Eraser: scaled by `eraser_multiplier`.
+ * - Highlighter: scaled by `highlighter_multiplier`.
+ * - Pen: scaled by `pen_multiplier`.
+ *
+ * Returns: (transfer none): the effective line thickness.
+ *
+ * Since: 1.0
+ */
 gdouble
-annotate_get_thickness ()
+annotate_get_thickness (void)
 {
   gfloat corrective_factor = 1.0;
   if (is_eraser_toggle_tool_button_active ())
@@ -1018,7 +1317,19 @@ annotate_coord_list_prepend (AnnotateDeviceData *devdata, gdouble x, gdouble y,
   replace_status_message (g_strdup_printf ("%d points", devdata->length));
 }
 
-/* Free the coord list belonging to the the owner devdata device. */
+/**
+ * annotate_coord_dev_list_free:
+ * @devdata: a pointer to an #AnnotateDeviceData structure whose
+ *           coordinate list will be freed.
+ *
+ * Frees the list of coordinates associated with a given input device.
+ * This function releases each element of the coordinate list, clears
+ * the GSList itself, and resets the device's length counter to zero.
+ *
+ * If no coordinate list exists for @devdata, only the length field is
+ * reset. This ensures that the device data structure is left in a
+ * consistent state regardless of its prior contents.
+ **/
 void
 annotate_coord_dev_list_free (AnnotateDeviceData *devdata)
 {
@@ -1035,71 +1346,27 @@ annotate_coord_dev_list_free (AnnotateDeviceData *devdata)
     }
 }
 
-/* Modify color according to the pressure. */
-void
-annotate_modify_color (AnnotateDeviceData *devdata,
-                       AnnotateData *data,
-                       gdouble pressure)
-{
-  /* Pressure value is from 0 to 1; this value modify the RGBA gradient. */
-  guint    r, g, b, a;
-  gdouble  old_pressure = pressure;
-  gdouble  new_alpha;
-  gdouble  contrast = 1.5;
-  cairo_t *annotation_cr;
-  annotation_cr = annotation_data->annotation_cairo_context;
-
-  if ((! annotation_cr) || (! annotation_data->color))
-    {
-      return;
-    }
-    if (pressure >= 1) {
-        cairo_set_source_color_from_string (annotation_cr,
-                                            annotation_data->color);
-        return;
-    }
-
-  assert (strlen (annotation_data->color) == 8);
-  sscanf (annotation_data->color, "%02X%02X%02X%02X", &r, &g, &b, &a);
-
-    if (devdata->coord_list != NULL) {
-        AnnotatePoint *last_point;
-
-        last_point = (AnnotatePoint *) g_slist_nth_data (devdata->coord_list,
-                                                         0);
-
-        old_pressure = last_point->pressure;
-    }
-
-  /*
-   * Use a squareroot function to give an exponential curve.
-   * This amplifies low pressure values,
-   * making the stroke more visible at the start and end.
-   */
-  gdouble smoothed_pressure = (3 * pressure + old_pressure) / 4;
-  gdouble curved_pressure   = sqrt (smoothed_pressure);
-
-  /*
-   * Calculate the final alpha value by combining the curved pressure
-   * and contrast factor.
-   */
-  new_alpha = curved_pressure * contrast;
-
-  /* Ensure the alpha value does not exceed the maximum of 1.0 */
-  if (new_alpha > 1.0)
-    {
-      new_alpha = 1.0;
-    }
-
-    g_debug ("pressure %f, new_alpha %f", pressure, new_alpha);
-    cairo_set_source_rgba (annotation_cr,
-                           (gdouble)r / 255.0,
-                           (gdouble)g / 255.0,
-                           (gdouble)b / 255.0,
-                           new_alpha * (gdouble)a / 255.0);
-}
-
-/* Paint the context over the annotation window. */
+/**
+ * annotate_push_context:
+ * @cr: a #cairo_t context whose content will be composited
+ *      onto the annotation window.
+ *
+ * Paints the given Cairo drawing context over the annotation window's
+ * internal Cairo surface. This function captures the content of @cr
+ * as a surface, applies it to the annotation window using the
+ * %CAIRO_OPERATOR_ADD operator, and then updates the annotation
+ * state by adding a new savepoint.
+ *
+ * The process includes:
+ * - Clearing the current path of the annotation context.
+ * - Setting the source surface from the input Cairo context.
+ * - Painting it onto the annotation window surface.
+ * - Stroking the path using the current line settings.
+ * - Restoring the annotation Cairo context to its saved state.
+ *
+ * This is typically used to integrate external drawing (e.g., from
+ * the text window) into the annotation layer.
+ **/
 void
 annotate_push_context (cairo_t *cr)
 {
@@ -1136,9 +1403,22 @@ annotate_push_context (cairo_t *cr)
   annotate_add_savepoint ();
 }
 
-/* Select the default pen tool. */
+/**
+ * annotate_select_pen:
+ *
+ * Select the default pen tool for annotations.
+ *
+ * This function sets the current drawing context to the default pen,
+ * updates the internal paint type to `ANNOTATE_PEN`, and updates the
+ * cursor to reflect the selected pen's color, thickness, and arrow style.
+ *
+ * It also disallocates any previous cursor before creating the new one.
+ * A debug message is printed indicating the selected pen color.
+ *
+ * If no default pen exists, the function does nothing.
+ **/
 void
-annotate_select_pen ()
+annotate_select_pen (void)
 {
   g_debug ("The pen with color %s has been selected\n",
            annotation_data->color);
@@ -1157,9 +1437,22 @@ annotate_select_pen ()
     }
 }
 
-/* Select the default filler tool. */
+/**
+ * annotate_select_filler:
+ *
+ * Select the default filler tool for annotations.
+ *
+ * This function sets the current drawing context to the default filler,
+ * updates the internal paint type to `ANNOTATE_FILLER`, and updates the
+ * cursor to reflect the filler tool with the selected pen color.
+ *
+ * It also disallocates any previous cursor before creating the new one.
+ * A debug message is printed indicating the selected color.
+ *
+ * If no default filler exists, the function does nothing.
+ **/
 void
-annotate_select_filler ()
+annotate_select_filler (void)
 {
   g_debug ("Select filler with pen color %s\n", annotation_data->color);
 
@@ -1176,9 +1469,20 @@ annotate_select_filler ()
     }
 }
 
-/* Select the default eraser tool. */
+/**
+ * annotate_select_eraser:
+ *
+ * Select the default eraser tool for annotations.
+ *
+ * This function sets the current drawing context to the default eraser,
+ * updates the internal paint type to `ANNOTATE_ERASER`, and updates the
+ * cursor to reflect the eraser tool with the current thickness.
+ *
+ * It also disallocates any previous cursor before creating the new one.
+ * A debug message is printed to indicate that the eraser has been selected.
+ **/
 void
-annotate_select_eraser ()
+annotate_select_eraser (void)
 {
   g_debug ("The eraser has been selected\n");
 
@@ -1194,7 +1498,7 @@ annotate_select_eraser ()
 
 /* Unhide the cursor. */
 void
-annotate_unhide_cursor ()
+annotate_unhide_cursor (void)
 {
   if (annotation_data->is_cursor_hidden)
     {
@@ -1205,7 +1509,7 @@ annotate_unhide_cursor ()
 
 /* Hide the cursor icon. */
 void
-annotate_hide_cursor ()
+annotate_hide_cursor (void)
 {
   GtkWidget *annotation_window = get_annotation_window ();
   gdk_window_set_cursor (gtk_widget_get_window (annotation_window),
@@ -1216,84 +1520,15 @@ annotate_hide_cursor ()
 
 /* Acquire the grab. */
 void
-annotate_acquire_grab ()
+annotate_acquire_grab (void)
 {
-  ungrab_pointer (gdk_display_get_default ());
+  ungrab_pointer ();
   if (! annotation_data->is_grabbed)
     {
       g_debug ("Acquire grab\n");
       annotate_acquire_input_grab ();
       annotation_data->is_grabbed = TRUE;
     }
-}
-
-/*
- * Draw line from the last point drawn to (x2,y2);
- * if stroke is false the cairo path is not forgotten.
- */
-void
-annotate_draw_line (AnnotateDeviceData *devdata,
-                    gdouble x2,
-                    gdouble y2,
-                    gboolean stroke)
-{
-  cairo_save (annotation_data->annotation_cairo_context);
-  if (! stroke)
-    {
-      cairo_line_to (annotation_data->annotation_cairo_context, x2, y2);
-    }
-  else
-    {
-      AnnotatePoint *last_point;
-      last_point = (AnnotatePoint *) g_slist_nth_data (devdata->coord_list, 0);
-      if (last_point)
-        {
-          cairo_move_to (annotation_data->annotation_cairo_context,
-                         last_point->x,
-                         last_point->y);
-        }
-      else
-        {
-          cairo_move_to (annotation_data->annotation_cairo_context, x2, y2);
-        }
-      cairo_line_to (annotation_data->annotation_cairo_context, x2, y2);
-      cairo_stroke (annotation_data->annotation_cairo_context);
-    }
-  cairo_restore (annotation_data->annotation_cairo_context);
-}
-
-/* Draw the point list. */
-void
-annotate_draw_point_list (AnnotateDeviceData *devdata, GSList *list)
-{
-  cairo_save (annotation_data->annotation_cairo_context);
-  if (list)
-    {
-      guint i      = 0;
-      guint length = g_slist_length (list);
-      for (i = 0; i < length; i = i + 1)
-        {
-          AnnotatePoint *point = (AnnotatePoint *) g_slist_nth_data (list, i);
-          if (! point)
-            {
-              return;
-            }
-
-          if (length == 1)
-            {
-              /* It is a point. */
-              annotate_draw_point (devdata,
-                                   point->x,
-                                   point->y,
-                                   point->pressure);
-              break;
-            }
-          annotate_modify_color (devdata, annotation_data, point->pressure);
-          /* Draw line between the two points. */
-          annotate_draw_line (devdata, point->x, point->y, FALSE);
-        }
-    }
-  cairo_restore (annotation_data->annotation_cairo_context);
 }
 
 /* Draw an arrow using some polygons. */
@@ -1340,25 +1575,10 @@ annotate_fill (AnnotateDeviceData *devdata,
 {
   g_debug ("Fill\n");
   cairo_save (annotation_data->annotation_cairo_context);
-  select_color (devdata);
+  select_color ();
   fill (annotation_data, x, y);
   cairo_restore (annotation_data->annotation_cairo_context);
   annotate_add_savepoint ();
-}
-
-/* Draw a point in x,y respecting the context. */
-void
-annotate_draw_point (AnnotateDeviceData *devdata,
-                     gdouble x,
-                     gdouble y,
-                     gdouble pressure)
-{
-  cairo_save (annotation_data->annotation_cairo_context);
-  /* Modify a little bit the color depending on pressure. */
-  annotate_modify_color (devdata, annotation_data, pressure);
-  cairo_move_to (annotation_data->annotation_cairo_context, x, y);
-  cairo_line_to (annotation_data->annotation_cairo_context, x, y);
-  cairo_restore (annotation_data->annotation_cairo_context);
 }
 
 /* Call the geometric shape recognizer. */
@@ -1434,9 +1654,28 @@ annotate_paint_context_free (AnnotatePaintContext *context)
     }
 }
 
-/* Quit the annotation. */
+/**
+ * annotate_quit:
+ *
+ * Clean up and free all resources used by the annotation system.
+ *
+ * This function finalizes the annotation session by saving the current
+ * configuration state, releasing allocated memory, destroying GTK widgets,
+ * freeing cairo contexts, cursors, and clearing temporary directories.
+ *
+ * The cleanup process includes:
+ * - Destroying background and annotation data structures
+ * - Releasing color strings, input devices, and savepoint data
+ * - Destroying annotation and auxiliary windows (recording, background, font)
+ * - Freeing cairo paths, paint contexts (pen, eraser, filler), and cursors
+ * - Removing temporary directories used during annotation
+ * - Freeing the associated monitor structure
+ *
+ * This should be called before shutting down the application to avoid
+ * memory leaks and dangling resources.
+ **/
 void
-annotate_quit ()
+annotate_quit (void)
 {
   /* destroy data structures of other contexts. */
   if (background_data)
@@ -1544,10 +1783,10 @@ annotate_quit ()
 
 /* Release input grab; the input event will be passed below the window. */
 void
-annotate_release_input_grab ()
+annotate_release_input_grab (void)
 {
   g_debug ("annotate_release_input_grab\n");
-  ungrab_pointer (gdk_display_get_default ());
+  ungrab_pointer ();
 #ifndef _WIN32
   /*
    * @TODO implement correctly gtk_widget_input_shape_combine_mask
@@ -1580,9 +1819,20 @@ annotate_release_input_grab ()
 #endif
 }
 
-/* Release the pointer pointer. */
+/**
+ * annotate_release_grab:
+ *
+ * Release the input grab if it is currently active.
+ *
+ * This function checks whether the annotation system currently has a grab
+ * (e.g., mouse or stylus capture). If so, it calls
+ * `annotate_release_input_grab()` to release it and updates the internal
+ * state flag `is_grabbed` to FALSE.
+ *
+ * Debug messages are printed to trace the release process.
+ **/
 void
-annotate_release_grab ()
+annotate_release_grab (void)
 {
   g_debug ("releasing grab (is_grabbed=%d)\n", annotation_data->is_grabbed);
   if (annotation_data->is_grabbed)
@@ -1593,9 +1843,18 @@ annotate_release_grab ()
     }
 }
 
-/* Undo reverting to the last save point. */
+/**
+ * annotate_undo:
+ *
+ * Undo the last annotation action by reverting to the previous save point.
+ *
+ * This function moves the savepoint index forward in the list of saved
+ * annotation states and restores the corresponding surface. It has no effect
+ * if there are no save points, or if the current savepoint is already the
+ * latest in the list.
+ **/
 void
-annotate_undo ()
+annotate_undo (void)
 {
   g_debug ("Undo\n");
 
@@ -1610,9 +1869,18 @@ annotate_undo ()
     }
 }
 
-/* Redo to the last save point. */
+/**
+ * annotate_redo:
+ *
+ * Redo an annotation action by moving back to a more recent save point.
+ *
+ * This function decreases the savepoint index in the list of saved annotation
+ * states and restores the corresponding surface.
+ * It has no effect if there are no save points, or if the current savepoint
+ * is already the oldest in the list.
+ **/
 void
-annotate_redo ()
+annotate_redo (void)
 {
   g_debug ("Redo\n");
 
@@ -1626,9 +1894,20 @@ annotate_redo ()
     }
 }
 
-/* Clear the annotations windows. */
+/**
+ * annotate_clear_screen:
+ *
+ * Clear the annotation window by resetting the Cairo drawing context.
+ *
+ * This function clears any existing drawings in the annotation window's
+ * Cairo context and sets the operator to `CAIRO_OPERATOR_SOURCE`.
+ * It then queues a redraw of the annotation window, triggering an expose
+ * event so that the cleared surface is visually updated.
+ *
+ * If no Cairo context exists, the function does nothing.
+ **/
 void
-annotate_clear_screen ()
+annotate_clear_screen (void)
 {
   g_debug ("Clear annotation window\n");
 
@@ -1646,7 +1925,7 @@ annotate_clear_screen ()
 }
 
 static void
-create_annotation_data ()
+create_annotation_data (void)
 {
   annotation_data = g_malloc ((gsize) sizeof (AnnotateData));
   gchar *color    = g_strdup ("FFFF0088");
@@ -1681,7 +1960,7 @@ create_annotation_data ()
   annotation_data->default_filler = annotate_paint_context_new (
       ANNOTATE_FILLER);
 
-  annotation_data->monitor     = NULL;
+  annotation_data->monitor = NULL;
 
   annotation_data->recordingstudio_window_gtk_builder = NULL;
   annotation_data->recordingstudio_window             = NULL;
@@ -1714,7 +1993,20 @@ create_annotation_data ()
   background_data = create_background_data ();
 }
 
-/* Initialize the annotation. */
+/**
+ * annotate_init:
+ * @monitor: the #Monitor where annotations will be drawn
+ *
+ * Initializes the annotation system and prepares it for use.
+ *
+ * This function sets up the core annotation data structures, loads
+ * the saved configuration state, and initializes input devices and
+ * cursors. It also ensures that a savepoint directory exists for
+ * storing annotation snapshots.
+ *
+ * Typical usage is to call this function once during application
+ * startup before any annotation actions are performed.
+ **/
 void
 annotate_init (Monitor *monitor)
 {
@@ -1734,6 +2026,17 @@ annotate_init (Monitor *monitor)
   create_savepoint_dir ();
 }
 
+/**
+ * annotation_window_button_press:
+ *
+ * Handle a button press event in the annotation window.
+ *
+ * This function initializes the drawing context if needed, acquires the
+ * input grab, computes the pressure, updates the cursor, and starts a new
+ * stroke by storing the initial point.
+ *
+ * Returns TRUE if the event was handled, FALSE otherwise.
+ **/
 gboolean
 annotation_window_button_press (GdkEventButton *ev, AnnotateData *data)
 {
@@ -1813,6 +2116,17 @@ annotation_window_button_press (GdkEventButton *ev, AnnotateData *data)
   return TRUE;
 }
 
+/**
+ * annotation_window_mouse_move:
+ *
+ * Handle mouse or stylus motion events in the annotation window.
+ *
+ * This function updates the current stroke by drawing lines between
+ * successive points, applies pressure sensitivity, modifies color if
+ * necessary, and queues a redraw of the annotation window.
+ *
+ * Returns TRUE if the event was handled, FALSE otherwise.
+ **/
 gboolean
 annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
 {
@@ -1949,13 +2263,25 @@ annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
 }
 
 void
-save_closed_path ()
+save_closed_path (void)
 {
   cairo_t      *annotation_cr = annotation_data->annotation_cairo_context;
   cairo_path_t *path_copy     = cairo_copy_path (annotation_cr);
   annotation_data->paths = g_list_append (annotation_data->paths, path_copy);
 }
 
+/**
+ * annotation_window_button_release:
+ *
+ * Handle a button release event in the annotation window.
+ *
+ * This function completes the current stroke, checks if the path should
+ * be closed based on proximity to the starting point, draws arrows if
+ * needed, updates the stroke on the Cairo context, and creates a new
+ * undo savepoint.
+ *
+ * Returns TRUE if the event was handled, FALSE otherwise.
+ **/
 gboolean
 annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
 {
@@ -2106,9 +2432,17 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
   return TRUE;
 }
 
-/*
- * During the window configuration and resize callback.
- */
+/**
+ * annotation_window_change:
+ * @width: The new width for the drawing surfaces.
+ * @height: The new height for the drawing surfaces.
+ *
+ * A callback function for window configuration or resize events, used to
+ * lazily initialize the background drawing context.
+ *
+ * If the background's Cairo context (`background_data->cr`) has not yet
+ * been created, this function allocates it with the specified dimensions.
+ **/
 void
 annotation_window_change (int width, int height)
 {
@@ -2118,6 +2452,17 @@ annotation_window_change (int width, int height)
     }
 }
 
+/**
+ * initialize_font:
+ *
+ * Initialize the annotation font used for text annotations.
+ *
+ * This function attempts to load a font configuration via `font_config_load()`.
+ * If no configuration is found, it creates a default Pango font description
+ * with a size of 32 points.
+ *
+ * The resulting font description is stored in `annotation_data->font`.
+ **/
 void
 initialize_font (void)
 {

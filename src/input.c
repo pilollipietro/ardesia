@@ -75,7 +75,17 @@ select_input_device_mode (GdkDevice *device)
     }
 }
 
-/* Remove all the devices. */
+/**
+ * remove_input_devices:
+ * @data: (inout): The #AnnotateData struct containing the device hash table.
+ *
+ * Removes all input devices currently tracked in the device hash table.
+ *
+ * This function iterates through all keys (devices) in the `devdatatable`
+ * and calls remove_input_device() for each one. After the iteration is
+ * complete, it sets the `devdatatable` pointer in the @data struct to
+ * %NULL.
+ **/
 void
 remove_input_devices (AnnotateData *data)
 {
@@ -133,10 +143,18 @@ print_device_info (GdkDevice *device)
   deviceIndex++;
 }
 
-/*
- * Set-up input devices.
- * Entry point from annotation_window::annotate_init
- */
+/**
+ * setup_input_devices:
+ * @data: The main #AnnotateData application context.
+ *
+ * Gathers all available pointing devices and initializes them for use with
+ * the application.
+ *
+ * This function is the main entry point for device setup. It retrieves the
+ * master pointer and all associated slave devices from the default #GdkSeat,
+ * combines them into a single list, and then passes this list to
+ * setup_input_device_list() for further processing.
+ **/
 void
 setup_input_devices (AnnotateData *data)
 {
@@ -155,7 +173,18 @@ setup_input_devices (AnnotateData *data)
   setup_input_device_list (data, devices);
 }
 
-/* Add input device. */
+/**
+ * add_input_device:
+ * @device: The #GdkDevice to potentially add.
+ * @data: The main #AnnotateData application context.
+ *
+ * Adds a single input device to the application's tracking system.
+ *
+ * This function filters devices to ensure only pointing devices (i.e., not
+ * keyboards, and having at least two axes) are added. For a valid
+ * device, it determines its mode and calls a helper function to complete
+ * the registration.
+ **/
 void
 add_input_device (GdkDevice *device, AnnotateData *data)
 {
@@ -167,7 +196,17 @@ add_input_device (GdkDevice *device, AnnotateData *data)
     }
 }
 
-/* Remove input device. */
+/**
+ * remove_input_device:
+ * @device: The #GdkDevice to remove.
+ * @data: (inout): The #AnnotateData struct containing the device hash table.
+ *
+ * Removes a single input device from the application's tracking system.
+ *
+ * This function looks up the device in the `devdatatable`, frees any
+ * coordinate data associated with it, and then removes the device's
+ * entry from the hash table.
+ **/
 void
 remove_input_device (GdkDevice *device, AnnotateData *data)
 {
@@ -180,16 +219,29 @@ remove_input_device (GdkDevice *device, AnnotateData *data)
     }
 }
 
-/* Grab pointer. */
+/**
+ * grab_pointer:
+ * @widget: The #GtkWidget whose window will own the grab.
+ * @eventmask: (unused): The event mask for the grab. This parameter is
+ * currently ignored.
+ *
+ * Safely acquires a global pointer grab for the application, directing
+ * all pointer events to the window associated with @widget.
+ *
+ * Before attempting a new grab, it first calls ungrab_pointer() to
+ * release any pre-existing grabs. It uses an X11 error trap and
+ * checks the #GdkGrabStatus return value to handle potential failures
+ * gracefully, printing any errors to standard error.
+ **/
 void
 grab_pointer (GtkWidget *widget, GdkEventMask eventmask)
 {
   GdkGrabStatus result;
   GdkSeat      *device_manager = (GdkSeat *) NULL;
   GdkDisplay   *display        = (GdkDisplay *) NULL;
-
   display = gdk_display_get_default ();
-  ungrab_pointer (display);
+
+  ungrab_pointer ();
   device_manager = gdk_display_get_default_seat (display);
 
   gdk_x11_display_error_trap_push (display);
@@ -230,12 +282,22 @@ grab_pointer (GtkWidget *widget, GdkEventMask eventmask)
     }
 }
 
-/* Ungrab pointer. */
+/**
+ * ungrab_pointer:
+ * Safely releases any active pointer grab held by the application on the
+ * default seat.
+ *
+ * This function uses an X11 error trap to gracefully handle potential
+ * failures during the ungrab operation (e.g., if no grab was active
+ * or the device is no longer available). If an error occurs, a
+ * message is printed to standard error.
+ **/
 void
-ungrab_pointer (GdkDisplay *display)
+ungrab_pointer (void)
 {
   GdkSeat *seat = (GdkSeat *) NULL;
 
+  GdkDisplay   *display        = (GdkDisplay *) NULL;
   display = gdk_display_get_default ();
   seat    = gdk_display_get_default_seat (display);
 

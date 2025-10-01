@@ -59,13 +59,10 @@ typedef struct
 
 // Command line interface
 
-CommandLine *create_command_line ();
+CommandLine *create_command_line (void);
 
-void destroy_command_line ();
+void destroy_command_line (CommandLine *commandline);
 
-void add_defaults_to_commandline ();
-
-/* Parse the command line in the standard getopt way. */
 void parse_options (CommandLine *commandline, gint argc, char *argv[]);
 
 void debug_commandline (CommandLine *commandline);

@@ -25,8 +25,16 @@
 #include "monitor.h"
 #include "utils.h"
 
+/**
+ * create_workspace:
+ *
+ * Creates a new #Workspace structure and initializes its fields
+ * with default values.
+ *
+ * Returns: (transfer full): a new #Workspace structure
+ **/
 Workspace *
-create_workspace ()
+create_workspace (void)
 {
   g_debug ("Creating workspace\n");
   Workspace *workspace = g_malloc ((gsize) sizeof (Workspace));
@@ -35,6 +43,13 @@ create_workspace ()
   return workspace;
 }
 
+/**
+ * set_defaults_for_workspace:
+ * @workspace: a #Workspace
+ *
+ * Sets default values for the given #Workspace, including
+ * project name, date, and monitor list.
+ **/
 void
 set_defaults_for_workspace (Workspace *workspace)
 {
@@ -59,6 +74,13 @@ set_defaults_for_workspace (Workspace *workspace)
   // g_free (workspace_dir);
 }
 
+/**
+ * debug_workspace:
+ * @workspace: a #Workspace
+ *
+ * Prints debug information about the given #Workspace to the
+ * debug output.
+ **/
 void
 debug_workspace (Workspace *workspace)
 {
@@ -70,6 +92,12 @@ debug_workspace (Workspace *workspace)
   debug_monitor_list (workspace->monitors);
 }
 
+/**
+ * destroy_workspace:
+ * @workspace: a #Workspace
+ *
+ * Frees all memory and resources associated with the #Workspace.
+ **/
 void
 destroy_workspace (Workspace *workspace)
 {
@@ -191,6 +219,14 @@ configure_workspace (Workspace *workspace)
                                                (gchar *) 0);
 }
 
+/**
+ * change_workspace_to:
+ * @workspace: a #Workspace
+ * @filename: a file path
+ *
+ * Changes the current workspace to the given file, updating
+ * project name, project directory, and IWB filename.
+ **/
 void
 change_workspace_to (Workspace *workspace, gchar *filename)
 {
@@ -239,6 +275,13 @@ change_workspace_to (Workspace *workspace, gchar *filename)
   workspace->project_dir = g_substr (filename, 0, init_pos - 1);
 }
 
+/**
+ * build_workspace_filesystem:
+ * @workspace: a #Workspace
+ *
+ * Configures the workspace, creates the desktop shortcut, and
+ * ensures the default project directory exists.
+ **/
 void
 build_workspace_filesystem (Workspace *workspace)
 {

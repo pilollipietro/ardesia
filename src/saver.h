@@ -41,6 +41,6 @@
 
 gboolean show_override_dialog (GtkWindow *parent_window);
 
-void start_save_image_dialog ();
+void start_save_image_dialog (void);
 
-void start_save_image_dialog_callback (GdkPixbuf *buffer);
+void show_could_not_write_dialog (GtkWindow *parent_window);

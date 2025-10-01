@@ -42,11 +42,10 @@
 
 void draw_cairo_context (cairo_t *dest, cairo_t *source, gboolean use_paint);
 
-cairo_surface_t *scale_image (gchar *image, gint new_width, gint new_height);
-void             load_file_onto_context (gchar *filename, cairo_t *cr);
-void             load_color_onto_context (gchar *hex_color, cairo_t *cr);
-cairo_t         *create_new_context ();
-cairo_t         *create_copy_of_context (cairo_t *current_context);
-void             draw_test_text (cairo_t *cr, gchar *text);
+void load_file_onto_context (gchar *filename, cairo_t *cr);
+
+void load_color_onto_context (gchar *hex_color, cairo_t *cr);
+
+cairo_t *create_new_context ();
 
 #endif //__CAIRO_FUNCTIONS_H

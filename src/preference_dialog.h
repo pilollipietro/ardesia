@@ -43,11 +43,6 @@ typedef struct
 
 } PreferenceData;
 
-/* Show the permission denied to access to file dialog. */
 void show_permission_denied_dialog (GtkWindow *parent_window);
 
-/*
- * Start the dialog that ask to the user
- * the background setting.
- */
 void start_preference_dialog (GtkWindow *parent);

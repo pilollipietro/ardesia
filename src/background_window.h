@@ -48,19 +48,16 @@ typedef struct
 
 extern BackgroundData *background_data;
 
-BackgroundData *create_background_data ();
+BackgroundData *create_background_data (void);
 
-void destroy_background_data ();
+void destroy_background_data (void);
 
-void clear_background_context ();
+void clear_background_context (void);
 
-/* Update the background image. */
 void update_background_image (gchar *name);
 
-/* Update the background color. */
 void update_background_color (gchar *rgba);
 
-/* Restore background. */
-void restore_background ();
+void restore_background (void);
 
 #endif

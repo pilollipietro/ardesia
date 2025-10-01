@@ -30,9 +30,14 @@
 #include "keyboard.h"
 #include "utils.h"
 
-/* Start the virtual keyboard. */
+/**
+ * start_virtual_keyboard:
+ *
+ * Starts the virtual keyboard on the system. On Linux, this sets the
+ * Florence keyboard to be always visible. On failure, logs a warning.
+ **/
 void
-start_virtual_keyboard ()
+start_virtual_keyboard (void)
 {
   int result = -1;
   result     = system ("gsettings set org.florence.behaviour auto-hide false");
@@ -43,9 +48,15 @@ start_virtual_keyboard ()
     }
 }
 
-/* Stop the virtual keyboard. */
+/**
+ * stop_virtual_keyboard:
+ *
+ * Stops the virtual keyboard. On Linux, this sets the Florence keyboard
+ * to auto-hide. On Windows, attempts to close the Florence window.
+ * Logs a warning if the operation fails.
+ **/
 void
-stop_virtual_keyboard ()
+stop_virtual_keyboard (void)
 {
 #ifdef _WIN32
   if (virtual_keyboard_pid > 0)

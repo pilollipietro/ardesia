@@ -245,7 +245,7 @@ setup_transparency (GtkWidget *win)
  * @return [description]
  */
 GtkWidget *
-create_cursor_window ()
+create_cursor_window (void)
 {
   g_debug ("Creating cursor\n");
   gint       size   = 64;

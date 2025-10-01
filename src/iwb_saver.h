@@ -23,5 +23,4 @@
 
 #include <zlib.h>
 
-/* Export in the iwb format. */
 void export_iwb (gchar *folder);
