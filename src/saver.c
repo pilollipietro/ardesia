@@ -29,28 +29,46 @@
 #include "saver.h"
 #include "utils.h"
 
-/* Confirm to override file dialog. */
+/**
+ * show_override_dialog:
+ * @parent: (nullable): The parent GtkWindow for this dialog.
+ *
+ * Displays a modal confirmation dialog asking the user if they want to
+ * overwrite an existing file.
+ *
+ * The dialog blocks until the user makes a choice.
+ *
+ * Returns: %TRUE if the user clicks "Yes", %FALSE otherwise (if they
+ * click "No" or close the dialog).
+ **/
 gboolean
 show_override_dialog (GtkWindow *parent)
 {
-  GtkWidget *msg_dialog = (GtkWidget *) NULL;
-  gint       result     = GTK_RESPONSE_NO;
+  GtkWidget *dialog;
+  gint       result;
 
-  msg_dialog = gtk_message_dialog_new (GTK_WINDOW (parent), GTK_DIALOG_MODAL,
-                                       GTK_MESSAGE_WARNING, GTK_BUTTONS_YES_NO,
-                                       gettext ("File Exists. Overwrite"));
+  dialog = gtk_message_dialog_new (parent, GTK_DIALOG_MODAL, GTK_MESSAGE_WARNING,
+                                   GTK_BUTTONS_YES_NO,
+                                   "File exists. Overwrite?");
+  /* Use g_gettext for internationalization if available */
+  /* gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (dialog),
+                                               "A file with the same name
+                                               already exists."); */
 
-  result = gtk_dialog_run (GTK_DIALOG (msg_dialog));
-  if (msg_dialog)
-    {
-      gtk_widget_destroy (msg_dialog);
-      msg_dialog = NULL;
-    }
+  result = gtk_dialog_run (GTK_DIALOG (dialog));
+  gtk_widget_destroy (dialog);
 
-  return result;
+  return (result == GTK_RESPONSE_YES);
 }
 
-/* Show the could not write the file. */
+/**
+ * show_could_not_write_dialog:
+ * @parent_window: (nullable): The parent GtkWindow for this dialog.
+ *
+ * Displays a modal error dialog with a hardcoded "Permission denied"
+ * message. The dialog has a single "OK" button and blocks until the
+ * user closes it.
+ **/
 void
 show_could_not_write_dialog (GtkWindow *parent_window)
 {
@@ -75,10 +93,16 @@ show_could_not_write_dialog (GtkWindow *parent_window)
     }
 }
 
-/*
- * Start the dialog that ask to the user where save the image
- * containing the screenshot.
- */
+/**
+ * start_save_image_dialog:
+ *
+ * Initiates the screenshot grabbing process.
+ *
+ * This function calls grab_screenshot() and provides a callback function
+ * (start_save_image_dialog_callback) which will be executed upon
+ * completion. The callback is responsible for showing the actual save
+ * dialog to the user.
+ **/
 void
 start_save_image_dialog ()
 {
@@ -86,6 +110,21 @@ start_save_image_dialog ()
   grab_screenshot (start_save_image_dialog_callback);
 }
 
+/**
+ * start_save_image_dialog_callback:
+ * @buffer: (transfer full): The GdkPixbuf containing the screenshot data.
+ * This function takes ownership of the buffer and will unref it.
+ *
+ * This function is a callback executed after a screenshot is taken. It opens
+ * a "Save As" file chooser dialog, allowing the user to select a location
+ * to save the image.
+ *
+ * It generates and displays a 128x128 preview of the screenshot in the
+ * dialog. The dialog's title suggests saving as PDF, but the internal logic
+ * enforces a ".png" extension. If the chosen file exists, it prompts the
+ * user for confirmation to overwrite. Finally, if all conditions are met,
+ * it saves the buffer as a PNG file.
+ **/
 void
 start_save_image_dialog_callback (GdkPixbuf *buffer)
 {

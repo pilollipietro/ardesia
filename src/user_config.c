@@ -28,7 +28,14 @@
 #include "config_path.h"
 #include "user_config.h"
 
-/* Copy system config to user config if needed */
+/**
+ * user_config_ensure_file:
+ * Ensures that the user-specific configuration file exists.
+ *
+ * If the user's config file is not found, this function attempts to
+ * create it by copying the system-wide configuration file to the
+ * user's config directory.
+ **/
 void
 user_config_ensure_file (void)
 {
@@ -82,7 +89,22 @@ user_config_ensure_file (void)
   g_free (user_conf_path);
 }
 
-/* Load a GKeyFile either from user or system config. */
+/**
+ * user_config_load_keyfile:
+ *
+ * Loads a GKeyFile by searching for the configuration file, prioritizing
+ * the user's config directory before falling back to the system-wide
+ * locations.
+ *
+ * It searches for a file named "ardesiarc" first in the path returned by
+ * g_get_user_config_dir(), and then in the paths returned by
+ * g_get_system_config_dirs().
+ *
+ * Returns: (transfer full): A newly allocated GKeyFile object. If a config
+ * file was found and loaded, it will contain its keys. If no file
+ * was found, it will be an empty object. The caller must free the
+ * returned object with g_key_file_free().
+ **/
 GKeyFile *
 user_config_load_keyfile (void)
 {

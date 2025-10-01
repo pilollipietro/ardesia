@@ -39,16 +39,8 @@
 #endif
 #endif
 
-/* Confirm to override file dialog. */
 gboolean show_override_dialog (GtkWindow *parent_window);
 
-/* Show the could not write the file */
-void show_could_not_write_dialog (GtkWindow *parent_window);
-
-/*
- * Start the dialog that ask to the user where save the image
- * containing the screenshot.
- */
 void start_save_image_dialog ();
 
 void start_save_image_dialog_callback (GdkPixbuf *buffer);

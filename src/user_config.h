@@ -26,13 +26,8 @@
 #ifndef USER_CONFIG_H
 #define USER_CONFIG_H
 
-/*
- * Ensure that the user config file exists.
- * Copies the system config to user config if necessary.
- */
 void user_config_ensure_file (void);
 
-/* Load a GKeyFile either from user or system config. */
 GKeyFile *user_config_load_keyfile (void);
 
 #endif
