@@ -50,8 +50,8 @@ start_project_dialog ()
 
   /* Load the gtk builder file created with glade */
   gtk_builder_add_from_file (project_data->project_dialog_gtk_builder,
-		             PROJECT_UI_FILE,
-			     NULL);
+                             PROJECT_UI_FILE,
+                             NULL);
 
   /* Fill the window by the gtk builder xml */
   GtkBuilder *builder;
@@ -82,7 +82,7 @@ start_project_dialog ()
 
   /* Connect all signals by reflection. */
   gtk_builder_connect_signals (project_data->project_dialog_gtk_builder,
-		               (gpointer) project_data);
+                               (gpointer) project_data);
 
   gtk_dialog_run (GTK_DIALOG (project_dialog));
 

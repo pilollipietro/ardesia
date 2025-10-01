@@ -54,14 +54,14 @@ create_font_selector_window (GtkWindow *parent)
         }
 
     g_signal_connect (font_dialog,
-		      "response",
-		      G_CALLBACK (on_font_selector_response),
-		      NULL);
+                      "response",
+                      G_CALLBACK (on_font_selector_response),
+                      NULL);
 
     g_signal_connect (font_dialog,
-		      "destroy",
-		      G_CALLBACK (on_font_selector_destroy),
-		      NULL);
+                      "destroy",
+                      G_CALLBACK (on_font_selector_destroy),
+                      NULL);
 
       annotation_data->font_window = font_dialog;
     }

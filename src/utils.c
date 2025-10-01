@@ -46,9 +46,9 @@ gboolean
 intersect (GdkRectangle *a, GdkRectangle *b)
 {
   return !(a->x + a->width < b->x  ||
-	   a->x > b->x + b->width  ||
+           a->x > b->x + b->width  ||
            a->y + a->height < b->y ||
-	   a->y > b->y + b->height);
+           a->y > b->y + b->height);
 }
 
 void
@@ -166,7 +166,7 @@ gdkcolor_to_rgb (GdkRGBA *gdkcolor)
 {
   /* Transform in the  RGB format e.g. FF0000. */
   gchar *ret_str = g_strdup_printf ("%02X%02X%02X",
-		                    (int) gdkcolor->red / 255,
+                                    (int) gdkcolor->red / 255,
                                     (int) gdkcolor->green / 255,
                                     (int) gdkcolor->blue / 255);
 
@@ -178,7 +178,7 @@ gdkrgba_to_rgba (GdkRGBA *gdkcolor)
 {
   /* Transform in the  RGB format e.g. FF0000. */
   gchar *ret_str = g_strdup_printf ("%02X%02X%02X%02X",
-		                    (int) (gdkcolor->red * 255),
+                                    (int) (gdkcolor->red * 255),
                                     (int) (gdkcolor->green * 255),
                                     (int) (gdkcolor->blue * 255),
                                     (int) (gdkcolor->alpha * 255));
@@ -227,7 +227,7 @@ scale_surface (cairo_surface_t *surface, gdouble width, gdouble height)
   gdouble old_height = cairo_image_surface_get_height (surface);
 
   cairo_surface_t *new_surface = cairo_surface_create_similar (surface,
-		                                               CAIRO_CONTENT_COLOR_ALPHA,
+                                                               CAIRO_CONTENT_COLOR_ALPHA,
                                                                width, height);
 
   cairo_t *cr = cairo_create (new_surface);
@@ -262,9 +262,9 @@ cairo_set_source_color_from_string (cairo_t *cr, gchar *color)
       sscanf (color, "%02X%02X%02X%02X", &r, &g, &b, &a);
 
       cairo_set_source_rgba (cr, 1.0 * r / 255,
-		             1.0 * g / 255,
-			     1.0 * b / 255,
-			     1.0 * a / 255);
+                             1.0 * g / 255,
+                             1.0 * b / 255,
+                             1.0 * a / 255);
     }
 }
 
@@ -276,8 +276,8 @@ save_pixbuf_on_png_file (GdkPixbuf *pixbuf, const gchar *filename)
   gint height = gdk_pixbuf_get_height (pixbuf);
 
   cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-		                                         width,
-							 height);
+                                                         width,
+                                                         height);
 
   cairo_t *cr = cairo_create (surface);
   gdk_cairo_set_source_pixbuf (cr, pixbuf, 0, 0);
@@ -338,10 +338,10 @@ take_screenshot_now ()
   GdkWindow *root_window = gdk_get_default_root_window ();
 
   GdkPixbuf *snapshot = gdk_pixbuf_get_from_window (root_window,
-		                                    ann_x,
-						    ann_y,
+                                                    ann_x,
+                                                    ann_y,
                                                     ann_width,
-						    ann_height);
+                                                    ann_height);
   gtk_widget_set_opacity (bar_widget, opacity);
   return snapshot;
 }
@@ -538,9 +538,9 @@ allocate_point (gdouble x, gdouble y, gdouble width, gdouble pressure)
 /* Send an email. */
 void
 send_email (gchar *to,
-	    gchar *subject,
-	    gchar *body,
-	    GSList *attachment_list)
+            gchar *subject,
+            gchar *body,
+            GSList *attachment_list)
 {
 #ifdef _WIN32
   windows_send_email (to, subject, body, attachment_list);
@@ -555,18 +555,18 @@ send_email (gchar *to,
   gchar *attach_param  = "--attach";
 
   gchar *args = g_strdup_printf ("%s %s %s %s '%s'",
-		                 mailer,
-				 subject_param,
+                                 mailer,
+                                 subject_param,
                                  subject,
-				 body_param,
-				 body);
+                                 body_param,
+                                 body);
 
   for (i = 0; i < attach_lenght; i++)
     {
       gchar *attachment = (gchar *) g_slist_nth_data (attachment_list, i);
       gchar *attachment_str = g_strdup_printf ("%s '%s'",
-		                               attach_param,
-					       attachment);
+                                               attach_param,
+                                               attachment);
       gchar *new_args = g_strdup_printf ("%s %s", args, attachment_str);
       g_free (args);
       args = new_args;
@@ -593,7 +593,7 @@ send_artifacts_with_email (GSList *attachment_list)
   gchar *to      = "ardesia-developer@googlegroups.com";
   gchar *subject = "ardesia-contribution";
   gchar *body = g_strdup_printf ("%s,\n%s,%s.",
-		                 "Dear ardesia developer group",
+                                 "Dear ardesia developer group",
                                  "I want share my work created with Ardesia "
                                  "with you",
                                  "please for details see the attachment");
@@ -611,7 +611,7 @@ send_trace_with_email (gchar *attachment)
   gchar  *subject         = "ardesia-bug-report";
 
   gchar *body = g_strdup_printf ("%s,\n%s,%s.",
-		                 "Dear ardesia developer group",
+                                 "Dear ardesia developer group",
                                  "An application error occurred",
                                  "please for details see the attachment with "
                                  "the stack trace");
@@ -643,10 +643,10 @@ is_gnome ()
 /* Create desktop entry passing value. */
 void
 xdg_create_desktop_entry (gchar *filename,
-		          gchar *type,
-			  gchar *name,
-			  gchar *icon,
-			  gchar *exec)
+                          gchar *type,
+                          gchar *name,
+                          gchar *icon,
+                          gchar *exec)
 {
   FILE *fp = fopen (filename, "w");
   if (fp)
@@ -672,10 +672,10 @@ xdg_create_link (gchar *src, gchar *dest, gchar *icon)
     {
       gchar *exec = g_strdup_printf ("xdg-open %s\n", src);
       xdg_create_desktop_entry (link_filename,
-		                "Application",
-				PACKAGE_NAME,
-				icon,
-				exec);
+                                "Application",
+                                PACKAGE_NAME,
+                                icon,
+                                exec);
       g_free (exec);
     }
 
@@ -767,11 +767,11 @@ void
 save_cairo_context (cairo_t *cr, gchar *savedir, gchar *category, int index)
 {
   gchar *filename = g_strdup_printf ("%s%s%s_%s_%d_vellum.png",
-		                     savedir,
+                                     savedir,
                                      G_DIR_SEPARATOR_S,
-				     PACKAGE_NAME,
-				     category,
-				     index);
+                                     PACKAGE_NAME,
+                                     category,
+                                     index);
 
   int w;
   int h;
@@ -783,8 +783,8 @@ save_cairo_context (cairo_t *cr, gchar *savedir, gchar *category, int index)
    */
   cairo_surface_t *saved_surface;
   saved_surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-		                              w,
-					      h);
+                                              w,
+                                              h);
 
   cairo_surface_t *source_surface = cairo_get_target (cr);
   cairo_t         *dest_cr        = cairo_create (saved_surface);

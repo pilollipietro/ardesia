@@ -40,13 +40,13 @@ BarData *bar_data = NULL;
  */
 static void
 calculate_position (GtkWidget *ardesia_bar_window,
-		    gint d_width,
-		    gint d_height,
+                    gint d_width,
+                    gint d_height,
                     gint *x,
-		    gint *y,
-		    gint w_width,
-		    gint w_height,
-		    gint position)
+                    gint *y,
+                    gint w_width,
+                    gint w_height,
+                    gint position)
 {
   *y = ((d_height - w_height - SPACE_FROM_BORDER) / 2);
   /* Vertical layout. */
@@ -86,12 +86,12 @@ calculate_position (GtkWidget *ardesia_bar_window,
  */
 static void
 calculate_initial_position (GtkWidget *ardesia_bar_window,
-		            gint *x,
-			    gint *y,
-			    gint w_width,
+                            gint *x,
+                            gint *y,
+                            gint w_width,
                             gint w_height,
-			    GdkRectangle *rect,
-			    gint position)
+                            GdkRectangle *rect,
+                            gint position)
 {
   gint d_width  = rect->width;
   gint d_height = rect->height;
@@ -111,7 +111,7 @@ calculate_initial_position (GtkWidget *ardesia_bar_window,
     }
 
   calculate_position (ardesia_bar_window, d_width, d_height,
-		      x, y, w_width, w_height, position);
+                      x, y, w_width, w_height, position);
 }
 
 /* Activate tool button by name. */
@@ -454,8 +454,8 @@ get_xdg_config_file (const char *name)
  */
 GtkWidget *
 create_bar_window (CommandLine *commandline,
-		   GdkRectangle *rect,
-		   GtkWidget *parent)
+                   GdkRectangle *rect,
+                   GtkWidget *parent)
 {
   GtkWidget *bar_window = (GtkWidget *) NULL;
   bar_data              = (BarData *) NULL;
@@ -476,8 +476,8 @@ create_bar_window (CommandLine *commandline,
 
       gtk_style_context_add_provider_for_screen (
           gdk_screen_get_default (),
-	  GTK_STYLE_PROVIDER (css),
-	  GTK_STYLE_PROVIDER_PRIORITY_USER);
+          GTK_STYLE_PROVIDER (css),
+          GTK_STYLE_PROVIDER_PRIORITY_USER);
 
     }
 
@@ -585,7 +585,7 @@ gboolean
 is_toggle_tool_button_active (gchar *toggle_tool_button_name)
 {
   GObject *g_object = gtk_builder_get_object (bar_gtk_builder,
-		                              toggle_tool_button_name);
+                                              toggle_tool_button_name);
   GtkToggleToolButton *toggle_tool_button = GTK_TOGGLE_TOOL_BUTTON (g_object);
   return gtk_toggle_tool_button_get_active (toggle_tool_button);
 }
@@ -722,8 +722,8 @@ release_lock (BarData *bar_data)
 
       /* Try to up-rise the window. */
       timer = g_timeout_add (BAR_TO_TOP_TIMEOUT,
-		             bar_to_top,
-			     get_annotation_window ());
+                             bar_to_top,
+                             get_annotation_window ());
 #ifdef _WIN32 // WIN32
       if (gtk_window_get_opacity (GTK_WINDOW (get_annotation_window ())) != 0)
         {
@@ -768,7 +768,7 @@ lock (BarData *bar_data)
       if (gtk_window_get_opacity (GTK_WINDOW (get_background_window ())) == 0)
         {
           gtk_window_set_opacity (GTK_WINDOW (get_background_window ()),
-			          BACKGROUND_OPACITY);
+                                  BACKGROUND_OPACITY);
         }
 #endif
     }
@@ -827,7 +827,7 @@ start_tool (BarData *bar_data)
           /* Text button then start the text widget. */
           start_text_widget (annotation_data->annotation_window,
                              bar_data->color,
-			     bar_data->thickness);
+                             bar_data->thickness);
         }
       else
         {

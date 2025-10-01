@@ -45,8 +45,8 @@ on_configure (GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
   g_debug ("Annotation window get configure event (%d,%d,%d,%d)\n",
            gtk_widget_get_allocated_width (widget),
            gtk_widget_get_allocated_height (widget),
-	   state,
-	   gtk_widget_is_focus (widget));
+           state,
+           gtk_widget_is_focus (widget));
   if (! data->is_grabbed)
     {
       return FALSE;
@@ -110,8 +110,8 @@ on_window_state_event (GtkWidget *widget, GdkEvent *event, gpointer user_data)
  */
 G_MODULE_EXPORT void
 on_screen_changed (GtkWidget *widget,
-		   GdkScreen *previous_screen,
-		   gpointer user_data)
+                   GdkScreen *previous_screen,
+                   gpointer user_data)
 {
   g_debug ("Annotation window get screen-changed event\n");
 
@@ -162,8 +162,8 @@ on_expose (GtkWidget *widget, cairo_t *cr, gpointer user_data)
       initialize_annotation_cairo_context (annotation_data);
       restore_background ();
       draw_cairo_context (cr,
-		          annotation_data->annotation_cairo_context,
-			  use_paint);
+                          annotation_data->annotation_cairo_context,
+                          use_paint);
     }
 
   if (annotation_data->is_text_editor_visible)
@@ -181,8 +181,8 @@ on_expose (GtkWidget *widget, cairo_t *cr, gpointer user_data)
       if (annotation_data->clapperboard_cairo_context)
         {
           draw_cairo_context (cr,
-			      annotation_data->clapperboard_cairo_context,
-			      use_paint);
+                              annotation_data->clapperboard_cairo_context,
+                              use_paint);
         }
     }
 
@@ -246,8 +246,8 @@ on_button_release (GtkWidget *win, GdkEventButton *ev, gpointer user_data)
 /* On device added. */
 void
 on_device_removed (GdkDeviceManager *device_manager,
-		   GdkDevice *device,
-		   gpointer user_data)
+                   GdkDevice *device,
+                   gpointer user_data)
 {
   AnnotateData *data = (AnnotateData *) user_data;
   g_debug ("device '%s' removed\n", gdk_device_get_name (device));
@@ -257,8 +257,8 @@ on_device_removed (GdkDeviceManager *device_manager,
 /* On device removed. */
 void
 on_device_added (GdkDeviceManager *device_manager,
-		 GdkDevice *device,
-		 gpointer user_data)
+                 GdkDevice *device,
+                 gpointer user_data)
 {
   AnnotateData *data = (AnnotateData *) user_data;
   g_debug ("device '%s' added\n", gdk_device_get_name (device));

@@ -49,7 +49,7 @@ set_defaults_for_workspace (Workspace *workspace)
   /* Show the project name wizard. */
   // project_name = start_project_dialog ();
   workspace->project_name = g_strdup_printf ("ardesia_project_%s",
-		                             workspace->date);
+                                             workspace->date);
 
   workspace->workspace_dir = NULL;
   workspace->project_dir   = NULL;
@@ -107,15 +107,15 @@ create_workspace_shortcut (Workspace *workspace)
   gchar *workspace_dir = workspace->workspace_dir;
   g_debug ("Creating workspace shortcut\n");
   gchar *desktop_entry_filename = g_strdup_printf ("%s%s%s_workspace",
-		                                   get_desktop_dir (),
-						   G_DIR_SEPARATOR_S,
-						   PACKAGE_NAME);
+                                                   get_desktop_dir (),
+                                                   G_DIR_SEPARATOR_S,
+                                                   PACKAGE_NAME);
 
 #ifdef _WIN32
   windows_create_link (workspace_dir,
-		       desktop_entry_filename,
+                       desktop_entry_filename,
                        "%SystemRoot%\\system32\\imageres.dll",
-		       123);
+                       123);
 
 #else
   xdg_create_link (workspace_dir, desktop_entry_filename, "folder-documents");
@@ -148,8 +148,8 @@ create_default_project_dir (Workspace *workspace)
     }
 
   workspace->project_dir = g_build_filename (workspace->workspace_dir,
-		                             workspace->project_name,
-					     (gchar *) 0);
+                                             workspace->project_name,
+                                             (gchar *) 0);
 
   if (! file_exists (workspace->project_dir))
     {
@@ -187,8 +187,8 @@ configure_workspace (Workspace *workspace)
 
   /* The workspace directory is in the documents ardesia folder. */
   workspace->workspace_dir = g_build_filename (documents_dir,
-		                               PACKAGE_NAME,
-					       (gchar *) 0);
+                                               PACKAGE_NAME,
+                                               (gchar *) 0);
 }
 
 void

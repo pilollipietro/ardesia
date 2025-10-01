@@ -104,12 +104,12 @@ start_save_image_dialog_callback (GdkPixbuf *buffer)
 
   chooser = gtk_file_chooser_dialog_new (gettext ("Export as pdf"),
                                          parent,
-					 GTK_FILE_CHOOSER_ACTION_SAVE,
-					 "_Cancel",
-					 GTK_RESPONSE_CANCEL,
-					 "Save _As",
-					 GTK_RESPONSE_ACCEPT,
-					 NULL);
+                                         GTK_FILE_CHOOSER_ACTION_SAVE,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         "Save _As",
+                                         GTK_RESPONSE_ACCEPT,
+                                         NULL);
 
   gtk_window_set_modal (GTK_WINDOW (chooser), TRUE);
   gtk_window_set_keep_above (GTK_WINDOW (chooser), TRUE);
@@ -119,9 +119,9 @@ start_save_image_dialog_callback (GdkPixbuf *buffer)
   /* Save the preview in a buffer. */
   preview        = gtk_image_new ();
   preview_pixbuf = gdk_pixbuf_scale_simple (buffer,
-		                            preview_width,
+                                            preview_width,
                                             preview_height,
-					    GDK_INTERP_BILINEAR);
+                                            GDK_INTERP_BILINEAR);
 
   gtk_image_set_from_pixbuf (GTK_IMAGE (preview), preview_pixbuf);
 
@@ -130,7 +130,7 @@ start_save_image_dialog_callback (GdkPixbuf *buffer)
   preview_pixbuf = NULL;
 
   gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (chooser),
-		                       get_project_dir ());
+                                       get_project_dir ());
 
   filename = get_default_filename ();
 
@@ -151,8 +151,8 @@ start_save_image_dialog_callback (GdkPixbuf *buffer)
         {
           g_free (filename_copy);
           filename_copy = g_strdup_printf ("%s%s",
-			                   filename,
-			                   supported_extension);
+                                           filename,
+                                           supported_extension);
         }
 
       g_free (filename);

@@ -149,18 +149,18 @@ spline (GSList *list)
 
       AnnotatePoint *first_point  = allocate_point (px,
                                                     py,
-						    width,
-						    pressure);
+                                                    width,
+                                                    pressure);
 
       AnnotatePoint *second_point = allocate_point (qx,
-			                            qy,
-						    width,
-						    pressure);
+                                                    qy,
+                                                    width,
+                                                    pressure);
 
       AnnotatePoint *third_point  = allocate_point (mx[i + 1][0],
-			                            mx[i + 1][1],
+                                                    mx[i + 1][1],
                                                     width,
-						    pressure);
+                                                    pressure);
 
       ret = g_slist_prepend (ret, first_point);
       ret = g_slist_prepend (ret, second_point);

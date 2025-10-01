@@ -111,8 +111,8 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
 
           /* Put the record icon. */
           GtkWidget *imageWidget = GTK_WIDGET (
-	    gtk_builder_get_object (recordingstudio_window_gtk_builder,
-		                    "media-record"));
+            gtk_builder_get_object (recordingstudio_window_gtk_builder,
+                                    "media-record"));
 
           gtk_button_set_image ((GtkButton *) toolbutton, imageWidget);
           gtk_button_set_label ((GtkButton *) toolbutton, "Record");
@@ -200,10 +200,10 @@ move_cursor_window (gpointer data)
 
       gdk_window_get_device_position (desktop, device, &x, &y, NULL);
       gtk_window_move (GTK_WINDOW (annotation_data->cursor_window),
-		      x - 32,
+                      x - 32,
                       y - 32);
       gtk_widget_input_shape_combine_region (annotation_data->cursor_window,
-		                             NULL);
+                                             NULL);
       return TRUE; // continue timer
     }
 }
@@ -268,13 +268,13 @@ create_cursor_window ()
   GtkWidget *drawing_area = gtk_drawing_area_new ();
   gtk_container_add (GTK_CONTAINER (window), drawing_area);
   g_signal_connect (G_OBJECT (drawing_area),
-		    "draw",
-		    G_CALLBACK (on_draw_event),
-		    NULL);
+                    "draw",
+                    G_CALLBACK (on_draw_event),
+                    NULL);
   gtk_widget_set_events (drawing_area,
-		         gtk_widget_get_events (drawing_area)
-			 | GDK_BUTTON_PRESS_MASK
-			 | GDK_POINTER_MOTION_MASK);
+                         gtk_widget_get_events (drawing_area)
+                         | GDK_BUTTON_PRESS_MASK
+                         | GDK_POINTER_MOTION_MASK);
   setup_transparency (window);
   return window;
 }
@@ -301,14 +301,14 @@ draw_video_cursor (cairo_t *cr, GtkWidget *widget)
   get_desktop_mouse_location (&x, &y);
   GdkWindow *root_win = gdk_get_default_root_window ();
   cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-		                                         32,
-							 32);
+                                                         32,
+                                                         32);
 
   GdkPixbuf *pb = gdk_pixbuf_get_from_window (root_win, 
-		                              x - 16,
-					      y - 16,
-					      32,
-					      32);
+                                              x - 16,
+                                              y - 16,
+                                              32,
+                                              32);
   cairo_t   *desktop = cairo_create (surface);
   gdk_cairo_set_source_pixbuf (desktop, pb, 0, 0);
   cairo_paint (desktop);
@@ -431,7 +431,7 @@ on_cursor_click (GtkToggleButton *toolbutton, gpointer func_data)
           g_debug ("Building cursor window\n");
           annotation_data->cursor_window = create_cursor_window ();
           gtk_widget_input_shape_combine_region (annotation_data->cursor_window,
-			                         NULL);
+                                                 NULL);
         }
 
       annotation_data->is_cursor_visible = TRUE;
@@ -445,8 +445,8 @@ on_cursor_click (GtkToggleButton *toolbutton, gpointer func_data)
       gtk_widget_show_all (annotation_data->cursor_window);
       move_cursor_window (NULL);
       annotation_data->cursor_timer = g_timeout_add (100,
-		                                     move_cursor_window,
-						     NULL);
+                                                     move_cursor_window,
+                                                     NULL);
     }
 }
 
@@ -463,9 +463,9 @@ on_clapperboard_click (GtkToolButton *toolbutton, gpointer func_data)
       int width  = gtk_widget_get_allocated_width (annotation_window);
       int height = gtk_widget_get_allocated_height (annotation_window);
       annotation_data->clapperboard_cairo_context = create_new_context (width,
-		                                                        height);
+                                                                        height);
       load_color_onto_context (BLACK,
-		               annotation_data->clapperboard_cairo_context);
+                               annotation_data->clapperboard_cairo_context);
     }
 
   annotation_data->is_clapperboard_visible = TRUE;
@@ -489,8 +489,8 @@ on_new_click (GtkToolButton *toolbutton, gpointer func_data)
 
 G_MODULE_EXPORT void
 on_recordingstudio_window_destroy_event (GtkWidget *widget,
-		                         GdkEvent *event,
-					 gpointer data)
+                                         GdkEvent *event,
+                                         gpointer data)
 {
 
   g_debug ("recording studio window being destroyed\n");
@@ -498,8 +498,8 @@ on_recordingstudio_window_destroy_event (GtkWidget *widget,
 
 G_MODULE_EXPORT gboolean
 on_recordingstudio_window_delete_event (GtkWidget *widget,
-		                        GdkEvent *event,
-					gpointer data)
+                                        GdkEvent *event,
+                                        gpointer data)
 {
   gtk_widget_hide (widget);
   return TRUE;

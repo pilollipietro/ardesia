@@ -92,8 +92,8 @@ extern BarData *bar_data;
 
 /* Create the ardesia bar window. */
 GtkWidget *create_bar_window (CommandLine *commandline,
-		              GdkRectangle *rect,
-			      GtkWidget *parent);
+                              GdkRectangle *rect,
+                              GtkWidget *parent);
 
 gboolean  bar_to_top (gpointer data);
 gboolean  is_toggle_tool_button_active (gchar *toggle_tool_button_name);

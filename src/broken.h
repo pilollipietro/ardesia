@@ -30,8 +30,8 @@
  * the meaningful points using the standard deviation algorithm.
  */
 GSList *build_meaningful_point_list (GSList *list_inp,
-		                     gboolean rectify,
-				     gdouble pixel_tollerance);
+                                     gboolean rectify,
+                                     gdouble pixel_tollerance);
 
 /* Return a new out-bounded rectangle outside the path described to list_in. */
 GSList *build_outbounded_rectangle (GSList *list);
@@ -42,8 +42,8 @@ gboolean is_similar_to_an_ellipse (GSList *list, gdouble pixel_tollerance);
 
 /* Take a list of point and return magically the new recognized path. */
 GSList *broken (GSList *inp,
-		gboolean close_path,
-		gboolean rectify,
-		gdouble pixel_tollerance);
+                gboolean close_path,
+                gboolean rectify,
+                gdouble pixel_tollerance);
 
 #endif

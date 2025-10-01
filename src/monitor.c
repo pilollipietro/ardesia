@@ -56,11 +56,11 @@ create_monitor_list ()
         }
       gdk_monitor_get_geometry (monitor, rect);
       g_debug ("Monitor %d Geometry: %d %d %d %d\n",
-	       ii,
-	       rect->x,
-	       rect->y,
-	       rect->width,
-	       rect->height);
+               ii,
+               rect->x,
+               rect->y,
+               rect->width,
+               rect->height);
 
       Monitor *m       = g_new (Monitor, 1);
       m->primary       = primary;
@@ -72,7 +72,7 @@ create_monitor_list ()
         g_list_insert_sorted_with_data (monitors,
                                         m,
                                         (GCompareDataFunc) is_to_left_of,
-				        NULL);
+                                        NULL);
     }
   return monitors;
 }
@@ -124,10 +124,10 @@ debug_monitor_struct (gpointer data, gpointer userdata)
   Monitor *m = (Monitor *) data;
   g_debug ("Monitor %d: %d %d %d %d\n",
            m->monitor_index,
-	   m->rect->x,
+           m->rect->x,
            m->rect->y,
-	   m->rect->width,
-	   m->rect->height);
+           m->rect->width,
+           m->rect->height);
 }
 
 int

@@ -208,15 +208,15 @@ annotation_config_load_state (AnnotateData *data)
   if (g_key_file_has_key (kf, ANNOTATION_SECTION, "arrow", NULL))
     data->arrow = g_key_file_get_boolean (kf,
                                           ANNOTATION_SECTION,
-					  "arrow",
-					  NULL);
+                                          "arrow",
+                                          NULL);
 
   if (g_key_file_has_key (kf, ANNOTATION_SECTION, "thickness", NULL))
     {
       gchar *thickness = g_key_file_get_string (kf,
                                                 ANNOTATION_SECTION,
-						"thickness",
-						NULL);
+                                                "thickness",
+                                                NULL);
 
       data->thickness = annotate_thickness_label_to_pixel (thickness);
     }
@@ -224,14 +224,14 @@ annotation_config_load_state (AnnotateData *data)
   if (g_key_file_has_key (kf, ANNOTATION_SECTION, "rectify", NULL))
     data->rectify = g_key_file_get_boolean (kf,
                                             ANNOTATION_SECTION,
-					    "rectify",
-					    NULL);
+                                            "rectify",
+                                            NULL);
 
   if (g_key_file_has_key (kf, ANNOTATION_SECTION, "roundify", NULL))
     data->roundify = g_key_file_get_boolean (kf,
                                              ANNOTATION_SECTION,
-					     "roundify",
-					     NULL);
+                                             "roundify",
+                                             NULL);
 
   if (g_key_file_has_key (kf, ANNOTATION_SECTION, "text_tool", NULL))
     data->text_tool = g_key_file_get_boolean (kf,

@@ -52,13 +52,13 @@ start_save_pdf_dialog (GtkWindow *parent, GdkPixbuf *pixbuf)
 
   GtkWidget *chooser;
   chooser = gtk_file_chooser_dialog_new (gettext ("Export as pdf"),
-		                         parent,
-					 GTK_FILE_CHOOSER_ACTION_SAVE,
-					 "_Cancel",
-					 GTK_RESPONSE_CANCEL,
-					 "Save _As",
-					 GTK_RESPONSE_ACCEPT,
-					 NULL);
+                                         parent,
+                                         GTK_FILE_CHOOSER_ACTION_SAVE,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         "Save _As",
+                                         GTK_RESPONSE_ACCEPT,
+                                         NULL);
 
   gtk_window_set_modal (GTK_WINDOW (chooser), TRUE);
   gtk_window_set_keep_above (GTK_WINDOW (chooser), TRUE);
@@ -69,9 +69,9 @@ start_save_pdf_dialog (GtkWindow *parent, GdkPixbuf *pixbuf)
   preview = gtk_image_new ();
 
   preview_pixbuf = gdk_pixbuf_scale_simple (pixbuf,
-		                            preview_width,
+                                            preview_width,
                                             preview_height,
-					    GDK_INTERP_BILINEAR);
+                                            GDK_INTERP_BILINEAR);
 
   gtk_image_set_from_pixbuf (GTK_IMAGE (preview), preview_pixbuf);
 
@@ -79,7 +79,7 @@ start_save_pdf_dialog (GtkWindow *parent, GdkPixbuf *pixbuf)
   g_object_unref (preview_pixbuf);
 
   gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (chooser),
-		                       get_project_dir ());
+                                       get_project_dir ());
 
   filename = get_default_filename ();
 
@@ -95,8 +95,8 @@ start_save_pdf_dialog (GtkWindow *parent, GdkPixbuf *pixbuf)
       if (! g_str_has_suffix (filename, supported_extension))
         {
           pdf_data->filename = g_strdup_printf ("%s%s",
-			                        filename,
-						supported_extension);
+                                                filename,
+                                                supported_extension);
         }
       else
         {
@@ -160,8 +160,8 @@ pdf_save ()
 
   /* create the cairo surface for pdf */
   cairo_surface_t *pdf_surface = cairo_pdf_surface_create (pdf_data->filename,
-		                                           width,
-							   height);
+                                                           width,
+                                                           height);
   cairo_t *pdf_cr = cairo_create (pdf_surface);
 
   gint lenght = g_slist_length (pdf_data->input_filelist);
@@ -218,13 +218,13 @@ add_pdf_page_callback (GdkPixbuf *pixbuf)
   cairo_surface_t *saved_surface;
   saved_surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
                                               width,
-					      height);
+                                              height);
 
   cairo_t     *cr               = cairo_create (saved_surface);
   const gchar *tmp_dir          = g_get_tmp_dir ();
   gchar       *default_filename = get_default_filename ();
   gchar *screenshoot_name = g_strdup_printf ("%s_screenshoot.png",
-		                             default_filename);
+                                             default_filename);
   gchar  *filename = g_build_filename (tmp_dir, screenshoot_name, (gchar *) 0);
   GError *err      = NULL;
 
@@ -253,15 +253,15 @@ add_pdf_page_callback (GdkPixbuf *pixbuf)
 
   g_object_unref (pixbuf);
   pdf_data->input_filelist = g_slist_prepend (pdf_data->input_filelist,
-		                              filename);
+                                              filename);
 
   wait_for_pdf_save_pending_thread ();
 
   /* Start save thread. */
   if ((pdf_data->thread = g_thread_try_new ("pdf_thread",
-				            (GThreadFunc) pdf_save,
+                                            (GThreadFunc) pdf_save,
                                             (void *) NULL,
-					    &err)) == NULL)
+                                            &err)) == NULL)
     {
       g_printerr ("Thread create failed: %s!!\n", err->message);
       g_error_free (err);
@@ -280,15 +280,15 @@ quit_pdf_saver ()
       while (pdf_data->input_filelist)
         {
           gchar *filename;
-	  filename = (gchar *) g_slist_nth_data (pdf_data->input_filelist,
-			                         0);
+          filename = (gchar *) g_slist_nth_data (pdf_data->input_filelist,
+                                                 0);
           if (filename)
             {
               g_remove (filename);
 
               pdf_data->input_filelist =
-		  g_slist_remove (pdf_data->input_filelist,
-			          filename);
+                  g_slist_remove (pdf_data->input_filelist,
+                                  filename);
 
               g_free (filename);
               filename = NULL;

@@ -32,7 +32,7 @@
 /* Update the preview image. */
 G_MODULE_EXPORT void
 on_image_chooser_button_update_preview (GtkFileChooser *file_chooser,
-		                        gpointer data)
+                                        gpointer data)
 {
   PreferenceData *preference_data = (PreferenceData *) data;
   gchar          *filename;
@@ -70,7 +70,7 @@ on_image_chooser_button_file_set (GtkButton *buton, gpointer data)
       preference_data->preference_dialog_gtk_builder;
 
   GObject *file_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
-		                              "file");
+                                              "file");
 
   GtkToggleButton *image_tool_button = GTK_TOGGLE_BUTTON (file_obj);
   gtk_toggle_button_set_active (image_tool_button, TRUE);
@@ -86,7 +86,7 @@ on_background_color_button_color_set (GtkButton *buton, gpointer data)
       preference_data->preference_dialog_gtk_builder;
 
   GObject *color_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
-		                               "color");
+                                               "color");
 
   GtkToggleButton *color_tool_button = GTK_TOGGLE_BUTTON (color_obj);
   gtk_toggle_button_set_active (color_tool_button, TRUE);
@@ -163,11 +163,11 @@ on_preference_ok_button_clicked (GtkButton *buton, gpointer data)
                 }
               else
                 {
-		  gchar *name = background_config_filename_to_label (filename);
+                  gchar *name = background_config_filename_to_label (filename);
                   add_background_button (name,
-				         BACKGROUND_MODE_FILE,
-					 filename,
-					 NULL);
+                                         BACKGROUND_MODE_FILE,
+                                         filename,
+                                         NULL);
                   /* Save chosen image to user configuration */
                   background_config_add_image (name, filename);
 

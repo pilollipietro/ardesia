@@ -40,10 +40,10 @@ PangoFontDescription *
 font_config_load (void)
 {
   GKeyFile *kf = user_config_load_keyfile ();
-  gchar *family;
+  gchar    *family;
   family = g_key_file_get_string (kf, FONT_SECTION, FONT_KEY_FAMILY, NULL);
 
-  gint   size;
+  gint size;
   size = g_key_file_get_integer (kf, FONT_SECTION, FONT_KEY_SIZE, NULL);
 
   gchar *style = g_key_file_get_string (kf, FONT_SECTION, FONT_KEY_STYLE, NULL);
@@ -99,7 +99,7 @@ font_config_save (const PangoFontDescription *font_desc)
   g_key_file_load_from_file (kf, user, G_KEY_FILE_KEEP_COMMENTS, NULL);
 
   const gchar *family = pango_font_description_get_family (font_desc);
-  gint  size = pango_font_description_get_size (font_desc) / PANGO_SCALE;
+  gint         size = pango_font_description_get_size (font_desc) / PANGO_SCALE;
 
   PangoStyle  pstyle    = pango_font_description_get_style (font_desc);
   PangoWeight pweight   = pango_font_description_get_weight (font_desc);
@@ -115,13 +115,13 @@ font_config_save (const PangoFontDescription *font_desc)
 
   g_key_file_set_string (kf,
                         FONT_SECTION,
-			FONT_KEY_FAMILY,
-			family ? family : "Sans");
+                        FONT_KEY_FAMILY,
+                        family ? family : "Sans");
 
   g_key_file_set_integer (kf,
                           FONT_SECTION,
-			  FONT_KEY_SIZE,
-			  size > 0 ? size : 32);
+                          FONT_KEY_SIZE,
+                          size > 0 ? size : 32);
 
   g_key_file_set_string (kf, FONT_SECTION, FONT_KEY_STYLE, style_buf);
 

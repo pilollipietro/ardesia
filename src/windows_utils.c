@@ -35,17 +35,17 @@ BOOL (WINAPI *setLayeredWindowAttributesProc)
  * */
 void
 setLayeredGdkWindowAttributes (GdkWindow *gdk_window,
-		               COLORREF cr_key,
-			       BYTE b_alpha,
-			       DWORD dw_flags)
+                               COLORREF cr_key,
+                               BYTE b_alpha,
+                               DWORD dw_flags)
 {
   HWND      hwnd       = GDK_WINDOW_HWND (gdk_window);
   HINSTANCE h_instance = LoadLibraryA ("user32");
 
   setLayeredWindowAttributesProc = (BOOL (WINAPI *) (HWND hwnd,
-			                             COLORREF cr_key,
+                                                     COLORREF cr_key,
                                                      BYTE b_alpha,
-						     DWORD dw_flags))
+                                                     DWORD dw_flags))
 
   GetProcAddress (h_instance, "SetLayeredWindowAttributes");
 
@@ -55,9 +55,9 @@ setLayeredGdkWindowAttributes (GdkWindow *gdk_window,
 /* Send an email with MAPI. */
 void
 windows_send_email (gchar *to,
-		    gchar *subject,
-		    gchar *body,
-		    GSList *attachment_list)
+                    gchar *subject,
+                    gchar *body,
+                    GSList *attachment_list)
 {
   HINSTANCE      inst;
   LPMAPISENDMAIL MAPISendMail;
@@ -108,9 +108,9 @@ windows_send_email (gchar *to,
 /* Create a link with icon. */
 void
 windows_create_link (gchar *src,
-		     gchar *dest,
-		     gchar *icon_path,
-		     int icon_index)
+                     gchar *dest,
+                     gchar *icon_path,
+                     int icon_index)
 {
 
   gchar *extension     = "lnk";
@@ -132,18 +132,18 @@ windows_create_link (gchar *src,
   shell_link->lpVtbl->SetPath (shell_link, (LPCTSTR) src);
 
   shell_link->lpVtbl->SetIconLocation (shell_link,
-		                       (LPCTSTR) icon_path,
-				       icon_index);
+                                       (LPCTSTR) icon_path,
+                                       icon_index);
 
   shell_link->lpVtbl->QueryInterface (shell_link,
-		                      &IID_IPersistFile,
-				      (LPVOID *) &persist_file);
+                                      &IID_IPersistFile,
+                                      (LPVOID *) &persist_file);
 
   MultiByteToWideChar (CP_ACP,
-		       0,
-		       (PTSTR) link_filename,
-		       -1,
-		       wsz, MAX_PATH);
+                       0,
+                       (PTSTR) link_filename,
+                       -1,
+                       wsz, MAX_PATH);
 
   g_free (link_filename);
   persist_file->lpVtbl->Save (persist_file, wsz, TRUE);

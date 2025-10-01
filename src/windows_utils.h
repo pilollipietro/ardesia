@@ -39,20 +39,20 @@
 
 /* Set layered window attributes to a gdk window */
 void setLayeredGdkWindowAttributes (GdkWindow *gdk_window,
-		                    COLORREF cr_key,
+                                    COLORREF cr_key,
                                     BYTE b_alpha,
-				    DWORD dw_flags);
+                                    DWORD dw_flags);
 
 /* Send an email with MAPI. */
 void windows_send_email (gchar *to, 
-		         gchar *subject,
-			 gchar *body,
-			 GSList *attachment_list);
+                         gchar *subject,
+                         gchar *body,
+                         GSList *attachment_list);
 
 /* Create a link with icon. */
 void windows_create_link (gchar *src,
-		          gchar *dest,
-			  gchar *icon_path,
-			  int icon_index);
+                          gchar *dest,
+                          gchar *icon_path,
+                          int icon_index);
 
 #endif

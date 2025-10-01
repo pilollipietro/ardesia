@@ -22,8 +22,8 @@
  */
 
 void on_font_selector_response (GtkDialog *dialog,
-		                gint response_id,
-			        gpointer user_data);
+                                gint response_id,
+                                gpointer user_data);
 
 void on_font_selector_destroy (GtkWidget *window,
-		               gpointer user_data);
+                               gpointer user_data);

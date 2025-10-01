@@ -47,11 +47,11 @@ add_header ()
                              "xmlns:xlink=\"%s\" version=\"%s\">\n";
 
   fprintf (fp,
-	   iwb_format,
+           iwb_format,
            becta_ns,
-	   svg_ns,
-	   xlink_ns,
-	   iwb_version);
+           svg_ns,
+           xlink_ns,
+           iwb_version);
 }
 
 /* Close the iwb xml tag. */
@@ -70,11 +70,11 @@ open_svg ()
   gint       height = gtk_widget_get_allocated_height (annotation_window);
 
   fprintf (fp,
-	   "\t<svg:svg width=\"%d\" height=\"%d\" viewbox=\"0 0 %d %d\">\n",
+           "\t<svg:svg width=\"%d\" height=\"%d\" viewbox=\"0 0 %d %d\">\n",
            width,
-	   height,
-	   width,
-	   height);
+           height,
+           width,
+           height);
 }
 
 /* Close the svg tag. */
@@ -93,8 +93,8 @@ add_savepoint (gint index)
   gint       height = gtk_widget_get_allocated_height (annotation_window);
   gchar     *id     = g_strdup_printf ("id%d", index + 1);
   gchar *file = g_strdup_printf ("images/%s_%d_vellum.png",
-		                 PACKAGE_NAME,
-				 index);
+                                 PACKAGE_NAME,
+                                 index);
   const gchar *svg_image_format = "\t\t<svg:image id=\"%s\" xlink:href=\"%s\" "
                                   "x=\"0\" y=\"0\" "
                                   "width=\"%d\" height=\"%d\"/>\n";
@@ -120,7 +120,7 @@ add_background (gchar *img_dir_path, gchar *background_image)
 
   image_destination_path = g_build_filename (img_dir_path,
                                              "ardesia_0_vellum.png",
-					     (gchar *) 0);
+                                             (gchar *) 0);
 
   /* Background image valid and set to image type */
   if ((background_image) && (background_data->type == 2))
@@ -137,12 +137,12 @@ add_background (gchar *img_dir_path, gchar *background_image)
           GFile *image_source = g_file_new_for_path (background_image);
 
           g_file_copy (image_source,
-		       image_destination,
-		       G_FILE_COPY_OVERWRITE,
+                       image_destination,
+                       G_FILE_COPY_OVERWRITE,
                        NULL,
-		       NULL,
-		       NULL,
-		       NULL);
+                       NULL,
+                       NULL,
+                       NULL);
 
           g_object_unref (image_source);
           g_object_unref (image_destination);
@@ -223,8 +223,8 @@ add_savepoint_references (gint savepoint_number)
 /* Create the iwb xml content file. */
 static void
 create_xml_content (gchar *content_filename,
-		    gchar *img_dir_path,
-		    gchar *background_image)
+                    gchar *img_dir_path,
+                    gchar *background_image)
 {
   int   savepoint_number = -1;
   GDir *img_dir;
@@ -258,8 +258,8 @@ create_xml_content (gchar *content_filename,
 /* Add the filename under path to the gst_outfile. */
 static void
 add_file_to_gst_outfile (GsfOutfile *out_file,
-		         gchar *path,
-			 const gchar *file_name)
+                         gchar *path,
+                         const gchar *file_name)
 {
   GError    *err       = (GError *) NULL;
   gchar     *file_path = g_build_filename (path, file_name, NULL);
@@ -277,8 +277,8 @@ add_file_to_gst_outfile (GsfOutfile *out_file,
 /* Add all the files in the folder under the working_dir to the gst_outfile. */
 static void
 add_folder_to_gst_outfile (GsfOutfile *gst_outfile,
-		           gchar *working_dir,
-			   gchar *folder)
+                           gchar *working_dir,
+                           gchar *folder)
 {
   GsfOutfile *gst_dir = NULL;
   gst_dir     = GSF_OUTFILE (gsf_outfile_new_child (gst_outfile, folder, TRUE));
@@ -306,8 +306,8 @@ add_folder_to_gst_outfile (GsfOutfile *gst_outfile,
 static void
 create_iwb (gchar *zip_filename,
             gchar *working_dir,
-	    gchar *images_folder,
-	    gchar *content_filename)
+            gchar *images_folder,
+            gchar *content_filename)
 {
   GError     *err         = (GError *) NULL;
   GsfOutfile *gst_outfile = (GsfOutfile *) NULL;
@@ -353,13 +353,13 @@ export_iwb (gchar *iwb_location)
   gchar       *project_name     = get_project_name ();
   gchar *ardesia_tmp_dir = g_build_filename (tmpdir, PACKAGE_NAME, (gchar *) 0);
   gchar *project_tmp_dir = g_build_filename (ardesia_tmp_dir,
-		                             project_name,
-					     (gchar *) 0);
+                                             project_name,
+                                             (gchar *) 0);
   gchar *img_dir_path = g_build_filename (project_tmp_dir, images, (gchar *) 0);
   gchar *first_savepoint_file = g_strdup_printf ("%s%s%s_2_vellum.png",
-		                                 img_dir_path,
+                                                 img_dir_path,
                                                  G_DIR_SEPARATOR_S,
-						 PACKAGE_NAME);
+                                                 PACKAGE_NAME);
 
   /* if exist the file I continue to save */
   if ((file_exists (first_savepoint_file)) || (background_image))
@@ -368,7 +368,7 @@ export_iwb (gchar *iwb_location)
       gchar *content_filename = "content.xml";
       gchar *content_filepath = g_build_filename (project_tmp_dir,
                                                   content_filename,
-						  (gchar *) 0);
+                                                  (gchar *) 0);
 
       /* If the iwb location is null means that it is a new project. */
       if (iwb_location == NULL)
@@ -376,13 +376,13 @@ export_iwb (gchar *iwb_location)
           /* It will be putted in the project dir. */
           gchar *extension = "iwb";
           gchar *iwb_name = g_strdup_printf ("%s.%s",
-			                     get_project_name (),
-					     extension);
+                                             get_project_name (),
+                                             extension);
 
           /* The zip file is the iwb file located in the ardesia workspace. */
           iwb_file = g_build_filename (get_project_dir (),
-			               iwb_name,
-				       (gchar *) 0);
+                                       iwb_name,
+                                       (gchar *) 0);
           g_free (iwb_name);
         }
       else

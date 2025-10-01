@@ -32,6 +32,6 @@ GtkStatusbar *get_statusbar ();
 void replace_status_message (gchar *message);
 void set_statusbar_label (gchar *message);
 void add_background_button (gchar *label,
-		            gint mode,
-			    gchar *filename,
-			    gchar *color);
+                            gint mode,
+                            gchar *filename,
+                            gchar *color);

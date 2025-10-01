@@ -53,24 +53,24 @@ call_recorder (gchar *filename, gchar *option)
 
   gchar *pidfilename = g_strdup_printf ("%s%s%s", get_project_dir (),
                                         G_DIR_SEPARATOR_S,
-					"ardesia_recorder.pid");
+                                        "ardesia_recorder.pid");
 
   gchar *logfilename = g_strdup_printf ("%s%s%s", get_project_dir (),
                                         G_DIR_SEPARATOR_S,
-					"ardesia_recorder.log");
+                                        "ardesia_recorder.log");
 
   gchar *quoted_filename = g_strdup_printf ("%s", filename);
 
   gchar *argv[10]        = { RECORDER_FILE,
-	                     option,
-			     logfilename,
-			     "0",
+                             option,
+                             logfilename,
                              "0",
-			     "100",
-			     "100",
-			     quoted_filename,
+                             "0",
+                             "100",
+                             "100",
+                             quoted_filename,
                              pidfilename,
-			     (gchar *) 0 };
+                             (gchar *) 0 };
 
   gint       x = 0, y = 0;
   GtkWidget *annotation_window = get_annotation_window ();
@@ -85,13 +85,13 @@ call_recorder (gchar *filename, gchar *option)
       "%d", gtk_widget_get_allocated_height (annotation_window));
 
   g_debug ("call_recorder: %s %s %s %s %s %s %s\n",
-	   logfilename,
-	   argv[3],
+           logfilename,
+           argv[3],
            argv[4],
-	   argv[5],
-	   argv[6],
-	   argv[7],
-	   argv[8]);
+           argv[5],
+           argv[6],
+           argv[7],
+           argv[8]);
 
   if (g_spawn_async (NULL /*working_directory*/,
                      argv,
@@ -241,11 +241,11 @@ visualize_missing_recorder_program_dialog (GtkWindow *parent, gchar *message)
   GtkWidget *miss_dialog = (GtkWidget *) NULL;
 
   miss_dialog = gtk_message_dialog_new (parent,
-		                        GTK_DIALOG_MODAL,
-					GTK_MESSAGE_ERROR,
+                                        GTK_DIALOG_MODAL,
+                                        GTK_MESSAGE_ERROR,
                                         GTK_BUTTONS_OK,
-					"%s",
-					message);
+                                        "%s",
+                                        message);
 
   // gtk_window_set_keep_above (GTK_WINDOW (miss_dialog), TRUE);
 
@@ -273,13 +273,13 @@ start_save_video_dialog (GtkButton *toolbutton, GtkWindow *parent)
 
   GtkWidget *chooser;
   chooser = gtk_file_chooser_dialog_new (gettext ("Save video as ogv"),
-		                         parent,
-					 GTK_FILE_CHOOSER_ACTION_SAVE,
-					 "_Cancel",
-					 GTK_RESPONSE_CANCEL,
-					 "Save _As",
-					 GTK_RESPONSE_ACCEPT,
-					 NULL);
+                                         parent,
+                                         GTK_FILE_CHOOSER_ACTION_SAVE,
+                                         "_Cancel",
+                                         GTK_RESPONSE_CANCEL,
+                                         "Save _As",
+                                         GTK_RESPONSE_ACCEPT,
+                                         NULL);
 
   gtk_window_set_modal (GTK_WINDOW (chooser), TRUE);
   gtk_window_set_keep_above (GTK_WINDOW (chooser), TRUE);
@@ -287,7 +287,7 @@ start_save_video_dialog (GtkButton *toolbutton, GtkWindow *parent)
   gtk_window_set_title (GTK_WINDOW (chooser), gettext ("Choose a file"));
 
   gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (chooser),
-		                       get_project_dir ());
+                                       get_project_dir ());
 
   // test if ogv file already exists - if it does then add a number to the
   // end - continue until new file can be made
@@ -302,14 +302,14 @@ start_save_video_dialog (GtkButton *toolbutton, GtkWindow *parent)
     {
       // file exists
       filename_copy = g_strdup_printf ("%s_%d%s",
-		                       filename,
-				       counter,
-				       supported_extension);
+                                       filename,
+                                       counter,
+                                       supported_extension);
 
       filename_fullpath = g_strdup_printf ("%s%s%s",
-		                           get_project_dir (),
+                                           get_project_dir (),
                                            G_DIR_SEPARATOR_S, 
-					   filename_copy);
+                                           filename_copy);
 
       counter++;
     }
@@ -330,8 +330,8 @@ start_save_video_dialog (GtkButton *toolbutton, GtkWindow *parent)
         {
           g_free (filename_copy);
           filename_copy = g_strdup_printf ("%s%s",
-			                   filename,
-					   supported_extension);
+                                           filename,
+                                           supported_extension);
         }
 
       g_free (filename);

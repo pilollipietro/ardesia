@@ -38,8 +38,8 @@ static gchar *picked_color = NULL;
  */
 gchar *
 start_color_selector_dialog (GtkToolButton *toolbutton,
-		             GtkWindow *parent,
-			     gchar *color)
+                             GtkWindow *parent,
+                             gchar *color)
 {
   GtkToggleToolButton *button    = GTK_TOGGLE_TOOL_BUTTON (toolbutton);
   gchar               *ret_color = NULL;
@@ -77,7 +77,7 @@ start_color_selector_dialog (GtkToolButton *toolbutton,
         {
         case GTK_RESPONSE_OK:
           gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER (color_dialog),
-			              gdkcolor);
+                                      gdkcolor);
 
           ret_color = gdkrgba_to_rgba (gdkcolor);
 

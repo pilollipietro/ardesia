@@ -46,7 +46,7 @@ get_toolbar_area ()
       if (commandline->mode == DRAW_ON_MONITOR)
         {
           Monitor *monitor = g_list_nth_data (workspace->monitors,
-			                      commandline->tools_monitor);
+                                              commandline->tools_monitor);
           return monitor->rect;
         }
       else
@@ -84,7 +84,7 @@ get_drawable_area ()
               commandline->workspace_monitor = 0;
             }
           Monitor *monitor = g_list_nth_data (monitors,
-			                      commandline->workspace_monitor);
+                                              commandline->workspace_monitor);
           return monitor->rect;
         }
       else if (commandline->mode == DRAW_ON_FULLDESKTOP)
@@ -137,9 +137,9 @@ run_missing_composite_manager_dialog ()
 {
   GtkWidget *msg_dialog;
   msg_dialog = gtk_message_dialog_new (NULL,
-		                       GTK_DIALOG_MODAL,
-				       GTK_MESSAGE_ERROR,
-				       GTK_BUTTONS_OK,
+                                       GTK_DIALOG_MODAL,
+                                       GTK_MESSAGE_ERROR,
+                                       GTK_BUTTONS_OK,
                                        gettext ("In order to run Ardesia you "
                                                 "need to enable a composite "
                                                 "manager"));
@@ -266,7 +266,7 @@ main (int argc, char *argv[])
   const gchar *status_format = "Project started in %s";
   gchar       *status_msg;
   status_msg = g_strdup_printf (status_format,
-		                workspace->project_dir);
+                                workspace->project_dir);
   replace_status_message (status_msg);
 
   initialize_font ();

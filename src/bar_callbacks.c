@@ -48,8 +48,8 @@
 /* Windows state event: this occurs when the windows state changes. */
 G_MODULE_EXPORT gboolean
 on_bar_window_state_event (GtkWidget *widget,
-		           GdkEventWindowState *event,
-			   gpointer func_data)
+                           GdkEventWindowState *event,
+                           gpointer func_data)
 {
   g_debug ("on bar state event\n");
   BarData       *bar_data = (BarData *) func_data;
@@ -415,7 +415,7 @@ on_bar_recorder_activate (GtkToolButton *toolbutton, gpointer func_data)
       if (annotation_data->recordingstudio_options == NULL)
         {
           annotation_data->recordingstudio_options =
-	    g_malloc ((gsize) sizeof (RecordingStudioData));
+            g_malloc ((gsize) sizeof (RecordingStudioData));
         }
 
       // create new window  /* Initialize the main window. */
@@ -428,7 +428,7 @@ on_bar_recorder_activate (GtkToolButton *toolbutton, gpointer func_data)
 
       gtk_builder_add_from_file (recording_studio_gtk_builder,
                                  RECORDINGSTUDIO_UI_FILE,
-				 &error);
+                                 &error);
 
       if (error)
         {
@@ -442,7 +442,7 @@ on_bar_recorder_activate (GtkToolButton *toolbutton, gpointer func_data)
 
       recordingstudio_obj =
         gtk_builder_get_object (recording_studio_gtk_builder,
-			        "recordingstudio_window");
+                                "recordingstudio_window");
 
       recordingstudio_window = GTK_WIDGET (recordingstudio_obj);
       annotation_data->recordingstudio_window = recordingstudio_window;
@@ -497,7 +497,7 @@ on_remove_background_button (GtkMenuItem *menuitem, gpointer user_data)
 
 void
 background_selection_on_toggled (GtkToggleToolButton *toggle_tool_button,
-		                 gpointer userdata)
+                                 gpointer userdata)
 {
   BackgroundButtonData *button_data = (BackgroundButtonData *) userdata;
   annotation_data->background_button_last_selected = button_data->index;
@@ -505,7 +505,7 @@ background_selection_on_toggled (GtkToggleToolButton *toggle_tool_button,
   GSList               *node;
   BackgroundButtonData *data;
   node = g_slist_nth (annotation_data->background_button_data,
-		      button_data->index);
+                      button_data->index);
   data = (BackgroundButtonData *) node->data;
 
   if (data->mode == BACKGROUND_MODE_COLOR)
@@ -530,7 +530,7 @@ background_selection_on_toggled (GtkToggleToolButton *toggle_tool_button,
       background_config_set_current_background ("transparent");
 
       annotation_data->background_button_last_selected =
-	BACKGROUND_NONE_SELECTED;
+        BACKGROUND_NONE_SELECTED;
     }
 }
 
@@ -726,7 +726,7 @@ add_background_button (gchar *label, gint mode, gchar *filename, gchar *color)
    */
   GtkWidget *add_btn =
     g_object_get_data (G_OBJECT (background_selection_container),
-		       "background_add_button");
+                       "background_add_button");
 
   if (add_btn != NULL)
     {
@@ -784,7 +784,7 @@ on_background_selection_window_destroy (GtkWidget *object, gpointer user_data)
 
 void
 on_background_selection_size_allocate (GtkWidget *widget,
-		                       GdkRectangle *allocation,
+                                       GdkRectangle *allocation,
                                        gpointer user_data)
 {
   // g_printf ("size allocate %d %d\n", allocation->width, allocation->height);
@@ -877,15 +877,15 @@ create_bar_preference_window (GtkWindow *parent)
    * can be inserted right before it.
    */
   g_object_set_data (G_OBJECT (box),
-		     "background_add_button",
-		     GTK_WIDGET (button));
+                     "background_add_button",
+                     GTK_WIDGET (button));
 
   gtk_window_set_transient_for (GTK_WINDOW (window), parent);
 
   g_signal_connect (button,
-		    "clicked",
-		    (GCallback) on_add_new_background,
-		    window);
+                    "clicked",
+                    (GCallback) on_add_new_background,
+                    window);
 
   g_signal_connect (window,
                     "destroy",

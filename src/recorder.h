@@ -37,7 +37,7 @@
  * return true is the recorder is started.
  */
 gboolean start_save_video_dialog (GtkButton *toolbutton,
-		                  GtkWindow *parent);
+                                  GtkWindow *parent);
 
 /* Quit the recorder. */
 void stop_recorder ();
@@ -59,4 +59,4 @@ gboolean is_recorder_available ();
 
 /* Missing program dialog. */
 void visualize_missing_recorder_program_dialog (GtkWindow *parent_window,
-		                                gchar *message);
+                                                gchar *message);

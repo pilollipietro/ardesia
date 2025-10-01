@@ -54,8 +54,8 @@ cairo_image_surface_create_from_svg (const gchar *file)
   RsvgRectangle viewport = { 0.0, 0.0, 0.0, 0.0 };
 
   rsvg_handle_get_intrinsic_size_in_pixels (handle,
-		                            &viewport.width,
-					    &viewport.height);
+                                            &viewport.width,
+                                            &viewport.height);
 
   surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
                                         round (viewport.width),
@@ -111,7 +111,7 @@ cairo_image_surface_create_from_svg_repl (const gchar *file,
   GInputStream *stream;
   stream = g_memory_input_stream_new_from_data (new_svg,
                                                 strlen (new_svg),
-						NULL);
+                                                NULL);
 
   handle = rsvg_handle_new_from_stream_sync (stream,
                                              NULL,
@@ -172,8 +172,8 @@ get_highlighter_image_surface (const gchar *old_color,
 
   highlighter_image_surface =
     cairo_image_surface_create_from_svg_repl (HIGHLIGHTER_ICON,
-		                              old_color,
-					      new_color);
+                                              old_color,
+                                              new_color);
 
   return highlighter_image_surface;
 }
@@ -188,8 +188,8 @@ get_arrow_image_surface (const gchar *old_color, char *new_color)
     }
 
   arrow_image_surface = cairo_image_surface_create_from_svg_repl (ARROW_ICON,
-		                                                  old_color,
-								  new_color);
+                                                                  old_color,
+                                                                  new_color);
   return arrow_image_surface;
 }
 
@@ -204,8 +204,8 @@ get_filler_image_surface (const gchar *old_color,
     }
 
   filler_image_surface = cairo_image_surface_create_from_svg_repl (FILLER_ICON,
-		                                                   old_color,
-								   new_color);
+                                                                   old_color,
+                                                                   new_color);
   return filler_image_surface;
 }
 
@@ -220,8 +220,8 @@ get_pen_image_surface (const gchar *old_color,
     }
 
   pen_image_surface = cairo_image_surface_create_from_svg_repl (PENCIL_ICON,
-		                                                old_color,
-								new_color);
+                                                                old_color,
+                                                                new_color);
 
   return pen_image_surface;
 }
@@ -314,18 +314,18 @@ get_eraser_pixbuf (gdouble thickness,
   cairo_surface_t *surface = (cairo_surface_t *) NULL;
 
   *pixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB,
-		            TRUE,
-			    8,
-		            cursor_width,
-			    cursor_height);
+                            TRUE,
+                            8,
+                            cursor_width,
+                            cursor_height);
 
   guchar *pixels = gdk_pixbuf_get_pixels (*pixbuf);
 
   surface = cairo_image_surface_create_for_data (pixels,
-		                                 CAIRO_FORMAT_RGB24,
-						 gdk_pixbuf_get_width (*pixbuf),
-						 gdk_pixbuf_get_height (*pixbuf),
-						 gdk_pixbuf_get_rowstride (*pixbuf));
+                                                 CAIRO_FORMAT_RGB24,
+                                                 gdk_pixbuf_get_width (*pixbuf),
+                                                 gdk_pixbuf_get_height (*pixbuf),
+                                                 gdk_pixbuf_get_rowstride (*pixbuf));
 
   eraser_cr = cairo_create (surface);
 
@@ -338,7 +338,7 @@ get_eraser_pixbuf (gdouble thickness,
 
   cairo_arc (eraser_cr, thickness / 2 + circle_width,
              cursor_height - thickness / 2 - circle_width,
-	     thickness / 2, 0, 2 * M_PI);
+             thickness / 2, 0, 2 * M_PI);
 
   cairo_stroke (eraser_cr);
 
@@ -373,18 +373,18 @@ get_filler_pixbuf (GdkPixbuf **pixbuf,
   image_height = cairo_image_surface_get_height (image_surface);
 
   *pixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB,
-		            TRUE,
-			    8,
-		            image_width,
-			    image_height);
+                            TRUE,
+                            8,
+                            image_width,
+                            image_height);
 
   guchar *pixels = gdk_pixbuf_get_pixels (*pixbuf);
 
   surface = cairo_image_surface_create_for_data (pixels,
-		                                 CAIRO_FORMAT_RGB24,
-						 gdk_pixbuf_get_width (*pixbuf),
-						 gdk_pixbuf_get_height (*pixbuf),
-						 gdk_pixbuf_get_rowstride (*pixbuf));
+                                                 CAIRO_FORMAT_RGB24,
+                                                 gdk_pixbuf_get_width (*pixbuf),
+                                                 gdk_pixbuf_get_height (*pixbuf),
+                                                 gdk_pixbuf_get_rowstride (*pixbuf));
 
   filler_cr = cairo_create (surface);
 
@@ -455,15 +455,15 @@ get_pen_pixbuf (GdkPixbuf **pixbuf,
   cursor_height = (gint) icon_height + thickness / 2 + circle_width;
   *pixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB,
                             TRUE, 8,
-		            cursor_width,
+                            cursor_width,
                             cursor_height);
 
   guchar *pixels = gdk_pixbuf_get_pixels (*pixbuf);
   surface = cairo_image_surface_create_for_data (pixels,
-		                                 CAIRO_FORMAT_RGB24,
-						 gdk_pixbuf_get_width (*pixbuf),
-						 gdk_pixbuf_get_height (*pixbuf),
-						 gdk_pixbuf_get_rowstride (*pixbuf));
+                                                 CAIRO_FORMAT_RGB24,
+                                                 gdk_pixbuf_get_width (*pixbuf),
+                                                 gdk_pixbuf_get_height (*pixbuf),
+                                                 gdk_pixbuf_get_rowstride (*pixbuf));
 
   pen_cr = cairo_create (surface);
 
@@ -476,7 +476,7 @@ get_pen_pixbuf (GdkPixbuf **pixbuf,
 
   cairo_arc (pen_cr, thickness / 2 + circle_width,
              cursor_height - thickness / 2 - circle_width,
-	     thickness / 2, 0, 2 * M_PI);
+             thickness / 2, 0, 2 * M_PI);
 
   cairo_stroke (pen_cr);
 
@@ -519,9 +519,9 @@ allocate_invisible_cursor (GdkCursor **cursor)
 /* Set the pen cursor. */
 void
 set_pen_cursor (GdkCursor **cursor,
-		gdouble thickness,
-		gchar *color,
-		gboolean arrow)
+                gdouble thickness,
+                gchar *color,
+                gboolean arrow)
 {
   GdkPixbuf *pixbuf       = (GdkPixbuf *) NULL;
   gdouble    circle_width = 2.0;
@@ -534,9 +534,9 @@ set_pen_cursor (GdkCursor **cursor,
       gdk_pixbuf_get_height (pixbuf) - thickness / 2 - circle_width;
 
   *cursor = gdk_cursor_new_from_pixbuf (gdk_display_get_default (),
-		                        pixbuf,
-					hotspot_x,
-					hotspot_y);
+                                        pixbuf,
+                                        hotspot_x,
+                                        hotspot_y);
 
   g_object_unref (pixbuf);
 }
@@ -554,9 +554,9 @@ set_eraser_cursor (GdkCursor **cursor, gint size)
   gdouble hotspot_y = gdk_pixbuf_get_height (pixbuf) - size / 2 - circle_width;
 
   *cursor = gdk_cursor_new_from_pixbuf (gdk_display_get_default (),
-		                        pixbuf,
-					hotspot_x,
-					hotspot_y);
+                                        pixbuf,
+                                        hotspot_x,
+                                        hotspot_y);
 
   g_object_unref (pixbuf);
 }
@@ -569,7 +569,7 @@ set_filler_cursor (GdkCursor **cursor, gchar *color)
   get_filler_pixbuf (&pixbuf, color);
 
   *cursor = gdk_cursor_new_from_pixbuf (gdk_display_get_default (),
-		                        pixbuf,
+                                        pixbuf,
                                         gdk_pixbuf_get_width (pixbuf) - 1,
                                         gdk_pixbuf_get_height (pixbuf) - 1);
 }

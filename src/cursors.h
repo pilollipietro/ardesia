@@ -52,9 +52,9 @@ void allocate_invisible_cursor (GdkCursor **cursor);
 
 /* Set the pen cursor. */
 void set_pen_cursor (GdkCursor **cursor,
-		     gdouble thickness,
-		     gchar *color,
-		     gboolean arrow);
+                     gdouble thickness,
+                     gchar *color,
+                     gboolean arrow);
 
 /* Set the eraser cursor. */
 void set_eraser_cursor (GdkCursor **cursor, gint size);

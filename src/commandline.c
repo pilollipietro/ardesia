@@ -161,10 +161,10 @@ parse_options (CommandLine *commandline, gint argc, char *argv[])
 
       gint option_index = 0;
       c = getopt_long (argc,
-		       argv,
-		       "hdvVg:f:l:t:w:c:m:M:x:y:o",
-		       long_options,
-		       &option_index);
+                       argv,
+                       "hdvVg:f:l:t:w:c:m:M:x:y:o",
+                       long_options,
+                       &option_index);
 
       /* Detect the end of the options. */
       if (c == -1)

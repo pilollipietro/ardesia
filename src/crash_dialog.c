@@ -53,8 +53,8 @@ start_crash_dialog (GtkWindow *parent, gchar *crash_report)
 
   /* Load the gtk builder file created with glade. */
   gtk_builder_add_from_file (crash_data->crash_dialog_gtk_builder,
-		             CRASH_UI_FILE,
-			     NULL);
+                             CRASH_UI_FILE,
+                             NULL);
 
   /* Fill the window by the gtk builder xml. */
   crash_obj    = gtk_builder_get_object (crash_data->crash_dialog_gtk_builder,
@@ -66,7 +66,7 @@ start_crash_dialog (GtkWindow *parent, gchar *crash_report)
 
   /* Connect all signals by reflection. */
   gtk_builder_connect_signals (crash_data->crash_dialog_gtk_builder,
-		               (gpointer) crash_data);
+                               (gpointer) crash_data);
 
   gtk_dialog_run (GTK_DIALOG (crash_dialog));
 
