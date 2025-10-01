@@ -165,7 +165,7 @@ init_bar_data ()
   return bar_data;
 }
 
-/* 
+/*
  * Map a color string to the corresponding toolbar button and activate it.
  * If the color does not match any predefined color, the "buttonColor"
  * (custom color) button is activated.
@@ -179,7 +179,7 @@ update_color_in_bar (const gchar *rgba_color)
       activate_tool_button ("buttonColor");
       return;
     }
-  gchar *opaque_color = g_strdup_printf("%.6sFF", rgba_color);
+  gchar *opaque_color = g_strdup_printf ("%.6sFF", rgba_color);
   if (g_ascii_strcasecmp (opaque_color, WHITE) == 0)
     {
       activate_tool_button ("buttonWhite");
@@ -225,9 +225,9 @@ select_thickness (GtkToolButton *toolbutton, gchar *thickness)
 
 /* Update thickness in bar. */
 void
-update_thickness_in_bar(gchar *thickness)
+update_thickness_in_bar (gchar *thickness)
 {
-  GObject *obj = gtk_builder_get_object (bar_gtk_builder, "buttonThick");
+  GObject       *obj = gtk_builder_get_object (bar_gtk_builder, "buttonThick");
   GtkToolButton *tool_button = GTK_TOOL_BUTTON (obj);
   select_thickness (tool_button, thickness);
 }
@@ -236,11 +236,12 @@ update_thickness_in_bar(gchar *thickness)
  * Finds a widget by its ID in the GtkBuilder UI definition and sets it
  * as the icon for a GtkToolButton.
  */
-void set_icon(GtkToolButton *toolbutton, gchar *icon_id)
+void
+set_icon (GtkToolButton *toolbutton, gchar *icon_id)
 {
   GObject *obj = gtk_builder_get_object (bar_gtk_builder,
                                          icon_id);
-  
+
   gtk_tool_button_set_icon_widget (toolbutton,
                                    GTK_WIDGET (obj));
 }
@@ -248,46 +249,49 @@ void set_icon(GtkToolButton *toolbutton, gchar *icon_id)
 /*
  * Sets the 'rounder' icon on a GtkToolButton.
  */
-void set_rounder_icon(GtkToolButton *toolbutton)
+void
+set_rounder_icon (GtkToolButton *toolbutton)
 {
-  set_icon(toolbutton, "rounder");
+  set_icon (toolbutton, "rounder");
 }
 
 /*
  * Sets the 'rectifier' icon on a GtkToolButton.
  */
-void set_rectifier_icon(GtkToolButton *toolbutton)
+void
+set_rectifier_icon (GtkToolButton *toolbutton)
 {
-  set_icon(toolbutton, "rectifier");
+  set_icon (toolbutton, "rectifier");
 }
 
 /*
  * Sets the 'hand' icon on a GtkToolButton.
  */
-void set_hand_icon(GtkToolButton *toolbutton)
+void
+set_hand_icon (GtkToolButton *toolbutton)
 {
-  set_icon(toolbutton, "hand");
+  set_icon (toolbutton, "hand");
 }
 
 /* Read from bar data and setup modifier on bar */
 void
-setup_bar_mode(GtkToolButton *toolbutton, BarData *bar_data)
+setup_bar_mode (GtkToolButton *toolbutton, BarData *bar_data)
 {
   if (! bar_data->rectifier)
     {
       if (! bar_data->rounder)
         {
           /* Select the rounder mode. */
-          set_rounder_icon(toolbutton);
-  
+          set_rounder_icon (toolbutton);
+
           bar_data->rounder   = TRUE;
           bar_data->rectifier = FALSE;
           replace_status_message (gettext ("Rounder mode selected"));
         }
-      else                       
+      else
         {
           /* Select the rectifier mode. */
-          set_rectifier_icon(toolbutton);
+          set_rectifier_icon (toolbutton);
           bar_data->rectifier = TRUE;
           bar_data->rounder   = FALSE;
           replace_status_message (gettext ("Polygon mode selected"));
@@ -296,12 +300,11 @@ setup_bar_mode(GtkToolButton *toolbutton, BarData *bar_data)
   else
     {
       /* Select the free hand writing mode. */
-      set_hand_icon(toolbutton);
+      set_hand_icon (toolbutton);
       bar_data->rectifier = FALSE;
       bar_data->rounder   = FALSE;
       replace_status_message (gettext ("Freehand mode selected"));
     }
-
 }
 
 /*
@@ -311,15 +314,15 @@ setup_bar_mode(GtkToolButton *toolbutton, BarData *bar_data)
 static void
 update_modifiers_in_bar (BarData *bar_data)
 {
-  GObject *obj = gtk_builder_get_object (bar_gtk_builder, "buttonMode");
+  GObject       *obj = gtk_builder_get_object (bar_gtk_builder, "buttonMode");
   GtkToolButton *tool_button = GTK_TOOL_BUTTON (obj);
   if (bar_data->rectifier)
     {
-      set_rectifier_icon(tool_button);
+      set_rectifier_icon (tool_button);
     }
   if (bar_data->rounder)
     {
-      set_rounder_icon(tool_button);
+      set_rounder_icon (tool_button);
     }
 }
 
@@ -341,31 +344,31 @@ set_modifiers (BarData *bar_data, AnnotateData *data)
 
 /* Read annotate data and and activate tools. */
 void
-activate_tools(AnnotateData *data)
+activate_tools (AnnotateData *data)
 {
   switch (data->cur_context->type)
     {
-      case ANNOTATE_ERASER:
-        activate_tool_button ("buttonEraser");
-        break;
-      case ANNOTATE_PEN:
-        if (data->is_opaque)
-	  {
-            activate_tool_button ("buttonPencil");
-          }
-        else
-	  {
-            activate_tool_button ("buttonHighlighter");
-          }
-        break;
-      case ANNOTATE_FILLER:
-        activate_tool_button ("buttonFiller");
-        break;
-      case ANNOTATE_POINTER:
-        activate_tool_button ("buttonPointer");
-        break;
-      default:
-        break;
+    case ANNOTATE_ERASER:
+      activate_tool_button ("buttonEraser");
+      break;
+    case ANNOTATE_PEN:
+      if (data->is_opaque)
+        {
+          activate_tool_button ("buttonPencil");
+        }
+      else
+        {
+          activate_tool_button ("buttonHighlighter");
+        }
+      break;
+    case ANNOTATE_FILLER:
+      activate_tool_button ("buttonFiller");
+      break;
+    case ANNOTATE_POINTER:
+      activate_tool_button ("buttonPointer");
+      break;
+    default:
+      break;
     }
 
   if (data->arrow)
@@ -375,7 +378,7 @@ activate_tools(AnnotateData *data)
 
   if (data->text_tool)
     {
-      activate_tool_button("buttonText");
+      activate_tool_button ("buttonText");
     }
 }
 
@@ -383,15 +386,18 @@ activate_tools(AnnotateData *data)
 static void
 update_bar_data_state (BarData *bar_data, AnnotateData *data)
 {
-  activate_tools(data);
+  activate_tools (data);
 
   set_thickness (data->thickness);
-  gchar *thickness_label = annotate_thickness_pixel_to_label(bar_data->thickness);
+
+  gchar *thickness_label =
+      annotate_thickness_pixel_to_label (bar_data->thickness);
+
   update_thickness_in_bar (thickness_label);
-  
+
   bar_data->color = data->color;
   update_color_in_bar (bar_data->color);
-  
+
   set_modifiers (bar_data, data);
   update_modifiers_in_bar (bar_data);
 }
@@ -467,9 +473,12 @@ create_bar_window (CommandLine *commandline,
       GtkCssProvider *css = gtk_css_provider_new ();
       gtk_css_provider_load_from_path (css, gtkcss_file, NULL);
       g_free (gtkcss_file);
-      gtk_style_context_add_provider_for_screen (gdk_screen_get_default (),
-                                                 GTK_STYLE_PROVIDER (css),
-                                                 GTK_STYLE_PROVIDER_PRIORITY_USER);
+
+      gtk_style_context_add_provider_for_screen (
+          gdk_screen_get_default (),
+	  GTK_STYLE_PROVIDER (css),
+	  GTK_STYLE_PROVIDER_PRIORITY_USER);
+
     }
 
   bar_gtk_builder = gtk_builder_new ();
@@ -510,7 +519,7 @@ create_bar_window (CommandLine *commandline,
       return bar_window;
     }
 
-  bar_data         = init_bar_data ();
+  bar_data = init_bar_data ();
   update_bar_data_state (bar_data, annotation_data);
 
   GObject *bar_obj = gtk_builder_get_object (bar_gtk_builder, BAR_WIDGET_NAME);
@@ -541,7 +550,7 @@ create_bar_window (CommandLine *commandline,
 
   /* Move the window in the desired position. */
   gtk_window_move (GTK_WINDOW (bar_window), rect->x + x, rect->y + y);
-  
+
   return bar_window;
 }
 
@@ -665,8 +674,8 @@ take_pen_tool ()
 
   if (is_eraser_toggle_tool_button_active ())
     {
-      GObject *eraser_obj = gtk_builder_get_object (bar_gtk_builder,
-                                                    "buttonEraser");
+      GObject            *eraser_obj = gtk_builder_get_object (bar_gtk_builder,
+                                                               "buttonEraser");
       GtkToggleToolButton *eraser_tool_button = NULL;
       eraser_tool_button = GTK_TOGGLE_TOOL_BUTTON (eraser_obj);
       gtk_toggle_tool_button_set_active (eraser_tool_button, FALSE);

@@ -70,7 +70,7 @@ create_monitor_list ()
       /* Place monitors in order. */
       monitors =
         g_list_insert_sorted_with_data (monitors,
-			                m,
+                                        m,
                                         (GCompareDataFunc) is_to_left_of,
 				        NULL);
     }

@@ -67,7 +67,7 @@ on_image_chooser_button_file_set (GtkButton *buton, gpointer data)
   PreferenceData *preference_data = (PreferenceData *) data;
 
   GtkBuilder *preference_dialog_gtk_builder =
-    preference_data->preference_dialog_gtk_builder;
+      preference_data->preference_dialog_gtk_builder;
 
   GObject *file_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
 		                              "file");
@@ -83,7 +83,7 @@ on_background_color_button_color_set (GtkButton *buton, gpointer data)
   PreferenceData *preference_data = (PreferenceData *) data;
   
   GtkBuilder *preference_dialog_gtk_builder =
-    preference_data->preference_dialog_gtk_builder;
+      preference_data->preference_dialog_gtk_builder;
 
   GObject *color_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
 		                               "color");
@@ -100,7 +100,7 @@ on_preference_ok_button_clicked (GtkButton *buton, gpointer data)
   gchar          *rgba            = NULL;
 
   GtkBuilder *preference_dialog_gtk_builder =
-    preference_data->preference_dialog_gtk_builder;
+      preference_data->preference_dialog_gtk_builder;
     
   /* Ensure that the user config file exists before we modify it */
   user_config_ensure_file ();
@@ -155,16 +155,15 @@ on_preference_ok_button_clicked (GtkButton *buton, gpointer data)
                 {
                   GtkWindow *preference_window = (GtkWindow *) NULL;
 
-                  GObject   *preference_obj    =
-	            gtk_builder_get_object (preference_dialog_gtk_builder,
-                                            "preferences");
+                  GObject *preference_obj = gtk_builder_get_object (
+                      preference_dialog_gtk_builder, "preferences");
 
                   preference_window = GTK_WINDOW (preference_obj);
                   show_permission_denied_dialog (preference_window);
                 }
               else
                 {
-		  gchar *name = background_config_filename_to_label(filename);
+		  gchar *name = background_config_filename_to_label (filename);
                   add_background_button (name,
 				         BACKGROUND_MODE_FILE,
 					 filename,

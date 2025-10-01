@@ -777,7 +777,7 @@ save_cairo_context (cairo_t *cr, gchar *savedir, gchar *category, int index)
   int h;
   get_context_size (cr, &w, &h);
 
-  /* 
+  /*
    * Load a surface with the data->annotation_cairo_context
    * content and write the file.
    */
@@ -792,7 +792,7 @@ save_cairo_context (cairo_t *cr, gchar *savedir, gchar *category, int index)
   cairo_paint (dest_cr);
   /* Postcondition: the saved_surface now contains the save-point image. */
 
-  /*  
+  /*
    *  Will be create a file in the save-point folder
    *  with format PACKAGE_NAME_1.png.
    */

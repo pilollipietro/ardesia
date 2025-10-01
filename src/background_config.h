@@ -26,15 +26,17 @@
 
 #include <glib.h>
 
-typedef enum {
+typedef enum
+{
   BACKGROUND_RESTORED_NONE,
   BACKGROUND_RESTORED_COLOR,
   BACKGROUND_RESTORED_IMAGE
 } BackgroundRestoredType;
 
-typedef struct {
+typedef struct
+{
   BackgroundRestoredType type;
-  gchar *value; /* color string or filename */
+  gchar                 *value; /* color string or filename */
 } BackgroundRestored;
 
 /*
@@ -85,7 +87,7 @@ void background_config_set_current_background (const gchar *background);
 gchar *background_config_get_current_background (void);
 
 /* Utility to derive the label from a filename (without path and extension) */
-gchar * background_config_filename_to_label (const gchar *filename);
+gchar *background_config_filename_to_label (const gchar *filename);
 
 /*
  * Restore last background used.

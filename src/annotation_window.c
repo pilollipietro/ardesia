@@ -25,8 +25,8 @@
 #include "config.h"
 #endif
 
-#include "annotation_window.h"
 #include "annotation_config.h"
+#include "annotation_window.h"
 #include "annotation_window_callbacks.h"
 #include "background_window.h"
 #include "bar.h"
@@ -1675,11 +1675,11 @@ create_annotation_data ()
 
   annotation_data->default_pen = annotate_paint_context_new (ANNOTATE_PEN);
 
-  annotation_data->default_eraser =
-    annotate_paint_context_new (ANNOTATE_ERASER);
+  annotation_data->default_eraser = annotate_paint_context_new (
+      ANNOTATE_ERASER);
 
-  annotation_data->default_filler =
-    annotate_paint_context_new (ANNOTATE_FILLER);
+  annotation_data->default_filler = annotate_paint_context_new (
+      ANNOTATE_FILLER);
 
   annotation_data->monitor     = NULL;
 
@@ -1859,7 +1859,7 @@ annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
     }
 
   g_debug ("Device '%s': Move at (x,y)= (%f : %f)\n",
-              gdk_device_get_name (master), ev->x, ev->y);
+           gdk_device_get_name (master), ev->x, ev->y);
 
 #ifdef _WIN32
   if (inside_bar_window (ev->x_root, ev->y_root))
@@ -2118,9 +2118,9 @@ annotation_window_change (int width, int height)
     }
 }
 
-void    
+void
 initialize_font (void)
-{ 
+{
   annotation_data->font = font_config_load ();
 
   if (annotation_data->font == NULL)
@@ -2130,4 +2130,3 @@ initialize_font (void)
                                        32 * PANGO_SCALE);
     }
 }
-

@@ -58,7 +58,7 @@ cairo_image_surface_create_from_svg (const gchar *file)
 					    &viewport.height);
 
   surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-		                        round (viewport.width),
+                                        round (viewport.width),
                                         round (viewport.height));
 
   cr = cairo_create (surface);
@@ -529,7 +529,9 @@ set_pen_cursor (GdkCursor **cursor,
   get_pen_pixbuf (&pixbuf, color, thickness, arrow, circle_width);
 
   gdouble hotspot_x = thickness / 2 + circle_width;
-  gdouble hotspot_y = gdk_pixbuf_get_height (pixbuf) - thickness / 2 - circle_width;
+
+  gdouble hotspot_y =
+      gdk_pixbuf_get_height (pixbuf) - thickness / 2 - circle_width;
 
   *cursor = gdk_cursor_new_from_pixbuf (gdk_display_get_default (),
 		                        pixbuf,

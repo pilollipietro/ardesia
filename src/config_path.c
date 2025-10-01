@@ -20,7 +20,7 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
- 
+
 /*
  * config_path.c
  *
@@ -57,7 +57,8 @@ get_system_config_file (void)
 gchar *
 get_user_config_file (void)
 {
-  return g_build_filename (g_get_user_config_dir (), USER_CONFIG_BASENAME, NULL);
+  const gchar *user_config_dir = g_get_user_config_dir ();
+  return g_build_filename (user_config_dir, USER_CONFIG_BASENAME, NULL);
 }
 
 /* For reads: prefer user config if present, otherwise the system file.
@@ -94,4 +95,3 @@ get_user_file (void)
   user_config_ensure_file ();
   return get_user_config_file ();
 }
-

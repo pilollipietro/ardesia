@@ -225,10 +225,10 @@ typedef struct
 
   /* Arrow. */
   gboolean arrow;
-  
+
   /* Text tool. */
   gboolean text_tool;
-  
+
   /* Is the cursor grabbed. */
   gboolean is_grabbed;
 

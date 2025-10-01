@@ -24,11 +24,11 @@
 #include <glib.h>
 #include <pango/pango.h>
 
-#include "font_config.h"
 #include "config_path.h"
+#include "font_config.h"
 #include "user_config.h"
 
-#define FONT_SECTION "font"
+#define FONT_SECTION    "font"
 #define FONT_KEY_FAMILY "family"
 #define FONT_KEY_SIZE   "size"
 #define FONT_KEY_STYLE  "style"
@@ -40,8 +40,12 @@ PangoFontDescription *
 font_config_load (void)
 {
   GKeyFile *kf = user_config_load_keyfile ();
-  gchar *family = g_key_file_get_string (kf, FONT_SECTION, FONT_KEY_FAMILY, NULL);
-  gint size = g_key_file_get_integer (kf, FONT_SECTION, FONT_KEY_SIZE, NULL);
+  gchar *family;
+  family = g_key_file_get_string (kf, FONT_SECTION, FONT_KEY_FAMILY, NULL);
+
+  gint   size;
+  size = g_key_file_get_integer (kf, FONT_SECTION, FONT_KEY_SIZE, NULL);
+
   gchar *style = g_key_file_get_string (kf, FONT_SECTION, FONT_KEY_STYLE, NULL);
 
   PangoFontDescription *desc = NULL;
@@ -95,11 +99,11 @@ font_config_save (const PangoFontDescription *font_desc)
   g_key_file_load_from_file (kf, user, G_KEY_FILE_KEEP_COMMENTS, NULL);
 
   const gchar *family = pango_font_description_get_family (font_desc);
-  gint size = pango_font_description_get_size (font_desc) / PANGO_SCALE;
+  gint  size = pango_font_description_get_size (font_desc) / PANGO_SCALE;
 
-  PangoStyle pstyle = pango_font_description_get_style (font_desc);
-  PangoWeight pweight = pango_font_description_get_weight (font_desc);
-  gchar *style_buf = NULL;
+  PangoStyle  pstyle    = pango_font_description_get_style (font_desc);
+  PangoWeight pweight   = pango_font_description_get_weight (font_desc);
+  gchar      *style_buf = NULL;
   if (pweight >= PANGO_WEIGHT_BOLD && pstyle == PANGO_STYLE_ITALIC)
     style_buf = g_strdup ("bolditalic");
   else if (pweight >= PANGO_WEIGHT_BOLD)
@@ -109,18 +113,27 @@ font_config_save (const PangoFontDescription *font_desc)
   else
     style_buf = g_strdup ("normal");
 
-  g_key_file_set_string (kf, FONT_SECTION, FONT_KEY_FAMILY, family ? family : "Sans");
-  g_key_file_set_integer (kf, FONT_SECTION, FONT_KEY_SIZE, size > 0 ? size : 32);
+  g_key_file_set_string (kf,
+                        FONT_SECTION,
+			FONT_KEY_FAMILY,
+			family ? family : "Sans");
+
+  g_key_file_set_integer (kf,
+                          FONT_SECTION,
+			  FONT_KEY_SIZE,
+			  size > 0 ? size : 32);
+
   g_key_file_set_string (kf, FONT_SECTION, FONT_KEY_STYLE, style_buf);
 
-  gsize len = 0;
-  gchar *data = g_key_file_to_data (kf, &len, NULL);
+  gsize   len   = 0;
+  gchar  *data  = g_key_file_to_data (kf, &len, NULL);
   GError *error = NULL;
-  if (!g_file_set_contents (user, data, len, &error))
+  if (! g_file_set_contents (user, data, len, &error))
     {
       g_warning ("Could not write font config to %s: %s", user,
                  error ? error->message : "unknown error");
-      if (error) g_error_free (error);
+      if (error)
+        g_error_free (error);
     }
 
   g_free (data);
@@ -128,4 +141,3 @@ font_config_save (const PangoFontDescription *font_desc)
   g_key_file_unref (kf);
   g_free (user);
 }
-

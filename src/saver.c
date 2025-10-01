@@ -59,11 +59,11 @@ show_could_not_write_dialog (GtkWindow *parent_window)
                                        "Permission denied");
 
   permission_denied_dialog = gtk_message_dialog_new (parent_window,
-		                                     GTK_DIALOG_MODAL,
-						     GTK_MESSAGE_ERROR,
-						     GTK_BUTTONS_OK,
-						     "%s",
-						     message_text);
+                                                     GTK_DIALOG_MODAL,
+                                                     GTK_MESSAGE_ERROR,
+                                                     GTK_BUTTONS_OK,
+                                                     "%s",
+                                                     message_text);
 
   gtk_window_set_modal (GTK_WINDOW (permission_denied_dialog), TRUE);
 
@@ -103,7 +103,7 @@ start_save_image_dialog_callback (GdkPixbuf *buffer)
   GtkWidget *chooser             = NULL;
 
   chooser = gtk_file_chooser_dialog_new (gettext ("Export as pdf"),
-		                         parent,
+                                         parent,
 					 GTK_FILE_CHOOSER_ACTION_SAVE,
 					 "_Cancel",
 					 GTK_RESPONSE_CANCEL,

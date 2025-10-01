@@ -29,7 +29,6 @@
 #include "config_path.h"
 #include "user_config.h"
 
-
 gchar **
 background_config_get_color_keys (gsize *n_colors)
 {
@@ -80,11 +79,11 @@ background_config_save (GKeyFile *kf)
       return FALSE;
     }
 
-  gsize    len  = 0;
-  gchar   *data = g_key_file_to_data (kf, &len, NULL);
+  gsize    len   = 0;
+  gchar   *data  = g_key_file_to_data (kf, &len, NULL);
   GError  *error = NULL;
-  gboolean ok   = g_file_set_contents (usrfile, data, len, &error);
-  if (!ok)
+  gboolean ok    = g_file_set_contents (usrfile, data, len, &error);
+  if (! ok)
     {
       g_warning ("Could not write config %s: %s", usrfile,
                  error ? error->message : "unknown error");
@@ -122,8 +121,8 @@ background_config_filename_to_label (const gchar *filename)
   if (dot != NULL && dot > basename)
     {
       /* Copy up to char before the dot */
-      gsize len = (gsize)(dot - basename);
-      label = g_strndup (basename, len);
+      gsize len = (gsize) (dot - basename);
+      label     = g_strndup (basename, len);
     }
   else
     {
@@ -190,7 +189,7 @@ background_config_get_current_background (void)
   GKeyFile *kf = user_config_load_keyfile ();
 
   gchar *val =
-    g_key_file_get_string (kf, "background", "current_background", NULL);
+      g_key_file_get_string (kf, "background", "current_background", NULL);
 
   g_key_file_unref (kf);
   return val; /* caller frees */
@@ -203,26 +202,26 @@ BackgroundRestored *
 background_config_restore_last_background (void)
 {
   gchar *last_bg = background_config_get_current_background ();
-  if (!last_bg)
+  if (! last_bg)
     return NULL;
 
-  GKeyFile *kf = user_config_load_keyfile ();
+  GKeyFile           *kf = user_config_load_keyfile ();
   BackgroundRestored *br = g_new0 (BackgroundRestored, 1);
 
   /* check colors section */
   if (g_key_file_has_key (kf, "colors", last_bg, NULL))
     {
-      br->type = BACKGROUND_RESTORED_COLOR;
+      br->type  = BACKGROUND_RESTORED_COLOR;
       br->value = g_key_file_get_string (kf, "colors", last_bg, NULL);
     }
   else if (g_key_file_has_key (kf, "images", last_bg, NULL))
     {
-      br->type = BACKGROUND_RESTORED_IMAGE;
+      br->type  = BACKGROUND_RESTORED_IMAGE;
       br->value = g_key_file_get_string (kf, "images", last_bg, NULL);
     }
   else
     {
-      br->type = BACKGROUND_RESTORED_NONE;
+      br->type  = BACKGROUND_RESTORED_NONE;
       br->value = NULL;
     }
 
@@ -234,7 +233,8 @@ background_config_restore_last_background (void)
 void
 background_restored_free (BackgroundRestored *br)
 {
-  if (!br) return;
+  if (! br)
+    return;
   g_free (br->value);
   g_free (br);
 }

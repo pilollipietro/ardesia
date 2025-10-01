@@ -31,28 +31,28 @@
 
 /* Convert AnnotatePaintType -> string for config storage. */
 static const gchar *
-annotate_paint_type_to_string (AnnotateData  *data)
+annotate_paint_type_to_string (AnnotateData *data)
 {
   AnnotatePaintType ctx_type = data->cur_context->type;
   switch (ctx_type)
     {
-      case ANNOTATE_PEN:
-        if (data->is_opaque)
-          {
-            return "pen";
-          }
-        else
-          {
-            return "highlighter";
-          }
-      case ANNOTATE_ERASER:
-        return "eraser";
-      case ANNOTATE_FILLER:
-        return "filler";
-      case ANNOTATE_POINTER:
-        return "pointer";
-      default:
-        return "pen";
+    case ANNOTATE_PEN:
+      if (data->is_opaque)
+        {
+          return "pen";
+        }
+      else
+        {
+          return "highlighter";
+        }
+    case ANNOTATE_ERASER:
+      return "eraser";
+    case ANNOTATE_FILLER:
+      return "filler";
+    case ANNOTATE_POINTER:
+      return "pointer";
+    default:
+      return "pen";
     }
 }
 
@@ -107,7 +107,7 @@ annotate_thickness_pixel_to_label (gdouble thickness_pixel)
 }
 
 gdouble
-annotate_thickness_label_to_pixel(gchar* thickness_label)
+annotate_thickness_label_to_pixel (gchar *thickness_label)
 {
   if (g_ascii_strcasecmp (thickness_label, "micro") == 0)
     {
@@ -132,35 +132,35 @@ annotate_thickness_label_to_pixel(gchar* thickness_label)
 void
 annotation_config_save_state (AnnotateData *data)
 {
-  if (!data)
+  if (! data)
     return;
-  
+
   gchar *userfile = get_user_file (); /* ensures user file exists */
   if (userfile == NULL)
     return;
-    
-  GKeyFile *kf    = g_key_file_new ();
+
+  GKeyFile *kf = g_key_file_new ();
   g_key_file_load_from_file (kf, userfile, G_KEY_FILE_NONE, NULL);
 
   /* Save basic fields. Adjust keys as needed */
   g_key_file_set_string (kf, ANNOTATION_SECTION, "color", data->color);
   g_key_file_set_boolean (kf, ANNOTATION_SECTION, "arrow", data->arrow);
-  
+
   const gchar *thickness_label;
   thickness_label = annotate_thickness_pixel_to_label (data->thickness);
   g_key_file_set_string (kf, ANNOTATION_SECTION, "thickness", thickness_label);
-  
+
   g_key_file_set_boolean (kf, ANNOTATION_SECTION, "rectify", data->rectify);
   g_key_file_set_boolean (kf, ANNOTATION_SECTION, "roundify", data->roundify);
-  
+
   g_key_file_set_boolean (kf, ANNOTATION_SECTION, "text_tool", data->text_tool);
-  
+
   /* Save tool as a string key (pen, eraser, filler, pointer). */
   const gchar *ctx_str = annotate_paint_type_to_string (data);
 
   g_key_file_set_string (kf, ANNOTATION_SECTION, "tool", ctx_str);
 
-  gsize length;
+  gsize  length;
   gchar *content = g_key_file_to_data (kf, &length, NULL);
   g_file_set_contents (userfile, content, length, NULL);
 
@@ -173,15 +173,15 @@ annotation_config_save_state (AnnotateData *data)
 void
 annotation_config_load_state (AnnotateData *data)
 {
-  if (!data)
+  if (! data)
     return;
 
   gchar *cfgfile = get_config_file ();
-  if (!cfgfile)
+  if (! cfgfile)
     return;
 
   GKeyFile *kf = g_key_file_new ();
-  if (!g_key_file_load_from_file (kf, cfgfile, G_KEY_FILE_NONE, NULL))
+  if (! g_key_file_load_from_file (kf, cfgfile, G_KEY_FILE_NONE, NULL))
     {
       g_key_file_unref (kf);
       g_free (cfgfile);
@@ -190,12 +190,14 @@ annotation_config_load_state (AnnotateData *data)
 
   if (g_key_file_has_key (kf, ANNOTATION_SECTION, "color", NULL))
     {
-      gchar *color = g_key_file_get_string (kf, ANNOTATION_SECTION, "color", NULL);
+      gchar *color;
+      color = g_key_file_get_string (kf, ANNOTATION_SECTION, "color", NULL);
+
       /* free previous if needed */
       g_free (data->color);
       data->color = color;
     }
-  if (g_ascii_strcasecmp(data->color + 6, "FF") == 0)
+  if (g_ascii_strcasecmp (data->color + 6, "FF") == 0)
     {
       data->is_opaque = TRUE;
     }
@@ -204,38 +206,50 @@ annotation_config_load_state (AnnotateData *data)
       data->is_opaque = FALSE;
     }
   if (g_key_file_has_key (kf, ANNOTATION_SECTION, "arrow", NULL))
-    data->arrow = g_key_file_get_boolean (kf, ANNOTATION_SECTION, "arrow", NULL);
+    data->arrow = g_key_file_get_boolean (kf,
+                                          ANNOTATION_SECTION,
+					  "arrow",
+					  NULL);
 
   if (g_key_file_has_key (kf, ANNOTATION_SECTION, "thickness", NULL))
     {
-      gchar *thickness = g_key_file_get_string (kf, ANNOTATION_SECTION, "thickness", NULL);
-      data->thickness = annotate_thickness_label_to_pixel(thickness);
+      gchar *thickness = g_key_file_get_string (kf,
+                                                ANNOTATION_SECTION,
+						"thickness",
+						NULL);
+
+      data->thickness = annotate_thickness_label_to_pixel (thickness);
     }
 
   if (g_key_file_has_key (kf, ANNOTATION_SECTION, "rectify", NULL))
-    data->rectify = g_key_file_get_boolean (kf, ANNOTATION_SECTION, "rectify", NULL);
+    data->rectify = g_key_file_get_boolean (kf,
+                                            ANNOTATION_SECTION,
+					    "rectify",
+					    NULL);
 
   if (g_key_file_has_key (kf, ANNOTATION_SECTION, "roundify", NULL))
-    data->roundify = g_key_file_get_boolean (kf, ANNOTATION_SECTION, "roundify", NULL);
-  
+    data->roundify = g_key_file_get_boolean (kf,
+                                             ANNOTATION_SECTION,
+					     "roundify",
+					     NULL);
+
   if (g_key_file_has_key (kf, ANNOTATION_SECTION, "text_tool", NULL))
     data->text_tool = g_key_file_get_boolean (kf,
                                               ANNOTATION_SECTION,
                                               "text_tool",
                                               NULL);
-    
+
   if (g_key_file_has_key (kf, ANNOTATION_SECTION, "tool", NULL))
-  {
-    gchar *ctx = g_key_file_get_string (kf, ANNOTATION_SECTION, "tool", NULL);
-    if (ctx != NULL)
-      {
-        /* map string to enum */
-        data->cur_context->type = annotate_paint_type_from_string (ctx);
-        g_free (ctx);
-      }
-  }
-  
+    {
+      gchar *ctx = g_key_file_get_string (kf, ANNOTATION_SECTION, "tool", NULL);
+      if (ctx != NULL)
+        {
+          /* map string to enum */
+          data->cur_context->type = annotate_paint_type_from_string (ctx);
+          g_free (ctx);
+        }
+    }
+
   g_key_file_unref (kf);
   g_free (cfgfile);
 }
-

@@ -52,10 +52,10 @@ get_toolbar_area ()
       else
         {
           /*
-	   * Non-monitor modes: use the drawable area as toolbar area.
-	   */
-	  return get_drawable_area ();
-	}
+           * Non-monitor modes: use the drawable area as toolbar area.
+           */
+          return get_drawable_area ();
+        }
     }
   return NULL;
 }

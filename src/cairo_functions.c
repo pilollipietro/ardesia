@@ -171,7 +171,7 @@ draw_test_text (cairo_t *cr, gchar *text)
                           "monospace",
                           CAIRO_FONT_SLANT_NORMAL,
                           CAIRO_FONT_WEIGHT_BOLD);
-                          
+
   cairo_set_font_size (cr, 32.0);
   cairo_set_source_rgb (cr, 0.1, 0.1, 0.1);
   cairo_move_to (cr, 10.0, 50.0);

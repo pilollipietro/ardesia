@@ -22,8 +22,8 @@
  */
 
 #include "annotation_window.h"
-#include "font_selector.h"
 #include "font_config.h"
+#include "font_selector.h"
 
 /**
  * @brief Handles the response from the font dialog.
@@ -33,9 +33,10 @@
  *        (e.g., GTK_RESPONSE_OK, GTK_RESPONSE_CANCEL).
  * @param user_data User data passed to the callback.
  */
-void on_font_selector_response (GtkDialog *dialog,
-		                gint response_id,
-			        gpointer user_data)
+void
+on_font_selector_response (GtkDialog *dialog,
+                           gint response_id,
+                           gpointer user_data)
 {
   if (response_id == GTK_RESPONSE_OK)
     {

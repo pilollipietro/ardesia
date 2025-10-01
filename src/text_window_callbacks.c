@@ -38,15 +38,18 @@ is_above_virtual_keyboard (gint x, gint y)
 {
   RECT rect;
   HWND hwnd = FindWindow (VIRTUALKEYBOARD_WINDOW_NAME, NULL);
-  if (!hwnd)
+  if (! hwnd)
     {
       return FALSE;
     }
-  if (!GetWindowRect (hwnd, &rect))
+  if (! GetWindowRect (hwnd, &rect))
     {
       return FALSE;
     }
-  if ((rect.left < x) && (x < rect.right) && (rect.top < y) && (y < rect.bottom))
+  if ((rect.left < x) &&
+      (x < rect.right) &&
+      (rect.top < y) &&
+      (y < rect.bottom))
     {
       return TRUE;
     }
@@ -91,8 +94,9 @@ draw_layout_with_thickness (cairo_t *cr, PangoLayout *layout,
   pango_cairo_layout_path (cr, layout);
 
   /* Set the outline thickness from the character's properties. */
-  gdouble line_width = calculate_visual_thickness (char_info->pen_width, char_info->font_size);
-  //cairo_set_line_width (cr, char_info->pen_width);
+  gdouble line_width = calculate_visual_thickness (char_info->pen_width,
+                                                   char_info->font_size);
+  // cairo_set_line_width (cr, char_info->pen_width);
   cairo_set_line_width (cr, line_width);
   cairo_set_line_join (cr, CAIRO_LINE_JOIN_ROUND);
 
@@ -148,14 +152,15 @@ on_text_window_button_release (GtkWidget *win, GdkEventButton *ev,
       save_text (); // @TODO is this required?
       g_debug ("on_text_window_button_release: %f %f %f %f\n", ev->x, ev->y,
                ev->x_root, ev->y_root);
-      text_data->pos->x = ev->x; // x_root
-      text_data->pos->y = ev->y; // y_root
+      text_data->pos->x    = ev->x; // x_root
+      text_data->pos->y    = ev->y; // y_root
       text_config->start_x = ev->x;
 
-      const gchar *message_format =
-        "on_text_window_button_release: text pos: %f %f";
-      gchar *status_message =
-        g_strdup_printf (message_format, text_data->pos->x, text_data->pos->y);
+      const gchar *message_format = "on_text_window_button_release: text pos: "
+                                    "%f %f";
+      gchar *status_message = g_strdup_printf (message_format,
+                                               text_data->pos->x,
+                                               text_data->pos->y);
       replace_status_message (status_message);
       g_free (status_message);
 
@@ -218,17 +223,19 @@ draw_character (cairo_t *cr, CharInfo *char_info)
       pango_cairo_update_layout (cr, layout);
 
       char_info->baseline = pango_layout_get_baseline (layout);
-      cairo_move_to (cr, char_info->x,
-                     char_info->y -
-                       (gdouble) char_info->baseline / PANGO_SCALE);
+      cairo_move_to (
+          cr,
+          char_info->x,
+          char_info->y -
+          (gdouble) char_info->baseline / PANGO_SCALE);
 
       draw_layout_with_thickness (cr, layout, char_info);
 
       PangoRectangle logical_rect;
       pango_layout_get_pixel_extents (layout, NULL, &logical_rect);
 
-      gdouble visual_thickness =
-        calculate_visual_thickness (char_info->pen_width, char_info->font_size);
+      gdouble visual_thickness = calculate_visual_thickness (
+          char_info->pen_width, char_info->font_size);
 
       if (g_strcmp0 (char_info->character, " ") == 0)
         {
@@ -250,7 +257,7 @@ draw_character (cairo_t *cr, CharInfo *char_info)
            * right-side bleed, so we add half the thickness.
            */
           char_info->text_width =
-            logical_rect.width + (gint) ceil (visual_thickness / 2.0);
+              logical_rect.width + (gint) ceil (visual_thickness / 2.0);
         }
 
       PangoRectangle ink_rect;
@@ -287,12 +294,12 @@ is_return_char (int ch)
 static void
 assign_text_properties (CharInfo *char_info)
 {
-  char_info->x = text_data->pos->x;
-  char_info->y = text_data->pos->y;
-  char_info->pen_width = text_data->pen_width;
-  char_info->color = g_strdup (text_data->color);
-  char_info->italics = CAIRO_FONT_SLANT_NORMAL;
-  char_info->font_weight = CAIRO_FONT_WEIGHT_NORMAL;
+  char_info->x                = text_data->pos->x;
+  char_info->y                = text_data->pos->y;
+  char_info->pen_width        = text_data->pen_width;
+  char_info->color            = g_strdup (text_data->color);
+  char_info->italics          = CAIRO_FONT_SLANT_NORMAL;
+  char_info->font_weight      = CAIRO_FONT_WEIGHT_NORMAL;
   char_info->background_color = NULL;
 
   if (annotation_data->font == NULL)
@@ -331,12 +338,12 @@ destroy_text_properties (gpointer data)
 static void
 delete_character ()
 {
-  if (!text_data->cr)
+  if (! text_data->cr)
     return;
 
   CharInfo *char_info =
-    (CharInfo *) g_slist_nth_data (text_data->letterlist, 0);
-  if (!char_info)
+      (CharInfo *) g_slist_nth_data (text_data->letterlist, 0);
+  if (! char_info)
     return;
 
   if (g_strcmp0 (char_info->character, "\n") != 0)
@@ -356,12 +363,13 @@ delete_character ()
 
       /* Calculate the visual thickness that was used for drawing. */
       gdouble visual_thickness =
-        calculate_visual_thickness (char_info->pen_width, char_info->font_size);
+          calculate_visual_thickness (char_info->pen_width,
+                                      char_info->font_size);
 
       /* Determine the top-left origin of the layout on the canvas. */
       gdouble origin_x = char_info->x;
       gdouble origin_y =
-        char_info->y - (gdouble) char_info->baseline / PANGO_SCALE;
+          char_info->y - (gdouble) char_info->baseline / PANGO_SCALE;
 
       /*
        * Calculate the final clearing area. This is the ink rectangle's
@@ -370,13 +378,13 @@ delete_character ()
        */
       gdouble padding = 1.0;
       gdouble rect_x =
-        origin_x + ink_rect.x - (visual_thickness / 2.0) - padding;
+          origin_x + ink_rect.x - (visual_thickness / 2.0) - padding;
       gdouble rect_y =
-        origin_y + ink_rect.y - (visual_thickness / 2.0) - padding;
+          origin_y + ink_rect.y - (visual_thickness / 2.0) - padding;
       gdouble rect_w =
-        (gdouble) ink_rect.width + visual_thickness + (padding * 2);
+          (gdouble) ink_rect.width + visual_thickness + (padding * 2);
       gdouble rect_h =
-        (gdouble) ink_rect.height + visual_thickness + (padding * 2);
+          (gdouble) ink_rect.height + visual_thickness + (padding * 2);
 
       /* 5. Clear only this exact, calculated rectangle. */
       cairo_rectangle (text_data->cr, rect_x, rect_y, rect_w, rect_h);
@@ -395,7 +403,6 @@ delete_character ()
   text_data->letterlist = g_slist_remove (text_data->letterlist, char_info);
 }
 
-
 static void
 handle_delete_char ()
 {
@@ -406,7 +413,7 @@ static void
 handle_return_char ()
 {
   /* select the x indentation */
-  CharInfo *char_info = make_new_character ();
+  CharInfo *char_info  = make_new_character ();
   char_info->character = "\n";
   assign_text_properties (char_info);
   text_data->letterlist = g_slist_prepend (text_data->letterlist, char_info);
@@ -421,7 +428,7 @@ static void
 handle_tab_char ()
 {
   /* Simple Tab-Implementation */
-  CharInfo *char_info = make_new_character ();
+  CharInfo *char_info  = make_new_character ();
   char_info->character = "\t";
   assign_text_properties (char_info);
   text_data->letterlist = g_slist_prepend (text_data->letterlist, char_info);
@@ -433,7 +440,7 @@ handle_tab_char ()
 static void
 handle_printable_char (char ch)
 {
-  CharInfo *char_info = make_new_character ();
+  CharInfo *char_info  = make_new_character ();
   char_info->character = g_strdup_printf ("%c", ch);
   assign_text_properties (char_info);
   text_data->letterlist = g_slist_prepend (text_data->letterlist, char_info);

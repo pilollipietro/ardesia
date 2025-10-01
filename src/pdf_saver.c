@@ -172,7 +172,7 @@ pdf_save ()
     {
       gchar *current_filename;
       current_filename  =
-       (gchar *) g_slist_nth_data (pdf_data->input_filelist, i);
+         (gchar *) g_slist_nth_data (pdf_data->input_filelist, i);
 
       /* Load the file name content. */
       GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file (current_filename, NULL);
@@ -216,9 +216,9 @@ add_pdf_page_callback (GdkPixbuf *pixbuf)
   int height = gtk_widget_get_allocated_height (annotation_window);
 
   cairo_surface_t *saved_surface;
-  saved_surface  = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-                                               width,
-					       height);
+  saved_surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+                                              width,
+					      height);
 
   cairo_t     *cr               = cairo_create (saved_surface);
   const gchar *tmp_dir          = g_get_tmp_dir ();
@@ -287,8 +287,8 @@ quit_pdf_saver ()
               g_remove (filename);
 
               pdf_data->input_filelist =
-		g_slist_remove (pdf_data->input_filelist,
-			        filename);
+		  g_slist_remove (pdf_data->input_filelist,
+			          filename);
 
               g_free (filename);
               filename = NULL;

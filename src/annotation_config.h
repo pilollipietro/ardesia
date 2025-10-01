@@ -33,4 +33,3 @@ void annotation_config_load_state (AnnotateData *data);
 
 gchar *annotate_thickness_pixel_to_label (gdouble thickness_pixel);
 #endif /* ANNOTATION_CONFIG_H */
-

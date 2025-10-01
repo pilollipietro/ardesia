@@ -21,8 +21,8 @@
  *
  */
 
-#include <gtk/gtk.h>
 #include "text_window.h"
+#include <gtk/gtk.h>
 
 void destroy_text_properties (gpointer data);
 

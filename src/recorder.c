@@ -94,7 +94,8 @@ call_recorder (gchar *filename, gchar *option)
 	   argv[8]);
 
   if (g_spawn_async (NULL /*working_directory*/,
-                     argv, NULL /*envp*/,
+                     argv,
+                     NULL /*envp*/,
                      G_SPAWN_SEARCH_PATH,
                      NULL /*child_setup*/,
                      NULL /*user_data*/,
@@ -175,7 +176,8 @@ is_recorder_available ()
 #endif
 
   return g_spawn_async (NULL /*working_directory*/,
-                        argv, NULL /*envp*/,
+                        argv,
+                        NULL /*envp*/,
                         G_SPAWN_SEARCH_PATH,
                         NULL /*child_setup*/,
                         NULL /*user_data*/,

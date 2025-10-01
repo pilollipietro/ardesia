@@ -110,25 +110,24 @@ gboolean is_pointer_toggle_tool_button_active ();
 
 gboolean is_arrow_toggle_tool_button_active ();
 
-void     add_alpha (BarData *bar_data);
+void add_alpha (BarData *bar_data);
 
-void     take_pen_tool ();
+void take_pen_tool ();
 
-void     release_lock (BarData *bar_data);
+void release_lock (BarData *bar_data);
 
-void     lock (BarData *bar_data);
+void lock (BarData *bar_data);
 
-void     set_color (BarData *bar_data,
-		    gchar *selected_color);
+void set_color (BarData *bar_data, gchar *selected_color);
 
-void     set_options (BarData *bar_data);
+void set_options (BarData *bar_data);
 
-void     start_tool (BarData *bar_data);
+void start_tool (BarData *bar_data);
 
-void     begin_clapperboard_countdown ();
+void begin_clapperboard_countdown ();
 
 /* Activate tool button by name. */
-void     select_thickness (GtkToolButton *toolbutton, gchar *thickness);
+void select_thickness (GtkToolButton *toolbutton, gchar *thickness);
 
 /* Read from bar data and setup modifier on bar */
-void setup_bar_mode(GtkToolButton *toolbutton, BarData *bar_data);
+void setup_bar_mode (GtkToolButton *toolbutton, BarData *bar_data);

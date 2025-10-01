@@ -41,7 +41,9 @@ is_similar (gdouble x, gdouble y, gdouble pixel_tollerance)
 }
 
 static guint
-count_points_along_horizontal (GSList *list, gdouble x, gdouble pixel_tollerance)
+count_points_along_horizontal (GSList *list,
+                               gdouble x,
+			       gdouble pixel_tollerance)
 {
   guint i      = 0;
   guint length = g_slist_length (list);
@@ -421,7 +423,7 @@ straighten (GSList *list)
   inp_point = (AnnotatePoint *) g_slist_nth_data (list, 0);
 
   first_point = allocate_point (inp_point->x,
-		                inp_point->y,
+                                inp_point->y,
 				inp_point->width,
                                 inp_point->pressure);
 
@@ -874,8 +876,8 @@ broken (GSList *list_inp,
   if (meaningful_points && rectify)
     {
         GSList *rectified_list = build_rectified_list (meaningful_points,
-                                                         close_path,
-                                                         pixel_tollerance);
+                                                       close_path,
+                                                       pixel_tollerance);
 
       /* Free the meaningful_point_list after it's been processed. */
       g_slist_foreach (meaningful_points, (GFunc) g_free, NULL);

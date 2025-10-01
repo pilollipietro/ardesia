@@ -113,16 +113,15 @@ restore_background ()
     {
       switch (br->type)
         {
-          case BACKGROUND_RESTORED_COLOR:
-            update_background_color (br->value);
-            break;
-          case BACKGROUND_RESTORED_IMAGE:
-            update_background_image (br->value);
-            break;
-          default:
-            break;
+        case BACKGROUND_RESTORED_COLOR:
+          update_background_color (br->value);
+          break;
+        case BACKGROUND_RESTORED_IMAGE:
+          update_background_image (br->value);
+          break;
+        default:
+          break;
         }
       background_restored_free (br);
     }
 }
-

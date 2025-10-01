@@ -136,9 +136,9 @@ typedef struct
   gint timer;
 
   gboolean blink_show;
-  
-    gdouble      font_ascent;
-  gdouble      font_descent;
+
+  gdouble font_ascent;
+  gdouble font_descent;
 
 } TextData;
 

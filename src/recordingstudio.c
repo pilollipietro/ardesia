@@ -84,7 +84,7 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
   gboolean    grab_value = bar_data->grab;
   GtkBuilder *recordingstudio_window_gtk_builder;
   recordingstudio_window_gtk_builder =
-    annotation_data->recordingstudio_window_gtk_builder;
+      annotation_data->recordingstudio_window_gtk_builder;
   GtkWidget *annotation_window = get_annotation_window ();
 
   /* Release grab. */
@@ -99,9 +99,8 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
           resume_recorder ();
 
           /* Put the stop icon. */
-          GtkWidget *imageWidget = GTK_WIDGET (
-              gtk_builder_get_object (recordingstudio_window_gtk_builder,
-                                      "media-playback-stop"));
+          GtkWidget *imageWidget = GTK_WIDGET (gtk_builder_get_object (
+              recordingstudio_window_gtk_builder, "media-playback-stop"));
 
           gtk_button_set_image ((GtkButton *) toolbutton, imageWidget);
           gtk_button_set_label ((GtkButton *) toolbutton, "Pause");
@@ -201,7 +200,8 @@ move_cursor_window (gpointer data)
 
       gdk_window_get_device_position (desktop, device, &x, &y, NULL);
       gtk_window_move (GTK_WINDOW (annotation_data->cursor_window),
-		      x - 32, y - 32);
+		      x - 32,
+                      y - 32);
       gtk_widget_input_shape_combine_region (annotation_data->cursor_window,
 		                             NULL);
       return TRUE; // continue timer

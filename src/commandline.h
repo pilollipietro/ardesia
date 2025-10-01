@@ -44,8 +44,8 @@ typedef struct
   gint position;
 
   /* Options for text_window */
-  gint   text_leftmargin;
-  gint   text_tabsize;
+  gint text_leftmargin;
+  gint text_tabsize;
 
   guint         mode;
   // either the user can select a monitor for the workspace and tools screens

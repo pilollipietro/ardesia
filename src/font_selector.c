@@ -25,7 +25,6 @@
 #include "annotation_window.h"
 #include "font_selector_callbacks.h"
 
-
 /**
  * @brief Creates and shows the font settings dialog.
  * @param parent_window The window to set as the dialog's parent.

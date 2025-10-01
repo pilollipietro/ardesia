@@ -24,10 +24,9 @@
 #include <gio/gio.h>
 #include <glib/gstdio.h>
 
-#include "user_config.h"
 #include "config.h"
 #include "config_path.h"
-
+#include "user_config.h"
 
 /* Copy system config to user config if needed */
 void
@@ -51,16 +50,22 @@ user_config_ensure_file (void)
           GFile *dest   = g_file_new_for_path (user_conf_path);
 
           GError *error = NULL;
-          if (!g_file_copy (source,
-                            dest,
-                            G_FILE_COPY_OVERWRITE,
-                            NULL, NULL, NULL, &error))
+          if (! g_file_copy (source,
+                             dest,
+                             G_FILE_COPY_OVERWRITE,
+                             NULL,
+                             NULL,
+                             NULL,
+                             &error))
             {
               g_warning ("Unable to copy system config %s to %s: %s",
                          sys_conf_path,
                          user_conf_path,
                          error ? error->message : "unknown error");
-              if (error) g_error_free (error);
+              if (error)
+                {
+                  g_error_free (error);
+                }
             }
 
           g_object_unref (source);

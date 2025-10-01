@@ -89,7 +89,7 @@ on_bar_configure_event (GtkWidget *widget, GdkEvent *event, gpointer func_data)
     {
       set_options (bar_data);
     }
-  start_tool(bar_data);
+  start_tool (bar_data);
   return TRUE;
 }
 
@@ -98,9 +98,9 @@ G_MODULE_EXPORT gboolean
 on_bar_quit (GtkToolButton *toolbutton, gpointer func_data)
 {
   g_debug ("on_bar_quit\n");
-  
+
   BarData *bar_data = (BarData *) func_data;
-  
+
   stop_recorder ();
 
   bar_data->grab = FALSE;
@@ -110,7 +110,7 @@ on_bar_quit (GtkToolButton *toolbutton, gpointer func_data)
   export_iwb (get_iwb_filename ());
   quit_pdf_saver ();
   // start_share_dialog ();
-  
+
   if (is_text_toggle_tool_button_active ())
     {
       annotation_data->text_tool = TRUE;
@@ -635,7 +635,6 @@ resize_image_to_button (BackgroundButtonData *data, gint size)
   cairo_destroy (cr);
 }
 
-
 gboolean
 on_background_selection_window_configure_event (GtkWidget *widget,
                                                 GdkEvent *event,
@@ -645,7 +644,8 @@ on_background_selection_window_configure_event (GtkWidget *widget,
       event->type == GDK_CONFIGURE)
     {
       gint elements = g_slist_length (annotation_data->background_button_data);
-      GtkWidget *window = GTK_WIDGET (annotation_data->background_selection_window);
+      GtkWidget *window;
+      window = GTK_WIDGET (annotation_data->background_selection_window);
       gint h = gtk_widget_get_allocated_height (window);
       gint m = (int) log2 ((double) h);
       m      = (int) pow (2.0, m);
