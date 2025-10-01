@@ -184,23 +184,27 @@ Usage: ardesia [options] [filename]
 Ardesia the free digital sketchpad
 
 options:
-  --verbose ,	-V		Enable verbose mode to see the logs
-  --decorate,	-d		Decorate the window with the borders
-  --gravity ,	-g		Set the gravity of the bar. Possible values are:
-  				east [default]
-  				west
-  				north
-  				south
-  --font ,      -f              Set the font family for the text window. Possible values are:
-                                serif [default]
-                                sans-serif
-                                monospace
-  --leftmargin, -l              Set the left margin in text window to set after hitting Enter
-  --tabsize,    -t              Set the tabsize in pixel in text window
-  --help    ,	-h		Shows the help screen
-  --version ,	-v		Show version information and exit
+  --verbose ,           -V              Enable verbose mode to see the logs
+  --decorate,           -d              Decorate the window with the borders
+  --gravity ,           -g              Set the gravity of the bar. Possible values are:
+                                        east [default]
+                                        west
+                                        north
+                                        south
+  --leftmargin,         -l              Set the left margin in text window to set after hitting Enter
+  --tabsize,            -t              Set the tabsize in pixel in text window
+  --coverage,           -c              Set whether to fit to (monitor|area|full)
+  --tools-monitor,      -m              Set which monitor has the tools window appear (default: 1)
+  --workspace-monitor,  -M              Set which monitor the main window will appear over (default: 1)
+  -x                                    Set the x position of the main window (default: 0)
+  -y                                    Set the y position of the main window (default: 0)
+  --width,                              Set the width of the main window (default: 200)
+  --height,                             Set the height of the main window (default: 200)
+  --opaque,             -o              Force the main window to be opaque and not transparent
+  --help    ,           -h              Shows the help screen
+  --version ,           -v              Shows version information and exit
 
-filename:	  		The interactive Whiteboard Common File (iwb)
+filename:                               The interactive Whiteboard Common File (iwb)
 </pre>
 
 
