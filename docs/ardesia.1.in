@@ -1,7 +1,7 @@
-.TH ARDESIA "1" "February 2011" "Ardesia @VERSION@; the free digital sketchpad" "Ardesia Manual Pages"
+.TH ARDESIA "1" "October 2025" "Ardesia 2.0" "Ardesia Manual Pages"
 
 .SH NAME
-Ardesia \-  the free digital sketchpad
+Ardesia \- the free digital sketchpad
 
 .SH SYNOPSIS
 .B ardesia
@@ -9,46 +9,193 @@ Ardesia \-  the free digital sketchpad
 
 .SH DESCRIPTION
 .PP
-Ardesia is the \fIfree digital sketchpad\fP. It  is useful to make coloured free-hand annotations with digital ink everywhere, record it and share on the network. You can draw upon the desktop or import an image and annotate it and redistribute your work to the world.
+Ardesia is a \fIfree digital sketchpad\fP. It is useful to make coloured
+free-hand annotations with digital ink anywhere on the desktop, record it,
+and share your work. You can draw upon the desktop or import an image to
+annotate, and redistribute your work to the world.
+
 .PP
-Thanks to Ardesia you are free to open any application and fix your ideas and notes. You can use the tool to make effective on-screen presentation, highlight things or point out things of interest. The tool facilitates the online presentations and demos showing in real time your computer screen to anyone in the network. 
+Ardesia allows you to open any application and fix your ideas and notes.
+It is useful for online presentations, highlighting important content,
+and enhancing lessons or tutorials. Images can be saved and exported in
+standard formats.
+
 .PP
-The tool facilitates the online presentations and demos showing in real time your computer screen to anyone in the network. You can use this tool to enhance your lessons or courses working with your preferred applications and your preferred operating system. Create nice tutorial and demos saving the desktop images with your free hand annotations.
-.PP
-Ardesia uses the interactive Whiteboard Common File (iwb) an native document format, it can export images into several standard image formats.
+Ardesia uses the Interactive Whiteboard Common File (.iwb) as a native
+document format. Exported images preserve the annotations applied.
+
 .SH OPTIONS
 Ardesia accepts the following options:
+
 .TP 8
-.B  \-h, \-\-help@
-Show Ardesia command\-line options.
+.B \-h, \-\-help
+Show Ardesia command-line help.
+
 .TP 8
-.B  \-V, \-\-verbose
-Enable verbose mode to see the logs
+.B \-v, \-\-version
+Show version information and exit.
+
 .TP 8
-.B  \-d, \-\-decorate
-Decorate the window with the borders
+.B \-V, \-\-verbose
+Enable verbose mode to see the logs.
+
 .TP 8
-.B  \-g, \-\-gravity
-Set the gravity of the bar.
-Possible values are: east [default], west, north, south
+.B \-d, \-\-decorate
+Decorate the window with borders.
+
+.TP 8
+.B \-g, \-\-gravity
+Set the gravity of the bar. Possible values: east [default], west, north, south.
+
+.TP 8
+.B \-l, \-\-leftmargin
+Set the left margin in the text window after hitting Enter.
+
+.TP 8
+.B \-t, \-\-tabsize
+Set the tab size in pixels in the text window.
+
+.TP 8
+.B \-c, \-\-coverage
+Set how the window fits the screen: monitor, area, or full.
+
+.TP 8
+.B \-m, \-\-tools-monitor
+Select the monitor for the tools window (default: 1).
+
+.TP 8
+.B \-M, \-\-workspace-monitor
+Select the monitor for the main window (default: 1).
+
+.TP 8
+.B \-x
+Set the x position of the main window (default: 0).
+
+.TP 8
+.B \-y
+Set the y position of the main window (default: 0).
+
+.TP 8
+.B \-\-width
+Set the width of the main window (default: 200).
+
+.TP 8
+.B \-\-height
+Set the height of the main window (default: 200).
+
+.TP 8
+.B \-o, \-\-opaque
+Force the main window to be opaque and not transparent.
+
+.SH CONFIGURATION
+Ardesia reads a configuration file to set initial defaults. The system-wide
+configuration is usually installed in `/etc/ardesia.conf` or similar.
+User-specific overrides are stored in:
+
+.RS
+.I ~/.config/ardesiarc
+.RE
+
+.PP
+The configuration file is in INI-style format. Keys include:
+
+.TP
+.B colors
+Define color values in RGBA hex format. Example: black=000000ff.
+
+.TP
+.B images
+Paths to image resources, such as background paper.
+
+.TP
+.B background
+Defines the initial background. Can be `transparent` or a label from `images` or `colors`.
+
+.TP
+.B font
+Font family, size, and style. Example: `family=Sans`, `size=32`, `style=BoldItalic`.
+
+.TP
+.B annotation
+Annotation defaults. Keys:
+
+.RS
+.IP
+- color: RGBA hex string (e.g., FFFF0088)
+.IP
+- arrow: true or false
+.IP
+- thickness: micro, thin, medium, thick
+.IP
+- rectify: true or false (mutually exclusive with roundify)
+.IP
+- roundify: true or false (mutually exclusive with rectify)
+.IP
+- tool: pen, highlighter, eraser, filler, pointer
+.RE
+
+.PP
+Notes:
+.RS
+.IP
+- Any changes made during runtime overwrite these defaults in the user configuration file.
+.IP
+- Manual edits of ~/.config/ardesiarc are only necessary to change initial defaults.
+.IP
+- To reset to system defaults, remove ~/.config/ardesiarc.
+.RE
+
+.SH EXAMPLES
+Here is an example of a user configuration file (~/.config/ardesiarc):
+
+.EX
+[colors]
+black=000000ff
+white=ffffffff
+
+[images]
+paper=/usr/share/ardesia/ui/backgrounds/notebook_paper.png
+
+[background]
+current_background=transparent
+
+[font]
+family=Sans
+size=32
+style=BoldItalic
+
+[annotation]
+color=FFFF0088
+arrow=false
+thickness=thin
+rectify=false
+roundify=false
+tool=highlighter
+.EE
 
 .SH SUGGESTIONS AND BUG REPORTS
-Any bugs found should be reported to the online bug-tracking system
-available on the web at https://github.com/pilollipietro/ardesia/issues. Before reporting bugs, please check to see if the bug has already been reported.
+Any bugs found should be reported to the online bug-tracking system:
+https://github.com/pilollipietro/ardesia/issues. Before reporting bugs, please check to see if the bug has already been reported.
 
-When reporting Ardesia bugs, it is important to include a reliable way to
-reproduce the bug, version number of Ardesia (and probably GTK+), OS name
-and version, and any relevant hardware specs. If a bug is causing a
-crash, it is very useful if a stack trace can be provided. And of
-course, patches to rectify the bug are even better.
+.PP
+Include:
+.RS
+.IP
+- Version number of Ardesia and GTK+.
+.IP
+- OS name and version, and relevant hardware specs.
+.IP
+- Stack traces if available.
+.RE
 
 .SH OTHER INFO
-The canonical place to find Ardesia downloads and info is at http://www.cooglecode.com/ardesia. Here you can find links, data sets, mailing list archives and more.
+Downloads, datasets, and mailing list archives are available at:
+http://www.cooglecode.com/ardesia
 
 .SH AUTHORS
 Pietro Pilolli
 
 .SH COPYRIGHT AND LICENSE
-Copyright (C) 2009–2010 by Authors.
-Ardesia is free software; you can redistribute it and/or modify it under the terms of the GPL.
+Copyright (C) 2009–2025 by Authors. Ardesia is free software; you can redistribute
+it and/or modify it under the terms of the GNU General Public License (GPL).
 
