@@ -27,28 +27,26 @@
 #include "keyboard.h"
 #include "text_window.h"
 #include "utils.h"
-
-static void print_text_properties (CharInfo *char_info);
+#include <ctype.h>
+#include <math.h>
 
 #ifdef _WIN32
+
 /* Is the point (x,y) above the virtual keyboard? */
 static gboolean
 is_above_virtual_keyboard (gint x, gint y)
 {
   RECT rect;
   HWND hwnd = FindWindow (VIRTUALKEYBOARD_WINDOW_NAME, NULL);
-  if (! hwnd)
+  if (!hwnd)
     {
       return FALSE;
     }
-  if (! GetWindowRect (hwnd, &rect))
+  if (!GetWindowRect (hwnd, &rect))
     {
       return FALSE;
     }
-  if ((rect.left < x)  &&
-      (x < rect.right) &&
-      (rect.top < y)   &&
-      (y < rect.bottom))
+  if ((rect.left < x) && (x < rect.right) && (rect.top < y) && (y < rect.bottom))
     {
       return TRUE;
     }
@@ -56,15 +54,14 @@ is_above_virtual_keyboard (gint x, gint y)
 }
 #endif
 
-/**
- * Draws a PangoLayout by first stroking its path to create a thicker
- * outline, and then filling it. This gives the text a variable weight
- * based on the pen width.
+/*
+ * Draws a PangoLayout with a variable thickness, correctly handling glyph
+ * positioning by translating the canvas to compensate for individual glyph
+ * offsets.
  */
 static void
-draw_layout_with_thickness (cairo_t     *cr,
-                            PangoLayout *layout,
-                            CharInfo    *char_info)
+draw_layout_with_thickness (cairo_t *cr, PangoLayout *layout,
+                            CharInfo *char_info)
 {
   GdkRGBA *color = rgba_to_gdkcolor (char_info->color);
   if (!color)
@@ -74,15 +71,29 @@ draw_layout_with_thickness (cairo_t     *cr,
     }
   else
     {
-      cairo_set_source_rgba (cr, color->red, color->green, color->blue, color->alpha);
+      cairo_set_source_rgba (cr, color->red, color->green, color->blue,
+                             color->alpha);
       g_free (color);
     }
+
+  /*
+   * Some glyphs (like '|') are drawn by Pango with a vertical offset within
+   * their layout box. We get this offset (ink_rect.y) and translate the
+   * canvas upwards to compensate, ensuring all glyphs align correctly to our
+   * stable baseline.
+   */
+  PangoRectangle ink_rect;
+  pango_layout_get_pixel_extents (layout, &ink_rect, NULL);
+  cairo_save (cr);
+  cairo_translate (cr, 0, ink_rect.y);
 
   /* Convert the text glyphs into a vector path. */
   pango_cairo_layout_path (cr, layout);
 
   /* Set the outline thickness from the character's properties. */
-  cairo_set_line_width (cr, char_info->pen_width);
+  gdouble line_width = calculate_visual_thickness (char_info->pen_width, char_info->font_size);
+  //cairo_set_line_width (cr, char_info->pen_width);
+  cairo_set_line_width (cr, line_width);
   cairo_set_line_join (cr, CAIRO_LINE_JOIN_ROUND);
 
   /*
@@ -91,13 +102,15 @@ draw_layout_with_thickness (cairo_t     *cr,
    */
   cairo_stroke_preserve (cr);
 
-  /* 4. Fill the inside of the letter */
+  /* Fill the inside of the letter */
   cairo_fill (cr);
+
+  cairo_restore (cr); /* Reverts the translation */
 }
 
 /*
  * The windows has been exposed.
- * Need Double Buffering to be activated for this to work properly
+ * Need Double Buffering to be activated for this to work properly.
  */
 G_MODULE_EXPORT gboolean
 on_text_window_expose_event (GtkWidget *widget, cairo_t *cr, gpointer data)
@@ -106,9 +119,8 @@ on_text_window_expose_event (GtkWidget *widget, cairo_t *cr, gpointer data)
 }
 
 gboolean
-on_text_window_button_release (GtkWidget *win,
-		               GdkEventButton *ev,
-			       TextData *data)
+on_text_window_button_release (GtkWidget *win, GdkEventButton *ev,
+                               TextData *data)
 {
   GtkWidget *annotation_window = get_annotation_window ();
   g_debug ("on_text_window_button_release BEGIN\n");
@@ -128,26 +140,22 @@ on_text_window_button_release (GtkWidget *win,
       /* Ignore the data; the event will be passed to the virtual keyboard. */
       return TRUE;
     }
-
 #endif
 
   if ((text_data) && (text_data->pos))
     {
       g_debug ("on_text_window_button_release MOVE CURSOR\n");
       save_text (); // @TODO is this required?
-      g_debug ("on_text_window_button_release: %f %f %f %f\n",
-	       ev->x,
-	       ev->y,
-               ev->x_root,
-	       ev->y_root);
-      text_data->pos->x    = ev->x; // x_root
-      text_data->pos->y    = ev->y; // y_root
+      g_debug ("on_text_window_button_release: %f %f %f %f\n", ev->x, ev->y,
+               ev->x_root, ev->y_root);
+      text_data->pos->x = ev->x; // x_root
+      text_data->pos->y = ev->y; // y_root
       text_config->start_x = ev->x;
 
-      const gchar *message_format = "on_text_window_button_release: text pos: %f %f";
-      gchar *status_message = g_strdup_printf (message_format,
-		                               text_data->pos->x,
-					       text_data->pos->y);
+      const gchar *message_format =
+        "on_text_window_button_release: text pos: %f %f";
+      gchar *status_message =
+        g_strdup_printf (message_format, text_data->pos->x, text_data->pos->y);
       replace_status_message (status_message);
       g_free (status_message);
 
@@ -159,7 +167,6 @@ on_text_window_button_release (GtkWidget *win,
       stop_virtual_keyboard ();
       start_virtual_keyboard ();
 
-      // text_data->timer = g_timeout_add (1000, blink_cursor, NULL);
       start_blink_cursor ();
     }
   g_debug ("on_text_window_button_release END\n");
@@ -168,9 +175,8 @@ on_text_window_button_release (GtkWidget *win,
 
 /* This shots when the text pointer is moving. */
 G_MODULE_EXPORT gboolean
-on_text_window_cursor_motion (GtkWidget *win,
-		              GdkEventMotion *ev,
-			      gpointer func_data)
+on_text_window_cursor_motion (GtkWidget *win, GdkEventMotion *ev,
+                              gpointer func_data)
 {
 #ifdef _WIN32
   if (inside_bar_window (ev->x_root, ev->y_root))
@@ -193,73 +199,69 @@ make_new_character ()
   return char_info;
 }
 
+/*
+ * Draws a single character with tunable word spacing to ensure readability
+ * at high stroke thicknesses.
+ */
 static void
 draw_character (cairo_t *cr, CharInfo *char_info)
 {
-
-  // guint r,g,b,a;
-  guint br, bg, bb, ba;
-  gint  weight = 1;
-
   if (cr)
     {
-      if (char_info->bold)
+      cairo_save (cr);
+      cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+
+      PangoLayout *layout = pango_cairo_create_layout (cr);
+      pango_layout_set_font_description (layout,
+                                         char_info->pango_font_description);
+      pango_layout_set_text (layout, char_info->character, -1);
+      pango_cairo_update_layout (cr, layout);
+
+      char_info->baseline = pango_layout_get_baseline (layout);
+      cairo_move_to (cr, char_info->x,
+                     char_info->y -
+                       (gdouble) char_info->baseline / PANGO_SCALE);
+
+      draw_layout_with_thickness (cr, layout, char_info);
+
+      PangoRectangle logical_rect;
+      pango_layout_get_pixel_extents (layout, NULL, &logical_rect);
+
+      gdouble visual_thickness =
+        calculate_visual_thickness (char_info->pen_width, char_info->font_size);
+
+      if (g_strcmp0 (char_info->character, " ") == 0)
         {
-          weight *= 15;
+          /*
+           * Word spacing; add the natural space width PLUS a multiplier
+           * of the visual thickness.
+           * This multiplier is the "tuning knob".
+           * A value of 2.0 creates significant and clear word separation.
+           */
+          const gdouble word_spacing_multiplier = 2.0; /* <-- TUNING KNOB */
+          char_info->text_width =
+            logical_rect.width +
+            (gint) ceil (visual_thickness * word_spacing_multiplier);
         }
       else
         {
-          weight *= 5;
+          /*
+           * For a normal character, we only need to compensate for its own
+           * right-side bleed, so we add half the thickness.
+           */
+          char_info->text_width =
+            logical_rect.width + (gint) ceil (visual_thickness / 2.0);
         }
 
-      if (char_info->background_color != NULL)
-        {
-          sscanf (char_info->background_color,
-		  "%02X%02X%02X%02X",
-		  &br,
-		  &bg,
-		  &bb,
-		  &ba);
-        }
+      PangoRectangle ink_rect;
+      pango_layout_get_pixel_extents (layout, &ink_rect, NULL);
+      char_info->text_height = ink_rect.height;
 
-      cairo_save (cr);
-      g_debug ("[DRAW] Drawing character at %f %f %s %s\n",
-	       char_info->x,
-	       char_info->y,
-	       char_info->color,
-	       char_info->font_family);
-
-      cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
-      
-      cairo_set_line_width (cr, char_info->pen_width);
-      cairo_set_source_color_from_string (cr, char_info->color);
-
-      PangoLayout *layout = pango_cairo_create_layout (cr);
-
-      pango_layout_set_font_description (layout,
-		                         char_info->pango_font_description);
-
-      pango_layout_set_text (layout, char_info->character, -1);
-
-      pango_cairo_update_layout (cr, layout);
-
-      gint text_width, text_height;
-      pango_layout_get_pixel_size (layout, &text_width, &text_height);
-      gint baseline = pango_layout_get_baseline (layout);
-      cairo_move_to (cr, char_info->x, char_info->y - (baseline / PANGO_SCALE));
-
-      draw_layout_with_thickness(cr, layout, char_info);
-
-      char_info->text_width  = text_width;
-      char_info->text_height = text_height;
-      
-      char_info->baseline    = baseline;
       cairo_surface_flush (cairo_get_target (cr));
       cairo_restore (cr);
+      g_object_unref (layout);
 
       gtk_widget_queue_draw (annotation_data->annotation_window);
-
-      print_text_properties (char_info);
     }
 }
 
@@ -278,62 +280,34 @@ is_tab_char (int ch)
 static gboolean
 is_return_char (int ch)
 {
-  return (ch == GDK_KEY_Return)     ||
-	  (ch == GDK_KEY_ISO_Enter) ||
-	  (ch == GDK_KEY_KP_Enter);
-}
-
-static void
-print_text_properties (CharInfo *char_info)
-{
-  g_debug ("Character: %s\n", char_info->character);
-  g_debug ("Position: %f, %f\n", char_info->x, char_info->y);
-  g_debug ("Bearing: %f, %f\n", char_info->extents.x_bearing,
-           char_info->extents.y_bearing);
-  g_debug ("Advance: %f, %f\n", char_info->extents.x_advance,
-           char_info->extents.y_advance);
-  g_debug ("Pen Width: %d\n", char_info->pen_width);
-  g_debug ("Color: %s\n", char_info->color);
-  g_debug ("Font Family: %s\n", char_info->font_family);
-  g_debug ("Italics: %d\n", char_info->italics);
-  g_debug ("Weight: %d\n", char_info->font_weight);
-  g_debug ("Background Color: %s\n", char_info->background_color);
+  return (ch == GDK_KEY_Return) || (ch == GDK_KEY_ISO_Enter) ||
+         (ch == GDK_KEY_KP_Enter);
 }
 
 static void
 assign_text_properties (CharInfo *char_info)
 {
-  char_info->x                 = text_data->pos->x;
-  char_info->y                 = text_data->pos->y;
-  char_info->extents.x_bearing = text_data->extents.x_bearing;
-  char_info->extents.y_bearing = text_data->extents.y_bearing;
-  char_info->pen_width         = text_data->pen_width;
-  char *copy                   = g_strdup_printf ("%s", text_data->color);
-  char_info->color             = copy;
-  char_info->italics           = CAIRO_FONT_SLANT_NORMAL;
-  char_info->font_weight       = CAIRO_FONT_WEIGHT_NORMAL;
-  char_info->background_color  = NULL;
+  char_info->x = text_data->pos->x;
+  char_info->y = text_data->pos->y;
+  char_info->pen_width = text_data->pen_width;
+  char_info->color = g_strdup (text_data->color);
+  char_info->italics = CAIRO_FONT_SLANT_NORMAL;
+  char_info->font_weight = CAIRO_FONT_WEIGHT_NORMAL;
+  char_info->background_color = NULL;
 
   if (annotation_data->font == NULL)
     {
       char_info->pango_font_description = NULL;
-      copy                   = g_strdup_printf ("%s", text_config->fontfamily);
-      char_info->font_family = copy;
-      char_info->font_size   = 32;
+      char_info->font_family = g_strdup (text_config->fontfamily);
+      char_info->font_size = 32;
     }
   else
     {
       char_info->pango_font_description = annotation_data->font;
-
       char_info->font_family = g_strdup_printf (
         "%s", pango_font_description_get_family (annotation_data->font));
-
       char_info->font_size =
         pango_font_description_get_size (annotation_data->font) / PANGO_SCALE;
-
-      g_debug ("font: %s, size %d\n",
-	       char_info->font_family,
-	       char_info->font_size);
     }
 }
 
@@ -341,55 +315,86 @@ void
 destroy_text_properties (gpointer data)
 {
   CharInfo *char_info = (CharInfo *) data;
+  g_free (char_info->character);
   g_free (char_info->color);
   g_free (char_info->font_family);
-  g_free (char_info->background_color);
+  if (char_info->background_color)
+    g_free (char_info->background_color);
+  g_free (char_info);
 }
 
-/* Delete the last character printed. */
+/*
+ * Deletes the last character by clearing its exact stroked bounding box.
+ * This seems a robust method that avoids both anti-aliasing
+ * artifacts and overlapping with adjacent characters.
+ */
 static void
 delete_character ()
 {
-  if (text_data->cr)
+  if (!text_data->cr)
+    return;
+
+  CharInfo *char_info =
+    (CharInfo *) g_slist_nth_data (text_data->letterlist, 0);
+  if (!char_info)
+    return;
+
+  if (g_strcmp0 (char_info->character, "\n") != 0)
     {
-      CharInfo *char_info;
-      char_info = (CharInfo *) g_slist_nth_data (text_data->letterlist, 0);
-      if (char_info)
-        {
-          if (g_strcmp0 (char_info->character, "\n") != 0)
-            {
-              cairo_save (text_data->cr);
-              cairo_set_operator (text_data->cr, CAIRO_OPERATOR_CLEAR);
-              if (char_info->pango_font_description == NULL)
-                {
-                  cairo_rectangle (text_data->cr,
-                                   char_info->x + char_info->extents.x_bearing,
-                                   char_info->y + char_info->extents.y_bearing,
-                                   char_info->extents.width,
-                                   char_info->extents.height);
-                }
-              else
-                {
-                  gdouble baseline_offset;
-                  baseline_offset = (gdouble) char_info->baseline / PANGO_SCALE;
-                  cairo_rectangle (text_data->cr,
-                                   char_info->x,
-                                   char_info->y - baseline_offset,
-                                   char_info->text_width,
-                                   char_info->text_height);
-                }
-              cairo_fill (text_data->cr);   // fill inner piece of rectangle
-              cairo_stroke (text_data->cr); // draw border
-              cairo_restore (text_data->cr);
-            }
-          text_data->pos->x = char_info->x;
-          text_data->pos->y = char_info->y;
-          destroy_text_properties (char_info);
-          text_data->letterlist = g_slist_remove (text_data->letterlist,
-			                          char_info);
-        }
+      cairo_save (text_data->cr);
+      cairo_set_operator (text_data->cr, CAIRO_OPERATOR_CLEAR);
+
+      PangoLayout *layout = pango_cairo_create_layout (text_data->cr);
+      pango_layout_set_font_description (layout,
+                                         char_info->pango_font_description);
+      pango_layout_set_text (layout, char_info->character, -1);
+      pango_cairo_update_layout (text_data->cr, layout);
+
+      /* Get the base "ink" rectangle from Pango. */
+      PangoRectangle ink_rect;
+      pango_layout_get_pixel_extents (layout, &ink_rect, NULL);
+
+      /* Calculate the visual thickness that was used for drawing. */
+      gdouble visual_thickness =
+        calculate_visual_thickness (char_info->pen_width, char_info->font_size);
+
+      /* Determine the top-left origin of the layout on the canvas. */
+      gdouble origin_x = char_info->x;
+      gdouble origin_y =
+        char_info->y - (gdouble) char_info->baseline / PANGO_SCALE;
+
+      /*
+       * Calculate the final clearing area. This is the ink rectangle's
+       * position, expanded on all sides by half the stroke thickness,
+       * plus a small safety padding for anti-aliasing.
+       */
+      gdouble padding = 1.0;
+      gdouble rect_x =
+        origin_x + ink_rect.x - (visual_thickness / 2.0) - padding;
+      gdouble rect_y =
+        origin_y + ink_rect.y - (visual_thickness / 2.0) - padding;
+      gdouble rect_w =
+        (gdouble) ink_rect.width + visual_thickness + (padding * 2);
+      gdouble rect_h =
+        (gdouble) ink_rect.height + visual_thickness + (padding * 2);
+
+      /* 5. Clear only this exact, calculated rectangle. */
+      cairo_rectangle (text_data->cr, rect_x, rect_y, rect_w, rect_h);
+      cairo_fill (text_data->cr);
+
+      cairo_restore (text_data->cr);
+      g_object_unref (layout);
     }
+
+  /* Reset cursor position to where the deleted character was */
+  text_data->pos->x = char_info->x;
+  text_data->pos->y = char_info->y;
+
+  /* Free the character's data */
+  destroy_text_properties (char_info);
+  text_data->letterlist = g_slist_remove (text_data->letterlist, char_info);
 }
+
 
 static void
 handle_delete_char ()
@@ -401,31 +406,22 @@ static void
 handle_return_char ()
 {
   /* select the x indentation */
-  CharInfo *char_info  = make_new_character ();
+  CharInfo *char_info = make_new_character ();
   char_info->character = "\n";
   assign_text_properties (char_info);
   text_data->letterlist = g_slist_prepend (text_data->letterlist, char_info);
-  CharInfo *last        = NULL;
-  if (g_slist_length (text_data->letterlist) > 0)
-    {
-      last = (CharInfo *) (g_slist_last (text_data->letterlist)->data);
-    }
+
   /* Move down and to underneath where user started this bit of text. */
   text_data->pos->x = text_config->start_x + text_config->leftmargin;
-  if (last != NULL)
-    {
-      text_data->pos->y += last->text_height + 5;
-    }
-  else
-    {
-      text_data->pos->y += text_data->max_font_height;
-    }
+  /* Use the consistent max_font_height for stable line spacing */
+  text_data->pos->y += text_data->max_font_height + 5; /* 5px line spacing */
 }
 
-static void handle_tab_char (/* arguments */)
+static void
+handle_tab_char ()
 {
   /* Simple Tab-Implementation */
-  CharInfo *char_info  = make_new_character ();
+  CharInfo *char_info = make_new_character ();
   char_info->character = "\t";
   assign_text_properties (char_info);
   text_data->letterlist = g_slist_prepend (text_data->letterlist, char_info);
@@ -437,57 +433,38 @@ static void handle_tab_char (/* arguments */)
 static void
 handle_printable_char (char ch)
 {
-  /* Is the character printable? */
-  CharInfo *char_info  = make_new_character ();
-  /* Postcondition: the character is printable. */
+  CharInfo *char_info = make_new_character ();
   char_info->character = g_strdup_printf ("%c", ch);
   assign_text_properties (char_info);
   text_data->letterlist = g_slist_prepend (text_data->letterlist, char_info);
 
   draw_character (text_data->cr, char_info);
 
-  /* Move cursor to the x step */
-  if (char_info->pango_font_description == NULL)
-    {
-      text_data->pos->x += char_info->extents.x_advance;
-    }
-  else
-    {
-      text_data->pos->x += char_info->text_width;
-    }
+  /* Move cursor to the x step using the correct advance width */
+  text_data->pos->x += char_info->text_width;
 }
 
 G_MODULE_EXPORT gboolean
-on_text_window_key_press_event (GtkWidget *widget,
-		                GdkEvent *event,
-				gpointer user_data)
+on_text_window_key_press_event (GtkWidget *widget, GdkEvent *event,
+                                gpointer user_data)
 {
   GdkEventKey *keyEvent = (GdkEventKey *) event;
-  g_debug ("on key press event for text window %d\n", keyEvent->keyval);
-  if (annotation_data->font != NULL)
-    {
-      g_debug ("PANGO FONT SELECTED\n");
-    }
   if (event->type != GDK_KEY_PRESS)
     {
       return TRUE;
     }
 
   stop_blink_cursor ();
-  gdouble    point_x       = text_data->pos->x + text_data->extents.x_advance;
-  gdouble    point_y       = text_data->pos->y - text_data->max_font_height / 2;
-  gboolean   closed_to_bar = inside_bar_window (point_x, point_y);
+
   GtkWidget *annotation_window = get_annotation_window ();
   int width = gtk_widget_get_allocated_width (GTK_WIDGET (annotation_window));
-  // int height = gtk_widget_get_allocated_width (text_data->window);
 
   if (is_delete_char (keyEvent->keyval))
     {
       handle_delete_char ();
     }
-  /* It is the end of the line or the letter is closed to the window bar. */
-  else if ((text_data->pos->x + text_data->extents.x_advance >= width) ||
-           (closed_to_bar) || is_return_char (keyEvent->keyval))
+  else if ((text_data->pos->x + 20 >= width) || /* Use a small buffer */
+           is_return_char (keyEvent->keyval))
     {
       handle_return_char ();
     }
@@ -499,9 +476,6 @@ on_text_window_key_press_event (GtkWidget *widget,
     {
       handle_printable_char (keyEvent->keyval);
     }
-
-  replace_status_message (g_strdup_printf ("text pos: %f %f", text_data->pos->x,
-                                           text_data->pos->y));
 
   start_blink_cursor ();
   return TRUE;

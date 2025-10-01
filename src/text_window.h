@@ -55,8 +55,10 @@
 #define TEXT_UI_FILE PACKAGE_DATA_DIR "/ardesia/ui/text_window.glade"
 #endif
 
-// Per character settings so we can extend the application to have
-// multiple characteristics.
+/*
+ * Per character settings so we can extend the application to have
+ * multiple characteristics.
+ */
 typedef struct
 {
 
@@ -134,6 +136,9 @@ typedef struct
   gint timer;
 
   gboolean blink_show;
+  
+    gdouble      font_ascent;
+  gdouble      font_descent;
 
 } TextData;
 
@@ -176,5 +181,7 @@ void start_text_widget (GtkWidget *parent, gchar *color, gint thickness);
 
 /* Stop text widget. */
 void stop_text_widget ();
+
+gdouble calculate_visual_thickness (gdouble pen_width, gint font_size);
 
 #endif //__TEXT_WINDOW_H
