@@ -65,6 +65,7 @@ scale_image (gchar *image, gint new_width, gint new_height)
 {
   cairo_surface_t *surface = cairo_image_surface_create_from_png (image);
   cairo_t         *cr      = cairo_create (surface);
+
   cairo_surface_t *scaled_surface = scale_surface (surface,
                                                    new_width,
                                                    new_height);
@@ -90,9 +91,11 @@ load_file_onto_context (gchar *image_filename, cairo_t *cr)
       gint new_height = 0;
       gint new_width  = 0;
       get_context_size (cr, &new_width, &new_height);
+
       cairo_surface_t *scaled_surface = scale_image (image_filename,
                                                      new_width,
                                                      new_height);
+
       cairo_set_source_surface (cr, scaled_surface, 0.0, 0.0);
 
       cairo_save (cr);
@@ -157,6 +160,7 @@ create_new_context (int width, int height)
   cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
                                                          width,
                                                          height);
+
   return cairo_create (surface);
 }
 
@@ -170,9 +174,9 @@ create_copy_of_context (cairo_t *current_context)
       get_context_size (current_context, &width, &height);
       cairo_surface_t *dest_surface;
 
-      dest_surface  = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-                                                  width,
-                                                  height);
+      dest_surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+                                                 width,
+                                                 height);
 
       cairo_surface_t *source_surface = cairo_get_target (current_context);
       cairo_t         *dest_cr        = cairo_create (dest_surface);

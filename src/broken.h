@@ -34,7 +34,6 @@ GSList *build_outbounded_rectangle (GSList *list);
 
 gboolean is_similar_to_an_ellipse (GSList *list, gdouble pixel_tollerance);
 
-/* Take a list of point and return magically the new recognized path. */
 GSList *broken (GSList *inp,
                 gboolean close_path,
                 gboolean rectify,

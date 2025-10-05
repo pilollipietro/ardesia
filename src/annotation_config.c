@@ -243,15 +243,15 @@ annotation_config_load_state (AnnotateData *annotation_data)
   g_return_if_fail (annotation_data != NULL);
 
   gchar *cfgfile = get_config_file ();
-  if (!cfgfile)
+  if (! cfgfile)
     {
       return;
     }
 
-  GKeyFile *kf = g_key_file_new ();
-  GError *error = NULL;
+  GKeyFile *kf    = g_key_file_new ();
+  GError   *error = NULL;
 
-  if (!g_key_file_load_from_file (kf, cfgfile, G_KEY_FILE_NONE, &error))
+  if (! g_key_file_load_from_file (kf, cfgfile, G_KEY_FILE_NONE, &error))
     {
       g_warning ("Failed to load config file '%s': %s",
                  cfgfile,
@@ -305,9 +305,9 @@ annotation_config_load_state (AnnotateData *annotation_data)
     }
 
   /* Load all boolean values safely using the helper function */
-  config_load_boolean (kf, "arrow",     &annotation_data->arrow);
-  config_load_boolean (kf, "rectify",   &annotation_data->rectify);
-  config_load_boolean (kf, "roundify",  &annotation_data->roundify);
+  config_load_boolean (kf, "arrow", &annotation_data->arrow);
+  config_load_boolean (kf, "rectify", &annotation_data->rectify);
+  config_load_boolean (kf, "roundify", &annotation_data->roundify);
   config_load_boolean (kf, "text_tool", &annotation_data->text_tool);
 
   /* Ensure mutual exclusion for rectify/roundify */

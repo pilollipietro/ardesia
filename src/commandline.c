@@ -66,16 +66,16 @@ add_defaults_to_commandline (CommandLine *commandline)
       return;
     }
 
-  commandline->position = EAST;
-  commandline->debug = FALSE;
-  commandline->iwb_filename = NULL;
-  commandline->decorated = FALSE;
-  commandline->text_leftmargin = 0;
-  commandline->text_tabsize = 80;
-  commandline->mode = DRAW_ON_MONITOR;
+  commandline->position          = EAST;
+  commandline->debug             = FALSE;
+  commandline->iwb_filename      = NULL;
+  commandline->decorated         = FALSE;
+  commandline->text_leftmargin   = 0;
+  commandline->text_tabsize      = 80;
+  commandline->mode              = DRAW_ON_MONITOR;
   commandline->workspace_monitor = 1;
-  commandline->tools_monitor = 0; /* Set the final value directly */
-  commandline->is_opaque = FALSE;
+  commandline->tools_monitor     = 0; /* Set the final value directly */
+  commandline->is_opaque         = FALSE;
 
   /* Safely allocate and initialize the clipRect */
   commandline->clipRect = g_new0 (GdkRectangle, 1);
@@ -86,9 +86,9 @@ add_defaults_to_commandline (CommandLine *commandline)
       return;
     }
 
-  commandline->clipRect->x = 0;
-  commandline->clipRect->y = 0;
-  commandline->clipRect->width = 200;
+  commandline->clipRect->x      = 0;
+  commandline->clipRect->y      = 0;
+  commandline->clipRect->width  = 200;
   commandline->clipRect->height = 200;
 }
 
@@ -336,10 +336,15 @@ debug_commandline (CommandLine *commandline)
 {
   g_debug ("Coverage: %s\n",
             (commandline->mode == DRAW_ON_MONITOR ? "Monitor" : "Area"));
+
   g_debug ("Tools Monitor: %d\n", commandline->tools_monitor);
   g_debug ("Workspace Monitor: %d\n", commandline->workspace_monitor);
-  g_debug ("Rectangle: %d %d %d %d\n", commandline->clipRect->x,
-            commandline->clipRect->y, commandline->clipRect->width,
-            commandline->clipRect->height);
+
+  g_debug ("Rectangle: %d %d %d %d\n",
+           commandline->clipRect->x,
+           commandline->clipRect->y,
+           commandline->clipRect->width,
+           commandline->clipRect->height);
+
   g_debug ("Is Opaque: %d\n", commandline->is_opaque);
 }

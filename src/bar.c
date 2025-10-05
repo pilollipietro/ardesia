@@ -305,7 +305,7 @@ setup_bar_mode (GtkToolButton *toolbutton, BarData *bar_data)
 
           bar_data->rounder   = TRUE;
           bar_data->rectifier = FALSE;
-          g_debug("Rounder mode selected");
+          g_debug ("Rounder mode selected");
         }
       else
         {
@@ -313,7 +313,7 @@ setup_bar_mode (GtkToolButton *toolbutton, BarData *bar_data)
           set_rectifier_icon (toolbutton);
           bar_data->rectifier = TRUE;
           bar_data->rounder   = FALSE;
-          g_debug("Polygon mode selected");
+          g_debug ("Polygon mode selected");
         }
     }
   else
@@ -354,11 +354,11 @@ set_modifiers (BarData *bar_data, AnnotateData *data)
   if (data->rectify)
     {
       bar_data->rectifier = TRUE;
-      bar_data->rounder = FALSE;
+      bar_data->rounder   = FALSE;
     }
   if (data->roundify)
     {
-      bar_data->rounder = TRUE;
+      bar_data->rounder   = TRUE;
       bar_data->rectifier = FALSE;
     }
 }
@@ -920,32 +920,42 @@ lock (BarData *bar_data)
 
 /**
  * set_color:
- * @bar_data: (inout): The #BarData struct to update with the new color.
- * @selected_color: The new color string (e.g., "FF0000").
+ * @bar_data:       The #BarData struct to update.
+ * @selected_color: (transfer none): The new color string (e.g., "FF0000FF").
  *
- * Sets a new color for the drawing tools.
+ * Sets a new color, updating both the toolbar state and the global
+ * annotation state.
  *
- * This function is called when the user selects a new color. It ensures a
- * drawing tool is active, updates the color in the #BarData struct, and
- * then adjusts the color's alpha channel based on whether the pen or
- * highlighter is active.
- **/
+ * This function is called when a user selects a new color and acts as a
+ * high-level coordinator for updating the application's state. It begins
+ * by ensuring a drawing tool is active by calling take_pen_tool(). It then
+ * safely updates the color within the #BarData struct, first freeing any
+ * old color string before creating a new internal copy. To keep the
+ * application state consistent, it also synchronizes the global color by
+ * calling annotate_set_color(). Finally, it adjusts the new color's alpha
+ * component to match the selected tool (e.g., pen or highlighter) by
+ * calling add_alpha().
+ *
+ * Memory Ownership: This function makes internal copies of the provided
+ * color string. The caller retains full ownership of the original
+ * @selected_color pointer and is responsible for its memory management.
+ */
 void
 set_color (BarData *bar_data, gchar *selected_color)
 {
   if (selected_color == NULL)
-  {
-    g_warning ("Attempting to set NULL color");
-    return;
-  }
+    {
+      g_warning ("Attempting to set NULL color");
+      return;
+    }
   take_pen_tool ();
   lock (bar_data);
   if (bar_data->color != NULL)
-  {
-    g_free (bar_data->color);
-    bar_data->color = NULL;
-  }
-  bar_data->color = g_strdup (selected_color);
+    {
+      g_free (bar_data->color);
+      bar_data->color = NULL;
+    }
+  bar_data->color       = g_strdup (selected_color);
   gchar *annotate_color = g_strdup (selected_color);
   annotate_set_color (selected_color);
   g_free (annotate_color);

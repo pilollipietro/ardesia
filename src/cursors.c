@@ -69,11 +69,12 @@ cairo_image_surface_create_from_svg (const gchar *file)
 }
 
 static
-gchar* svg_replace_color (const gchar *svg_data,
-                          const gchar *old_color,
-                          const gchar *new_color)
+gchar *
+svg_replace_color (const gchar *svg_data,
+                   const gchar *old_color,
+                   const gchar *new_color)
 {
-  if (!svg_data || !old_color || !new_color)
+  if (! svg_data || ! old_color || ! new_color)
     {
       return NULL;
     }
@@ -441,7 +442,7 @@ get_pen_pixbuf (GdkPixbuf **pixbuf,
         }
       else
         {
-          alpha = g_strdup("FF");
+          alpha = g_strdup ("FF");
         }
 
       if (g_strcmp0 (alpha, "FF") == 0)

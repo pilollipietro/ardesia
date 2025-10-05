@@ -512,19 +512,19 @@ straighten (GSList *list)
  * by keeping only points that contribute significant visual deviation.
  *
  * Algorithm:
- * 1. Calculate a medium pressure value over all points for
+ * -  Calculate a medium pressure value over all points for
  *    consistent point width.
- * 2. Always add the first point of the stroke to the output list.
- * 3. If the input contains only two points, also add the second point.
- * 4. For three or more points, iterate over points in order and compute the
+ * -  Always add the first point of the stroke to the output list.
+ * -  If the input contains only two points, also add the second point.
+ * -  For three or more points, iterate over points in order and compute the
  *    signed area of the triangle formed by points A, B, C. This gives a measure
  *    of deviation of point C from the line AB.
- * 5. Compute height h from area to determine if the deviation exceeds the 
+ * -  Compute height h from area to determine if the deviation exceeds the 
  *    pixel_tolerance threshold.
- * 6. If deviation is meaningful, add point B to the output list, reset the
+ * -  If deviation is meaningful, add point B to the output list, reset the
  *    accumulated area, and continue with B as the new reference.
- * 7. Always add the last point of the stroke to the output list.
- * 8. Reverse the list to preserve the original input order.
+ * -  Always add the last point of the stroke to the output list.
+ * -  Reverse the list to preserve the original input order.
  *
  * Returns:
  * - A new GSList containing AnnotatePoint objects. Each point is allocated
@@ -712,7 +712,7 @@ build_outbounded_rectangle (GSList *list)
   AnnotatePoint *point4 = allocate_point (minx,
                                           maxy,
                                           point->width,
-                                          point->pressure);
+     33                                     point->pressure);
 
   ret_list = g_slist_prepend (ret_list, point4);
 
@@ -955,14 +955,14 @@ build_rectified_list (GSList *list_inp,
  * @pixel_tollerance: tolerance in pixels for determining meaningful points
  *
  * Processes a list of points and returns a "recognized" or simplified path.
- * 
+ *
  * Steps:
- * 1. Calls build_meaningful_point_list() to extract only the points that
+ * -  Calls build_meaningful_point_list() to extract only the points that
  *    contribute significantly to the path shape (removes small deviations).
- * 2. If @rectify is TRUE, calls build_rectified_list() on the meaningful points
+ * -  If @rectify is TRUE, calls build_rectified_list() on the meaningful points
  *    to further smooth or regularize the path.
- * 3. Frees the intermediate meaningful points list if rectification is applied.
- * 4. Returns the processed list of points, either rectified or just the
+ * -  Frees the intermediate meaningful points list if rectification is applied.
+ * -  Returns the processed list of points, either rectified or just the
  *    meaningful points.
  *
  * Returns:

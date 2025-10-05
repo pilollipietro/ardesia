@@ -269,13 +269,13 @@ annotate_modify_color (AnnotateDeviceData *devdata,
   assert (strlen (annotation_data->color) == 8);
   sscanf (annotation_data->color, "%02X%02X%02X%02X", &r, &g, &b, &a);
 
-    if (devdata->coord_list != NULL) {
-        AnnotatePoint *last_point;
+  if (devdata->coord_list != NULL)
+    {
+      AnnotatePoint *last_point;
 
-        last_point = (AnnotatePoint *) g_slist_nth_data (devdata->coord_list,
-                                                         0);
+      last_point = (AnnotatePoint *) g_slist_nth_data (devdata->coord_list, 0);
 
-        old_pressure = last_point->pressure;
+      old_pressure = last_point->pressure;
     }
 
   /*
@@ -848,7 +848,7 @@ delete_savepoint (AnnotateSavepoint *savepoint)
           savepoint->filename = (gchar *) NULL;
         }
       GSList *savepoint_list = NULL;
-      savepoint_list = annotation_data->savepoint_list;
+      savepoint_list         = annotation_data->savepoint_list;
       annotation_data->savepoint_list = g_slist_remove (savepoint_list,
                                                         savepoint);
       g_free (savepoint);
@@ -857,22 +857,22 @@ delete_savepoint (AnnotateSavepoint *savepoint)
 }
 
 static void
-annotate_redolist_free(void)
+annotate_redolist_free (void)
 {
-    if (!annotation_data || !annotation_data->savepoint_list)
-        return;
+  if (! annotation_data || ! annotation_data->savepoint_list)
+    return;
 
-    guint i = annotation_data->current_save_index;
-    GSList *current_node = annotation_data->savepoint_list;
-    
-    while (i > 0 && current_node != NULL)
-      {
-        delete_savepoint(current_node->data);
-        current_node =  annotation_data->savepoint_list;
-        i--;
-      }
+  guint   i            = annotation_data->current_save_index;
+  GSList *current_node = annotation_data->savepoint_list;
 
-    annotation_data->savepoint_list = current_node;
+  while (i > 0 && current_node != NULL)
+    {
+      delete_savepoint (current_node->data);
+      current_node = annotation_data->savepoint_list;
+      i--;
+    }
+
+  annotation_data->savepoint_list = current_node;
 }
 
 /* Free the list of all the save-point. */
@@ -1029,9 +1029,9 @@ annotate_configure_pen_options (AnnotateData *data)
 void
 annotate_add_savepoint (void)
 {
-  AnnotateSavepoint *savepoint = NULL;
-  cairo_surface_t   *saved_surface = NULL;
-  cairo_t           *cr = NULL;
+  AnnotateSavepoint *savepoint      = NULL;
+  cairo_surface_t   *saved_surface  = NULL;
+  cairo_t           *cr             = NULL;
   cairo_surface_t   *source_surface = NULL;
   cairo_status_t     status;
   int                w = 0, h = 0;
@@ -1041,13 +1041,13 @@ annotate_add_savepoint (void)
   g_return_if_fail (annotation_data->annotation_cairo_context != NULL);
 
   savepoint = g_malloc0 (sizeof (AnnotateSavepoint));
-  if (!savepoint)
+  if (! savepoint)
     {
       g_warning ("Failed to allocate savepoint");
       return;
     }
   get_context_size (annotation_data->annotation_cairo_context, &w, &h);
-  
+
   if (w <= 0 || h <= 0)
     {
       g_warning ("Invalid annotation context size: %dx%d", w, h);
@@ -1074,7 +1074,7 @@ annotate_add_savepoint (void)
     }
 
   source_surface = cairo_get_target (annotation_data->annotation_cairo_context);
-  if (!source_surface)
+  if (! source_surface)
     {
       g_warning ("Annotation context target is NULL");
       goto cleanup;
@@ -1224,29 +1224,30 @@ get_annotation_window (void)
 
 /**
  * annotate_set_color:
- * @color: a string representing the new drawing color
- *         (e.g. in hex format "#RRGGBBAA").
+ * @color: (transfer none): A string representing the new drawing color
+ * (e.g., in hex format "#RRGGBBAA").
  *
- * Set the current annotation color.
+ * Sets the new global color for drawing operations.
  *
- * This function updates the global annotation color used for drawing.
- * The provided string is assigned directly to the annotation data without
- * creating a copy, so the caller must ensure the string remains valid
- * for the lifetime of the annotation session or until replaced.
+ * This function updates the color stored in the application's global
+ * state (`annotation_data`). It safely handles memory by first freeing
+ * any previously stored color string to prevent memory leaks.
  *
- * Typically, the color is expressed as an RGBA hex string, but other
- * formats may be supported depending on the rest of the system.
+ * It then creates a **private, internal copy** of the @color string
+ * passed as an argument, using g_strdup(). Because the function creates
+ * its own copy, the **caller retains ownership** of the original string
+ * and can (and must) free it if it was dynamically allocated.
  *
  * Since: 1.0
- **/
+ */
 void
 annotate_set_color (gchar *color)
 {
   if (annotation_data->color != NULL)
-  {
-    g_free (annotation_data->color);
-    annotation_data->color = NULL;
-  }
+    {
+      g_free (annotation_data->color);
+      annotation_data->color = NULL;
+    }
   annotation_data->color = g_strdup (color);
 }
 
@@ -1976,7 +1977,7 @@ create_annotation_data (void)
   annotation_data = g_malloc0 ((gsize) sizeof (AnnotateData));
 
   annotation_data->color = NULL;
-  gchar *color    = g_strdup ("FFFF0088");
+  gchar *color           = g_strdup ("FFFF0088");
   annotate_set_color (color);
   g_free (color);
 
@@ -2009,7 +2010,7 @@ create_annotation_data (void)
   annotation_data->default_filler = annotate_paint_context_new (
       ANNOTATE_FILLER);
 
-  annotation_data->cur_context    = annotation_data->default_pen;
+  annotation_data->cur_context = annotation_data->default_pen;
 
   annotation_data->monitor = NULL;
 
@@ -2194,7 +2195,7 @@ annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
       return FALSE;
     }
 
-  GdkDevice *slave  = gdk_event_get_source_device ((GdkEvent *) ev);
+  GdkDevice *slave = gdk_event_get_source_device ((GdkEvent *) ev);
   if (slave == NULL)
     {
       g_warning ("Could not find slave device.");

@@ -87,7 +87,7 @@ destroy_text_properties (gpointer data)
     {
       return;
     }
-  
+
   g_free (char_info->character);
   g_free (char_info->color);
   g_free (char_info->font_family);
@@ -299,17 +299,18 @@ static gboolean
 assign_text_cursor_to_window (GtkWidget *window)
 {
   /* Add defensive checks to ensure data is initialized */
-  if (!text_data || !text_data->color || text_data->max_font_height <= 0)
+  if (! text_data || ! text_data->color || text_data->max_font_height <= 0)
     {
-      g_warning ("assign_text_cursor_to_window called with uninitialized data.");
+      g_warning ("assign_text_cursor_to_window called with uninitialized "
+                 "data.");
       return FALSE;
     }
 
   gdouble thickness = calculate_visual_thickness (
         text_data->pen_width, (gint) text_data->max_font_height);
 
-  gdouble ascent = text_data->font_ascent;
-  gdouble descent = text_data->font_descent;
+  gdouble ascent      = text_data->font_ascent;
+  gdouble descent     = text_data->font_descent;
   gdouble font_height = ascent + descent;
 
   gdouble serif_width = thickness + 8.0;

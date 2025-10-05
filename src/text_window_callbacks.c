@@ -67,7 +67,7 @@ draw_layout_with_thickness (cairo_t *cr, PangoLayout *layout,
                             CharInfo *char_info)
 {
   GdkRGBA *color = rgba_to_gdkcolor (char_info->color);
-  if (!color)
+  if (! color)
     {
       /* Fallback to solid black if color conversion fails */
       cairo_set_source_rgb (cr, 0.0, 0.0, 0.0);
@@ -303,7 +303,8 @@ is_tab_char (int ch)
 static gboolean
 is_return_char (int ch)
 {
-  return (ch == GDK_KEY_Return) || (ch == GDK_KEY_ISO_Enter) ||
+  return (ch == GDK_KEY_Return) ||
+         (ch == GDK_KEY_ISO_Enter) ||
          (ch == GDK_KEY_KP_Enter);
 }
 
@@ -433,7 +434,7 @@ handle_tab_char (void)
 {
   /* Simple Tab-Implementation */
   CharInfo *char_info  = make_new_character ();
-  char_info->character = g_strdup("\t");
+  char_info->character = g_strdup ("\t");
   assign_text_properties (char_info);
   text_data->letterlist = g_slist_prepend (text_data->letterlist, char_info);
 

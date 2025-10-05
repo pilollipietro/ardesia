@@ -271,8 +271,7 @@ on_button_press (GtkWidget *win, GdkEventButton *ev, gpointer user_data)
   AnnotateData *data   = (AnnotateData *) user_data;
   gboolean      retval = FALSE;
 
-  if (data->is_annotation_visible &&
-      ! data->is_text_editor_visible)
+  if (data->is_annotation_visible && ! data->is_text_editor_visible)
     {
       retval = annotation_window_button_press (ev, data);
     }
@@ -320,8 +319,7 @@ on_motion_notify (GtkWidget *win, GdkEventMotion *ev, gpointer user_data)
 
   AnnotateData *data   = (AnnotateData *) user_data;
   gboolean      retval = FALSE;
-  if (data->is_annotation_visible &&
-      ! data->is_text_editor_visible)
+  if (data->is_annotation_visible && ! data->is_text_editor_visible)
     {
       retval = annotation_window_mouse_move (ev, data);
     }

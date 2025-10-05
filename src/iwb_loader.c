@@ -306,13 +306,17 @@ load_iwb (gchar *iwbfile)
   GSList      *savepoint_list = (GSList *) NULL;
   gchar *ardesia_tmp_dir = g_build_filename (tmpdir, PACKAGE_NAME, (gchar *) 0);
   gchar *project_name    = get_project_name ();
+
   gchar *project_tmp_dir = g_build_filename (ardesia_tmp_dir,
                                              project_name,
                                              (gchar *) 0);
+
   gchar *content_filename = "content.xml";
+
   gchar *content_filepath = g_build_filename (project_tmp_dir,
                                               content_filename,
                                               (gchar *) 0);
+
   xmlDocPtr          doc  = (xmlDocPtr) NULL; // the resulting document tree
   xmlXPathContextPtr context = (xmlXPathContextPtr) NULL;
 

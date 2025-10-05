@@ -241,7 +241,7 @@ grab_pointer (GtkWidget *widget, GdkEventMask eventmask)
   GdkGrabStatus result;
   GdkSeat      *device_manager = (GdkSeat *) NULL;
   GdkDisplay   *display        = (GdkDisplay *) NULL;
-  display = gdk_display_get_default ();
+  display                      = gdk_display_get_default ();
 
   ungrab_pointer ();
   device_manager = gdk_display_get_default_seat (display);
@@ -299,9 +299,9 @@ ungrab_pointer (void)
 {
   GdkSeat *seat = (GdkSeat *) NULL;
 
-  GdkDisplay   *display        = (GdkDisplay *) NULL;
-  display = gdk_display_get_default ();
-  seat    = gdk_display_get_default_seat (display);
+  GdkDisplay *display = (GdkDisplay *) NULL;
+  display             = gdk_display_get_default ();
+  seat                = gdk_display_get_default_seat (display);
 
   gdk_x11_display_error_trap_push (display);
 

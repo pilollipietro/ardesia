@@ -366,7 +366,7 @@ start_save_video_dialog (GtkButton *toolbutton, GtkWindow *parent)
 
       filename_fullpath = g_strdup_printf ("%s%s%s",
                                            get_project_dir (),
-                                           G_DIR_SEPARATOR_S, 
+                                           G_DIR_SEPARATOR_S,
                                            filename_copy);
 
       counter++;

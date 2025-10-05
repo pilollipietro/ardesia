@@ -267,14 +267,17 @@ create_cursor_window (void)
 
   GtkWidget *drawing_area = gtk_drawing_area_new ();
   gtk_container_add (GTK_CONTAINER (window), drawing_area);
+
   g_signal_connect (G_OBJECT (drawing_area),
                     "draw",
                     G_CALLBACK (on_draw_event),
                     NULL);
+
   gtk_widget_set_events (drawing_area,
                          gtk_widget_get_events (drawing_area)
                          | GDK_BUTTON_PRESS_MASK
                          | GDK_POINTER_MOTION_MASK);
+
   setup_transparency (window);
   return window;
 }

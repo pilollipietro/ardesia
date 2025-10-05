@@ -27,8 +27,7 @@
 G_MODULE_EXPORT gboolean on_text_window_key_press_event (GtkWidget *widget,
                                                          GdkEvent *event,
                                                          gpointer user_data);
-                                                         
-/* This is called when the button is leased. */
+
 gboolean on_text_window_button_release (GtkWidget *win,
                                         GdkEventButton *ev,
                                         TextData *data);

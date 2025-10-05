@@ -43,7 +43,7 @@ user_config_ensure_file (void)
                                             "ardesiarc",
                                             NULL);
 
-  if (!g_file_test (user_conf_path, G_FILE_TEST_IS_REGULAR))
+  if (! g_file_test (user_conf_path, G_FILE_TEST_IS_REGULAR))
     {
       g_mkdir_with_parents (g_get_user_config_dir (), 0700);
 

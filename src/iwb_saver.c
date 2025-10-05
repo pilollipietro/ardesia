@@ -52,8 +52,8 @@ add_header (void)
                                 xlink_ns,
                                 iwb_version);
 
-    fputs(line, fp);
-    g_free(line);
+  fputs (line, fp);
+  g_free (line);
 }
 
 /* Close the iwb xml tag. */
@@ -101,7 +101,7 @@ add_savepoint (gint index)
                                  PACKAGE_NAME,
                                  index);
 
-  gchar     *svg_line;
+  gchar *svg_line;
 
   const gchar *svg_image_format = "\t\t<svg:image id=\"%s\" xlink:href=\"%s\" "
                                   "x=\"0\" y=\"0\" "
@@ -110,7 +110,7 @@ add_savepoint (gint index)
   svg_line = g_strdup_printf (svg_image_format, id, file, width, height);
 
   open_svg ();
-  
+
   if (svg_line)
     {
       fputs (svg_line, fp);
@@ -200,8 +200,8 @@ add_background (gchar *img_dir_path, gchar *background_image)
 static void
 add_background_reference (void)
 {
-  gchar *line = g_strdup_printf (
-      "\t<iwb:element ref=\"id1\" background=\"true\"/>\n");
+  gchar *line = g_strdup_printf ("\t<iwb:element ref=\"id1\" "
+                                 "background=\"true\"/>\n");
 
   fputs (line, fp);
   g_free (line);
@@ -394,10 +394,13 @@ export_iwb (gchar *iwb_location)
   gchar       *background_image = background_data->image;
   gchar       *project_name     = get_project_name ();
   gchar *ardesia_tmp_dir = g_build_filename (tmpdir, PACKAGE_NAME, (gchar *) 0);
+
   gchar *project_tmp_dir = g_build_filename (ardesia_tmp_dir,
                                              project_name,
                                              (gchar *) 0);
+
   gchar *img_dir_path = g_build_filename (project_tmp_dir, images, (gchar *) 0);
+
   gchar *first_savepoint_file = g_strdup_printf ("%s%s%s_2_vellum.png",
                                                  img_dir_path,
                                                  G_DIR_SEPARATOR_S,
@@ -408,6 +411,7 @@ export_iwb (gchar *iwb_location)
     {
       gchar *iwb_file         = (gchar *) NULL;
       gchar *content_filename = "content.xml";
+
       gchar *content_filepath = g_build_filename (project_tmp_dir,
                                                   content_filename,
                                                   (gchar *) 0);
@@ -417,6 +421,7 @@ export_iwb (gchar *iwb_location)
         {
           /* It will be putted in the project dir. */
           gchar *extension = "iwb";
+
           gchar *iwb_name = g_strdup_printf ("%s.%s",
                                              get_project_name (),
                                              extension);

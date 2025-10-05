@@ -419,7 +419,6 @@ save_pixbuf_on_png_file (GdkPixbuf *pixbuf, const gchar *filename)
   return TRUE;
 }
 
-
 /**
  * is_bar_window_over_annotation_window:
  *
@@ -700,8 +699,8 @@ rmdir_recursive (gchar *path)
 void
 remove_dir_if_empty (gchar *dir_path)
 {
-  GDir *dir = NULL;
-  GError *error = NULL;
+  GDir        *dir   = NULL;
+  GError      *error = NULL;
   const gchar *name;
 
   /* Safely try to open the directory */
@@ -712,7 +711,7 @@ remove_dir_if_empty (gchar *dir_path)
       g_error_free (error);
       return;
     }
-  if (!dir)
+  if (! dir)
     {
       return; /* Directory does not exist or other silent error */
     }
