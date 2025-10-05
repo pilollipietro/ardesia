@@ -33,7 +33,7 @@ add_input_mode_device (AnnotateData *data, GdkDevice *device, GdkInputMode mode)
     }
 
   AnnotateDeviceData *devdata = (AnnotateDeviceData *) NULL;
-  devdata                     = g_malloc ((gsize) sizeof (AnnotateDeviceData));
+  devdata                     = g_malloc0 ((gsize) sizeof (AnnotateDeviceData));
   devdata->coord_list         = (GSList *) NULL;
   g_hash_table_insert (data->devdatatable, device, devdata);
 
@@ -94,6 +94,7 @@ remove_input_devices (AnnotateData *data)
       GList *list = (GList *) NULL;
       list        = g_hash_table_get_keys (data->devdatatable);
       g_list_foreach (list, (GFunc) remove_input_device, data);
+      g_list_free (list);
       data->devdatatable = (GHashTable *) NULL;
     }
 }
@@ -171,6 +172,7 @@ setup_input_devices (AnnotateData *data)
   g_list_foreach (devices, (GFunc) print_device_info, NULL);
 
   setup_input_device_list (data, devices);
+  g_list_free (devices);
 }
 
 /**
@@ -210,7 +212,7 @@ add_input_device (GdkDevice *device, AnnotateData *data)
 void
 remove_input_device (GdkDevice *device, AnnotateData *data)
 {
-  if (data)
+  if (data && data->devdatatable)
     {
       AnnotateDeviceData *devdata = g_hash_table_lookup (data->devdatatable,
                                                          device);

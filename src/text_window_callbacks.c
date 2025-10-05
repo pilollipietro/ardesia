@@ -164,21 +164,21 @@ on_text_window_button_release (GtkWidget *win, GdkEventButton *ev,
 
   if ((text_data) && (text_data->pos))
     {
-      g_debug ("on_text_window_button_release MOVE CURSOR\n");
+      g_debug ("on_text_window_button_release: %f %f %f %f\n",
+               ev->x,
+               ev->y,
+               ev->x_root,
+               ev->y_root);
+
       save_text (); // @TODO is this required?
-      g_debug ("on_text_window_button_release: %f %f %f %f\n", ev->x, ev->y,
-               ev->x_root, ev->y_root);
+
       text_data->pos->x    = ev->x; // x_root
       text_data->pos->y    = ev->y; // y_root
       text_config->start_x = ev->x;
 
-      const gchar *message_format = "on_text_window_button_release: text pos: "
-                                    "%f %f";
-      gchar *status_message = g_strdup_printf (message_format,
-                                               text_data->pos->x,
-                                               text_data->pos->y);
-      replace_status_message (status_message);
-      g_free (status_message);
+      g_debug ("on_text_window_button_release: text pos: %f %f",
+               text_data->pos->x,
+               text_data->pos->y);
 
       /* This present the ardesia bar and the panels. */
       gtk_window_present (GTK_WINDOW (get_bar_widget ()));
@@ -211,7 +211,7 @@ on_text_window_cursor_motion (GtkWidget *win, GdkEventMotion *ev,
 static CharInfo *
 make_new_character (void)
 {
-  CharInfo *char_info = g_malloc ((gsize) sizeof (CharInfo));
+  CharInfo *char_info = g_new0 (CharInfo, 1);
   if (char_info == NULL)
     {
       g_error ("failed to create new character object\n");
@@ -418,7 +418,7 @@ handle_return_char (void)
 {
   /* select the x indentation */
   CharInfo *char_info  = make_new_character ();
-  char_info->character = "\n";
+  char_info->character = g_strdup ("\n");
   assign_text_properties (char_info);
   text_data->letterlist = g_slist_prepend (text_data->letterlist, char_info);
 
@@ -433,7 +433,7 @@ handle_tab_char (void)
 {
   /* Simple Tab-Implementation */
   CharInfo *char_info  = make_new_character ();
-  char_info->character = "\t";
+  char_info->character = g_strdup("\t");
   assign_text_properties (char_info);
   text_data->letterlist = g_slist_prepend (text_data->letterlist, char_info);
 

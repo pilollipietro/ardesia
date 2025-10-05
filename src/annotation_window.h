@@ -98,9 +98,6 @@ typedef struct _AnnotateSavePoint
 
 typedef struct
 {
-  /* number of points added to coord_list */
-  guint length;
-
   /* List of the coordinates of the last line drawn. */
   GSList *coord_list;
 

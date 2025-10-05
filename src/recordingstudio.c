@@ -117,7 +117,7 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
           gtk_button_set_image ((GtkButton *) toolbutton, imageWidget);
           gtk_button_set_label ((GtkButton *) toolbutton, "Record");
 
-          replace_status_message (gettext ("Screen recorder stopped"));
+          g_debug ("Screen recorder stopped");
         }
     }
   else
@@ -150,7 +150,7 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
       gdk_window_set_cursor (gtk_widget_get_window (annotation_window),
                              (GdkCursor *) NULL);
 
-      replace_status_message (gettext ("Starting screen recorder"));
+      g_debug ("Starting screen recorder");
 
       /* The recording is not active. */
       gboolean status;

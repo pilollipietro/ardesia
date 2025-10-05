@@ -44,7 +44,6 @@ start_save_pdf_dialog (GtkWindow *parent, GdkPixbuf *pixbuf)
   gint       preview_width       = 128;
   gint       preview_height      = 128;
   GdkPixbuf *preview_pixbuf      = NULL;
-  gchar     *filename            = "";
   gchar     *supported_extension = ".pdf";
 
   gdk_window_set_cursor (gtk_widget_get_window (get_annotation_window ()),
@@ -81,15 +80,15 @@ start_save_pdf_dialog (GtkWindow *parent, GdkPixbuf *pixbuf)
   gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (chooser),
                                        get_project_dir ());
 
-  filename = get_default_filename ();
+  gchar *filename = get_default_filename ();
 
   gtk_file_chooser_set_current_name (GTK_FILE_CHOOSER (chooser), filename);
 
   start_virtual_keyboard ();
 
+  g_free (filename);
   if (gtk_dialog_run (GTK_DIALOG (chooser)) == GTK_RESPONSE_ACCEPT)
     {
-      g_free (filename);
       filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (chooser));
 
       if (! g_str_has_suffix (filename, supported_extension))

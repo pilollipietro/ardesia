@@ -175,10 +175,7 @@ is_a_triangle (GSList *list, gdouble pixel_tollerance)
                                                 maxx,
                                                 pixel_tollerance * 3);
 
-  const gchar *format = "triangle: %d %d %d %d";
-  gchar       *msg;
-  msg = g_strdup_printf (format, top, left, bottom, right);
-  replace_status_message (msg);
+  g_debug ("triangle: %d %d %d %d", top, left, bottom, right);
 
   /* if one of the axis only has one point in it we will regard as a triangle */
   return (top == 1 || bottom == 1 || left == 1 || right == 1);
@@ -893,7 +890,7 @@ build_rectified_list (GSList *list_inp,
   GSList *ret_list = (GSList *) NULL;
   if (! close_path || g_slist_length (list_inp) <= 3)
     {
-      replace_status_message (gettext ("straightening"));
+      g_debug ("straightening");
       /* Try to make straighten. */
       ret_list = straighten (list_inp);
       return ret_list;
@@ -920,7 +917,7 @@ build_rectified_list (GSList *list_inp,
   /* It is similar to regular a polygon. */
   if (is_similar_to_a_regular_polygon (ret_list, pixel_tollerance))
     {
-      replace_status_message (gettext ("extracted as polygon"));
+      g_debug ("extracted as polygon");
       ret_list = extract_polygon (ret_list);
       return ret_list;
     }
@@ -937,7 +934,7 @@ build_rectified_list (GSList *list_inp,
     }
   if (is_a_triangle (ret_list, pixel_tollerance))
     {
-      replace_status_message (gettext ("straightening triangle"));
+      g_debug ("straightening triangle");
       ret_list = straighten (ret_list);
       return ret_list;
     }

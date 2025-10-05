@@ -73,11 +73,15 @@ gchar* svg_replace_color (const gchar *svg_data,
                           const gchar *old_color,
                           const gchar *new_color)
 {
-  if (! svg_data || ! old_color || ! new_color)
-    return NULL;
+  if (!svg_data || !old_color || !new_color)
+    {
+      return NULL;
+    }
+
   GString *gstr = g_string_new (svg_data);
   g_string_replace (gstr, old_color, new_color, 0);
-  return gstr->str;
+
+  return g_string_free (gstr, FALSE);
 }
 
 /*
@@ -429,11 +433,15 @@ get_pen_pixbuf (GdkPixbuf **pixbuf,
     }
   else
     {
+      gchar *alpha = NULL;
       /* Take the opacity. */
-      gchar *alpha = "FF";
       if (strlen (color) == 8)
         {
           alpha = g_substr (color, 6, 8);
+        }
+      else
+        {
+          alpha = g_strdup("FF");
         }
 
       if (g_strcmp0 (alpha, "FF") == 0)
@@ -446,7 +454,10 @@ get_pen_pixbuf (GdkPixbuf **pixbuf,
           /* load the highlighter icon. */
           image_surface = get_highlighter_image_surface ("ffff00", rgb);
         }
-      g_free (alpha);
+      if (alpha != NULL)
+        {
+          g_free (alpha);
+        }
     }
   g_free (rgb);
 

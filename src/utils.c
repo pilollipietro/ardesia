@@ -598,7 +598,6 @@ get_default_filename (void)
   gchar *date     = get_date ();
   gchar *filename = g_strdup_printf ("%s_%s", workspace->project_name, date);
   g_free (date);
-
   return filename;
 }
 
@@ -701,19 +700,40 @@ rmdir_recursive (gchar *path)
 void
 remove_dir_if_empty (gchar *dir_path)
 {
-  GDir *dir             = (GDir *) NULL;
-  gint  file_occurrence = 0;
+  GDir *dir = NULL;
+  GError *error = NULL;
+  const gchar *name;
 
-  /* if the project dir is empty delete it */
-  dir = g_dir_open (dir_path, 0, NULL);
-
-  while (g_dir_read_name (dir))
+  /* Safely try to open the directory */
+  dir = g_dir_open (dir_path, 0, &error);
+  if (error)
     {
-      file_occurrence++;
+      g_debug ("Could not open directory '%s': %s", dir_path, error->message);
+      g_error_free (error);
+      return;
+    }
+  if (!dir)
+    {
+      return; /* Directory does not exist or other silent error */
     }
 
-  if (file_occurrence == 0)
+  /* Check for any content other than "." and ".." */
+  gboolean is_empty = TRUE;
+  while ((name = g_dir_read_name (dir)))
     {
+      if (g_strcmp0 (name, ".") != 0 && g_strcmp0 (name, "..") != 0)
+        {
+          /* Found a real file or subdirectory, so it's not empty */
+          is_empty = FALSE;
+          break; /* No need to check further */
+        }
+    }
+
+  g_dir_close (dir);
+
+  if (is_empty)
+    {
+      g_debug ("Directory '%s' is empty, removing it.", dir_path);
       rmdir_recursive (dir_path);
     }
 }

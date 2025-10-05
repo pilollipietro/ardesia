@@ -60,24 +60,24 @@ annotate_paint_type_to_string (AnnotateData *data)
  * Convert the thickness in pixels in the corresponding label
  * If unknown, return ANNOTATE_PEN.
  */
-static AnnotatePaintType
-annotate_paint_type_from_string (const gchar *paint_type)
+static AnnotatePaintContext *
+annotate_set_context_from_string (AnnotateData *data, const gchar *paint_type)
 {
   if (paint_type == NULL)
-    return ANNOTATE_PEN;
+    return data->default_pen;
 
   if ((g_ascii_strcasecmp (paint_type, "pen") == 0) ||
       (g_ascii_strcasecmp (paint_type, "highlighter") == 0))
-    return ANNOTATE_PEN;
+    return data->default_pen;
   if (g_ascii_strcasecmp (paint_type, "eraser") == 0)
-    return ANNOTATE_ERASER;
+    return data->default_eraser;
   if (g_ascii_strcasecmp (paint_type, "filler") == 0)
-    return ANNOTATE_FILLER;
+    return data->default_filler;
   if (g_ascii_strcasecmp (paint_type, "pointer") == 0)
-    return ANNOTATE_POINTER;
+    return NULL;
 
   /* fallback */
-  return ANNOTATE_PEN;
+  return data->default_pen;
 }
 
 /**
@@ -198,101 +198,123 @@ annotation_config_save_state (AnnotateData *data)
 }
 
 /**
- * annotation_config_load_state:
+ * _config_load_boolean:
+ * @key_file:       The GKeyFile to read from.
+ * @key:            The key of the boolean value to load.
+ * @target_variable: A pointer to the gboolean variable to update.
  *
- * Load the annotation settings from the configuration file into the given
- * AnnotateData structure.
+ * Safely loads a boolean value from the key file. If the key exists and
+ * is a valid boolean, the target_variable is updated. Otherwise, it is
+ * left unchanged.
+ */
+static void
+config_load_boolean (GKeyFile     *key_file,
+                      const gchar  *key,
+                      gboolean     *target_variable)
+{
+  GError *error = NULL;
+  gboolean value;
+
+  value = g_key_file_get_boolean (key_file, ANNOTATION_SECTION, key, &error);
+  if (!error)
+    {
+      *target_variable = value;
+    }
+  g_clear_error (&error);
+}
+
+/**
+ * annotation_config_load_state:
+ * @data: The AnnotateData structure to populate with loaded settings.
+ *
+ * Loads annotation settings from the configuration file.
  *
  * This function restores fields such as color, arrow mode, pen thickness,
- * rectify/roundify options, text tool state, and the currently selected tool.
+ * and the currently selected tool. Only keys present in the configuration
+ * file are applied; missing keys leave the current values in @data
+ * unchanged.
  *
- * Parameters:
- *   data - the AnnotateData structure to populate with loaded settings
- *
- * Notes:
- *   - If a configuration key is missing, the corresponding field
- *     is left unchanged.
- *   - Thickness and tool type are converted from their stored string
- *     representations.
- **/
+ * Note that rectify and roundify are mutually exclusive; if both are set
+ * to TRUE in the configuration, roundify will be forced to FALSE.
+ */
 void
-annotation_config_load_state (AnnotateData *data)
+annotation_config_load_state (AnnotateData *annotation_data)
 {
-  if (! data)
-    return;
+  g_return_if_fail (annotation_data != NULL);
 
   gchar *cfgfile = get_config_file ();
-  if (! cfgfile)
-    return;
+  if (!cfgfile)
+    {
+      return;
+    }
 
   GKeyFile *kf = g_key_file_new ();
-  if (! g_key_file_load_from_file (kf, cfgfile, G_KEY_FILE_NONE, NULL))
+  GError *error = NULL;
+
+  if (!g_key_file_load_from_file (kf, cfgfile, G_KEY_FILE_NONE, &error))
     {
+      g_warning ("Failed to load config file '%s': %s",
+                 cfgfile,
+                 error ? error->message : "unknown error");
+      g_clear_error (&error);
       g_key_file_unref (kf);
       g_free (cfgfile);
       return;
     }
 
-  if (g_key_file_has_key (kf, ANNOTATION_SECTION, "color", NULL))
+  gchar *color = g_key_file_get_string (kf, ANNOTATION_SECTION, "color", NULL);
+  if (color)
     {
-      gchar *color;
-      color = g_key_file_get_string (kf, ANNOTATION_SECTION, "color", NULL);
+      annotate_set_color (color);
+      g_free (color);
 
-      /* free previous if needed */
-      g_free (data->color);
-      data->color = color;
-    }
-  if (g_ascii_strcasecmp (data->color + 6, "FF") == 0)
-    {
-      data->is_opaque = TRUE;
-    }
-  else
-    {
-      data->is_opaque = FALSE;
-    }
-  if (g_key_file_has_key (kf, ANNOTATION_SECTION, "arrow", NULL))
-    data->arrow = g_key_file_get_boolean (kf,
-                                          ANNOTATION_SECTION,
-                                          "arrow",
-                                          NULL);
-
-  if (g_key_file_has_key (kf, ANNOTATION_SECTION, "thickness", NULL))
-    {
-      gchar *thickness = g_key_file_get_string (kf,
-                                                ANNOTATION_SECTION,
-                                                "thickness",
-                                                NULL);
-
-      data->thickness = annotate_thickness_label_to_pixel (thickness);
-    }
-
-  if (g_key_file_has_key (kf, ANNOTATION_SECTION, "rectify", NULL))
-    data->rectify = g_key_file_get_boolean (kf,
-                                            ANNOTATION_SECTION,
-                                            "rectify",
-                                            NULL);
-
-  if (g_key_file_has_key (kf, ANNOTATION_SECTION, "roundify", NULL))
-    data->roundify = g_key_file_get_boolean (kf,
-                                             ANNOTATION_SECTION,
-                                             "roundify",
-                                             NULL);
-
-  if (g_key_file_has_key (kf, ANNOTATION_SECTION, "text_tool", NULL))
-    data->text_tool = g_key_file_get_boolean (kf,
-                                              ANNOTATION_SECTION,
-                                              "text_tool",
-                                              NULL);
-
-  if (g_key_file_has_key (kf, ANNOTATION_SECTION, "tool", NULL))
-    {
-      gchar *ctx = g_key_file_get_string (kf, ANNOTATION_SECTION, "tool", NULL);
-      if (ctx != NULL)
+      /* Determine opacity based on the new color's alpha component */
+      if (strlen (annotation_data->color) >= 8 &&
+          g_ascii_strcasecmp (annotation_data->color + 6, "FF") == 0)
         {
-          /* map string to enum */
-          data->cur_context->type = annotate_paint_type_from_string (ctx);
-          g_free (ctx);
+          annotation_data->is_opaque = TRUE;
         }
+      else
+        {
+          annotation_data->is_opaque = FALSE;
+        }
+    }
+
+  gchar *thickness = g_key_file_get_string (kf,
+                                            ANNOTATION_SECTION,
+                                            "thickness",
+                                            NULL);
+  if (thickness)
+    {
+      annotation_data->thickness =
+          annotate_thickness_label_to_pixel (thickness);
+
+      g_free (thickness);
+    }
+
+  gchar *tool_str = g_key_file_get_string (kf,
+                                           ANNOTATION_SECTION,
+                                           "tool",
+                                           NULL);
+  if (tool_str)
+    {
+      annotation_data->cur_context =
+          annotate_set_context_from_string (annotation_data, tool_str);
+
+      g_free (tool_str);
+    }
+
+  /* Load all boolean values safely using the helper function */
+  config_load_boolean (kf, "arrow",     &annotation_data->arrow);
+  config_load_boolean (kf, "rectify",   &annotation_data->rectify);
+  config_load_boolean (kf, "roundify",  &annotation_data->roundify);
+  config_load_boolean (kf, "text_tool", &annotation_data->text_tool);
+
+  /* Ensure mutual exclusion for rectify/roundify */
+  if (annotation_data->rectify && annotation_data->roundify)
+    {
+      g_warning ("Both rectify and roundify set; forcing roundify to FALSE");
+      annotation_data->roundify = FALSE;
     }
 
   g_key_file_unref (kf);

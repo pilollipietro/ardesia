@@ -239,6 +239,12 @@ main (int argc, char *argv[])
 
   // handle command line
   commandline = create_command_line ();
+  if (commandline == NULL)
+    {
+      g_critical ("Fatal: Could not allocate memory for command line options.");
+      return 1; /* O EXIT_FAILURE */
+    }
+
   parse_options (commandline, argc, argv);
   if (commandline->debug)
     {
@@ -263,11 +269,7 @@ main (int argc, char *argv[])
   build_annotation_window ();
   build_toolbar_window ();
 
-  const gchar *status_format = "Project started in %s";
-  gchar       *status_msg;
-  status_msg = g_strdup_printf (status_format,
-                                workspace->project_dir);
-  replace_status_message (status_msg);
+  g_debug ("Project started in %s", workspace->project_dir);
 
   initialize_font ();
   gtk_main ();

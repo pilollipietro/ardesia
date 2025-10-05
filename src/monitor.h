@@ -42,7 +42,7 @@ typedef struct
 
 GList *create_monitor_list ();
 
-void destroy_monitor_list ();
+void destroy_monitor_list (GList *monitors);
 
 void debug_monitor_list (GList *monitors);
 

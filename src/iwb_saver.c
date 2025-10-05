@@ -46,19 +46,21 @@ add_header (void)
   const gchar *iwb_format  = "<iwb xmlns:iwb=\"%s\" xmlns:svg=\"%s\" "
                              "xmlns:xlink=\"%s\" version=\"%s\">\n";
 
-  fprintf (fp,
-           iwb_format,
-           becta_ns,
-           svg_ns,
-           xlink_ns,
-           iwb_version);
+  gchar *line = g_strdup_printf(iwb_format,
+                                becta_ns,
+                                svg_ns,
+                                xlink_ns,
+                                iwb_version);
+
+    fputs(line, fp);
+    g_free(line);
 }
 
 /* Close the iwb xml tag. */
 static void
 close_iwb (void)
 {
-  fprintf (fp, "</iwb>\n");
+  fputs("</iwb>\n", fp);
 }
 
 /* Open the svg tag. */
@@ -69,19 +71,22 @@ open_svg (void)
   gint       width  = gtk_widget_get_allocated_width (annotation_window);
   gint       height = gtk_widget_get_allocated_height (annotation_window);
 
-  fprintf (fp,
-           "\t<svg:svg width=\"%d\" height=\"%d\" viewbox=\"0 0 %d %d\">\n",
-           width,
-           height,
-           width,
-           height);
+  gchar *line = g_strdup_printf (
+      "\t<svg:svg width=\"%d\" height=\"%d\" viewBox=\"0 0 %d %d\">\n",
+      width,
+      height,
+      width,
+      height);
+
+  fputs(line, fp);
+  g_free(line);
 }
 
 /* Close the svg tag. */
 static void
 close_svg (void)
 {
-  fprintf (fp, "\t</svg:svg>\n");
+  fputs("\t</svg:svg>\n", fp);
 }
 
 /* Add the savepoint element. */
@@ -95,13 +100,22 @@ add_savepoint (gint index)
   gchar *file = g_strdup_printf ("images/%s_%d_vellum.png",
                                  PACKAGE_NAME,
                                  index);
+
+  gchar     *svg_line;
+
   const gchar *svg_image_format = "\t\t<svg:image id=\"%s\" xlink:href=\"%s\" "
                                   "x=\"0\" y=\"0\" "
                                   "width=\"%d\" height=\"%d\"/>\n";
 
-  open_svg ();
+  svg_line = g_strdup_printf (svg_image_format, id, file, width, height);
 
-  fprintf (fp, svg_image_format, id, file, width, height);
+  open_svg ();
+  
+  if (svg_line)
+    {
+      fputs (svg_line, fp);
+      g_free (svg_line);
+    }
 
   g_free (file);
   file = NULL;
@@ -171,7 +185,9 @@ add_background (gchar *img_dir_path, gchar *background_image)
 
       open_svg ();
 
-      fprintf (fp, svg_rect_format, width, height, rgb, a);
+      gchar *line = g_strdup_printf (svg_rect_format, width, height, rgb, a);
+      fputs (line, fp);
+      g_free (line);
 
       close_svg ();
       g_free (rgb);
@@ -184,7 +200,11 @@ add_background (gchar *img_dir_path, gchar *background_image)
 static void
 add_background_reference (void)
 {
-  fprintf (fp, "\t<iwb:element ref=\"id1\" background=\"true\"/>\n");
+  gchar *line = g_strdup_printf (
+      "\t<iwb:element ref=\"id1\" background=\"true\"/>\n");
+
+  fputs (line, fp);
+  g_free (line);
 }
 
 /* Add the savepoint elements. */
@@ -204,7 +224,13 @@ static void
 add_savepoint_reference (gint index)
 {
   gchar *id = g_strdup_printf ("id%d", index + 1);
-  fprintf (fp, "\t<iwb:element ref=\"%s\" locked=\"true\"/>\n", id);
+
+  gchar *line = g_strdup_printf (
+      "\t<iwb:element ref=\"%s\" locked=\"true\"/>\n", id);
+
+  fputs (line, fp);
+  g_free (line);
+
   g_free (id);
 }
 

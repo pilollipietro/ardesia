@@ -56,23 +56,40 @@ static struct option long_options[] = {
 void
 add_defaults_to_commandline (CommandLine *commandline)
 {
-  commandline->position          = EAST;
-  commandline->debug             = FALSE;
-  commandline->iwb_filename      = NULL;
-  commandline->decorated         = FALSE;
-  commandline->text_leftmargin   = 0;
-  commandline->text_tabsize      = 80;
-  commandline->mode              = DRAW_ON_MONITOR;
-  commandline->workspace_monitor = 1;
-  commandline->tools_monitor     = 1;
-  commandline->clipRect          = g_new (GdkRectangle, 1);
-  commandline->tools_monitor     = 0;
+  /*
+   * Crucial safety check: if the provided pointer is NULL, we cannot
+   * proceed.
+   */
+  if (commandline == NULL)
+    {
+      g_warning ("add_defaults_to_commandline called with a NULL pointer.");
+      return;
+    }
 
-  commandline->clipRect->x      = 0;
-  commandline->clipRect->y      = 0;
-  commandline->clipRect->width  = 200;
+  commandline->position = EAST;
+  commandline->debug = FALSE;
+  commandline->iwb_filename = NULL;
+  commandline->decorated = FALSE;
+  commandline->text_leftmargin = 0;
+  commandline->text_tabsize = 80;
+  commandline->mode = DRAW_ON_MONITOR;
+  commandline->workspace_monitor = 1;
+  commandline->tools_monitor = 0; /* Set the final value directly */
+  commandline->is_opaque = FALSE;
+
+  /* Safely allocate and initialize the clipRect */
+  commandline->clipRect = g_new0 (GdkRectangle, 1);
+
+  if (commandline->clipRect == NULL)
+    {
+      g_critical ("Failed to allocate memory for clipRect.");
+      return;
+    }
+
+  commandline->clipRect->x = 0;
+  commandline->clipRect->y = 0;
+  commandline->clipRect->width = 200;
   commandline->clipRect->height = 200;
-  commandline->is_opaque        = FALSE;
 }
 
 /**

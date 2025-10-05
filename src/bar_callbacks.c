@@ -186,7 +186,7 @@ on_bar_text_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
   BarData *bar_data = (BarData *) func_data;
   lock (bar_data);
-  replace_status_message (gettext ("Text tool selected"));
+  g_debug("Text tool selected");
 }
 
 /* Push mode button. */
@@ -206,28 +206,28 @@ on_bar_thick_activate (GtkToolButton *toolbutton, gpointer func_data)
 
   if (bar_data->thickness == MICRO_THICKNESS)
     {
-      replace_status_message (gettext ("Brush thickness set to thin"));
+      g_debug ("Brush thickness set to thin");
       /* Set the thin icon. */
       select_thickness (toolbutton, "thin");
       bar_data->thickness = THIN_THICKNESS;
     }
   else if (bar_data->thickness == THIN_THICKNESS)
     {
-      replace_status_message (gettext ("Brush thickness set to medium"));
+      g_debug ("Brush thickness set to medium");
       /* Set the medium icon. */
       select_thickness (toolbutton, "medium");
       bar_data->thickness = MEDIUM_THICKNESS;
     }
   else if (bar_data->thickness == MEDIUM_THICKNESS)
     {
-      replace_status_message (gettext ("Brush thickness set to thick"));
+      g_debug ("Brush thickness set to thick");
       /* Set the thick icon. */
       select_thickness (toolbutton, "thick");
       bar_data->thickness = THICK_THICKNESS;
     }
   else if (bar_data->thickness == THICK_THICKNESS)
     {
-      replace_status_message (gettext ("Brush thickness set to micro"));
+      g_debug ("Brush thickness set to micro");
       /* Set the micro icon. */
       select_thickness (toolbutton, "micro");
       bar_data->thickness = MICRO_THICKNESS;
@@ -240,8 +240,10 @@ on_bar_arrow_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
   BarData *bar_data = (BarData *) func_data;
   lock (bar_data);
-  set_color (bar_data, bar_data->color);
-  replace_status_message (gettext ("Arrow tool selected"));
+  gchar *color = g_strdup (bar_data->color);
+  set_color (bar_data, color);
+  g_free (color);
+  g_debug ("Arrow tool selected");
 }
 
 /* Push pencil button. */
@@ -250,8 +252,10 @@ on_bar_pencil_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
   BarData *bar_data = (BarData *) func_data;
   lock (bar_data);
-  set_color (bar_data, bar_data->color);
-  replace_status_message (gettext ("Pencil tool selected"));
+  gchar *color = g_strdup (bar_data->color);
+  set_color (bar_data, color);
+  g_free (color);
+  g_debug ("Pencil tool selected");
 }
 
 /* Push highlighter button. */
@@ -260,8 +264,10 @@ on_bar_highlighter_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
   BarData *bar_data = (BarData *) func_data;
   lock (bar_data);
-  set_color (bar_data, bar_data->color);
-  replace_status_message (gettext ("Highlighter tool selected"));
+  gchar *color = g_strdup (bar_data->color);
+  set_color (bar_data, color);
+  g_free (color);
+  g_debug ("Highlighter tool selected");
 }
 
 /* Push filler button. */
@@ -271,7 +277,7 @@ on_bar_filler_activate (GtkToolButton *toolbutton, gpointer func_data)
   BarData *bar_data = (BarData *) func_data;
   lock (bar_data);
   annotate_select_filler ();
-  replace_status_message (gettext ("Filler tool selected"));
+  g_debug ("Filler tool selected");
 }
 
 /* Push eraser button. */
@@ -281,7 +287,7 @@ on_bar_eraser_activate (GtkToolButton *toolbutton, gpointer func_data)
   BarData *bar_data = (BarData *) func_data;
   lock (bar_data);
   annotate_select_eraser ();
-  replace_status_message (gettext ("Eraser tool selected"));
+  g_debug ("Eraser tool selected");
 }
 
 /* Push save (screen-shoot) button. */
@@ -293,7 +299,7 @@ on_bar_screenshot_activate (GtkToolButton *toolbutton, gpointer func_data)
   bar_data->grab      = FALSE;
   /* Release grab. */
   annotate_release_grab ();
-  replace_status_message (gettext ("Taking screenshot"));
+  g_debug ("Taking screenshot");
   gdk_window_set_cursor (gtk_widget_get_window (get_annotation_window ()),
                          (GdkCursor *) NULL);
   start_save_image_dialog ();
@@ -312,7 +318,7 @@ on_bar_add_pdf_activate (GtkToolButton *toolbutton, gpointer func_data)
   /* Release grab. */
   annotate_release_grab ();
 
-  replace_status_message (gettext ("Exporting as PDF"));
+  g_debug ("Exporting as PDF");
   add_pdf_page (GTK_WINDOW (get_bar_widget ()));
   bar_data->grab = grab_value;
   start_tool (bar_data);
@@ -334,7 +340,7 @@ on_bar_showhide_activate (GtkToolButton *toolButton, gpointer func_data)
       /** currently annotations are visible so icon is the hidden **/
       if (window != NULL)
         {
-          replace_status_message (gettext ("Annotations hidden"));
+          g_debug ("Annotations hidden");
 
           /* Save current drawing into a cairo surface */
           if (bar_data->snapshot_surface)
@@ -375,7 +381,7 @@ on_bar_showhide_activate (GtkToolButton *toolButton, gpointer func_data)
       /** currently annotations are hidden so icon is the showing icon **/
       if (window != NULL)
         {
-          replace_status_message (gettext ("Annotations visible"));
+          g_debug ("Annotations visible");
 
           /* Restore saved drawing if available */
           if (bar_data->snapshot_surface)
@@ -712,10 +718,7 @@ add_background_button (gchar *label, gint mode, gchar *filename, gchar *color)
                         "background-label",      /* key */
                         g_strdup (label),        /* value */
                         g_free);                 /* destroy notify */
-  if (label == NULL)
-    {
-      label = "No Label";
-    }
+
   if (g_slist_length (annotation_data->background_button_data) == 0)
     {
       gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON (button),
@@ -880,9 +883,12 @@ create_bar_preference_window (GtkWindow *parent)
 
   load_backgrounds_from_config ();
 
+  /*
   GtkWidget *add_image =
     gtk_image_new_from_icon_name ("list-add",
                                   GTK_ICON_SIZE_LARGE_TOOLBAR);
+  */
+  GtkWidget *add_image = gtk_image_new_from_file ("/usr/share/icons/hicolor/48x48/apps/gimp.png");
 
   button = gtk_tool_button_new (add_image, NULL);
 
@@ -964,7 +970,7 @@ on_bar_redo_activate (GtkToolButton *toolbutton, gpointer func_data)
 G_MODULE_EXPORT void
 on_bar_clear_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
-  replace_status_message (gettext ("Screen has been cleared"));
+  g_debug ("Screen has been cleared");
   annotate_clear_screen ();
   annotate_add_savepoint ();
 }
@@ -1007,7 +1013,9 @@ G_MODULE_EXPORT void
 on_bar_blue_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
   BarData *bar_data = (BarData *) func_data;
-  set_color (bar_data, BLUE);
+  gchar *color = g_strdup (BLUE);
+  set_color (bar_data, color);
+  g_free (color);
 }
 
 /* Push red color button. */
@@ -1015,7 +1023,9 @@ G_MODULE_EXPORT void
 on_bar_red_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
   BarData *bar_data = (BarData *) func_data;
-  set_color (bar_data, RED);
+  gchar *color = g_strdup (RED);
+  set_color (bar_data, color);
+  g_free (color);
 }
 
 /* Push green color button. */
@@ -1023,7 +1033,9 @@ G_MODULE_EXPORT void
 on_bar_green_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
   BarData *bar_data = (BarData *) func_data;
-  set_color (bar_data, GREEN);
+  gchar *color = g_strdup (GREEN);
+  set_color (bar_data, color);
+  g_free (color);
 }
 
 /* Push yellow color button. */
@@ -1031,7 +1043,9 @@ G_MODULE_EXPORT void
 on_bar_yellow_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
   BarData *bar_data = (BarData *) func_data;
-  set_color (bar_data, YELLOW);
+  gchar *color = g_strdup (YELLOW);
+  set_color (bar_data, color);
+  g_free (color);
 }
 
 /* Push white color button. */
@@ -1039,5 +1053,7 @@ G_MODULE_EXPORT void
 on_bar_white_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
   BarData *bar_data = (BarData *) func_data;
-  set_color (bar_data, WHITE);
+  gchar *color = g_strdup (WHITE);
+  set_color (bar_data, color);
+  g_free (color);
 }

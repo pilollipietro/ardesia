@@ -46,6 +46,6 @@ void load_file_onto_context (gchar *filename, cairo_t *cr);
 
 void load_color_onto_context (gchar *hex_color, cairo_t *cr);
 
-cairo_t *create_new_context ();
+cairo_t *create_new_context (int width, int height);
 
 #endif //__CAIRO_FUNCTIONS_H

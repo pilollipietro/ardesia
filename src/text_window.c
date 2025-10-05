@@ -83,12 +83,18 @@ void
 destroy_text_properties (gpointer data)
 {
   CharInfo *char_info = (CharInfo *) data;
+  if (char_info == NULL)
+    {
+      return;
+    }
+  
   g_free (char_info->character);
   g_free (char_info->color);
   g_free (char_info->font_family);
-  if (char_info->background_color)
-    g_free (char_info->background_color);
+  g_free (char_info->background_color);
+
   g_free (char_info);
+  char_info = NULL;
 }
 
 /**
@@ -292,6 +298,13 @@ calculate_visual_thickness (gdouble pen_width, gint font_size)
 static gboolean
 assign_text_cursor_to_window (GtkWidget *window)
 {
+  /* Add defensive checks to ensure data is initialized */
+  if (!text_data || !text_data->color || text_data->max_font_height <= 0)
+    {
+      g_warning ("assign_text_cursor_to_window called with uninitialized data.");
+      return FALSE;
+    }
+
   gdouble thickness = calculate_visual_thickness (
         text_data->pen_width, (gint) text_data->max_font_height);
 
@@ -384,23 +397,36 @@ assign_text_cursor_to_window (GtkWidget *window)
 void
 save_text (void)
 {
-  if (text_data != NULL)
+  if (text_data == NULL)
     {
-      stop_blink_cursor ();
-      if (text_data->cr)
-        {
-          if (text_data->letterlist)
-            {
-              annotate_push_context (text_data->cr);
-              g_slist_free_full (text_data->letterlist,
-                                 (GDestroyNotify) destroy_text_properties);
-              text_data->letterlist = NULL;
-            }
-        }
+      return; /* Nothing to do */
+    }
+
+  stop_blink_cursor ();
+
+  /*
+   * If a cairo context exists, push its final state to the main canvas.
+   * This ensures that the last cursor blink (usually a clear) and any
+   * drawn text are permanently rendered.
+   */
+  if (text_data->cr)
+    {
+      annotate_push_context (text_data->cr);
+    }
+
+  /*
+   * Free the letterlist if it exists regardless of the state of the
+   * cairo context.
+   */
+  if (text_data->letterlist)
+    {
+      g_slist_free_full (text_data->letterlist,
+                         (GDestroyNotify) destroy_text_properties);
+      text_data->letterlist = NULL;
     }
 }
 
-/*Clear cairo context of text window. */
+/* Clear cairo context of text window. */
 static void
 clear_if_empty (void)
 {

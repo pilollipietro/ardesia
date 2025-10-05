@@ -129,5 +129,3 @@ void begin_clapperboard_countdown (void);
 void select_thickness (GtkToolButton *toolbutton, gchar *thickness);
 
 void setup_bar_mode (GtkToolButton *toolbutton, BarData *bar_data);
-
-void replace_status_message (gchar *message);

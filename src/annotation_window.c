@@ -840,11 +840,9 @@ delete_savepoint (AnnotateSavepoint *savepoint)
 {
   if (savepoint)
     {
-
-      g_debug ("The save-point %s has been removed\n", savepoint->filename);
-
       if (savepoint->filename)
         {
+          g_debug ("The save-point %s has been removed\n", savepoint->filename);
           g_remove (savepoint->filename);
           g_free (savepoint->filename);
           savepoint->filename = (gchar *) NULL;
@@ -858,21 +856,23 @@ delete_savepoint (AnnotateSavepoint *savepoint)
     }
 }
 
-/* Free the list of the  save-point for the redo. */
 static void
-annotate_redolist_free (void)
+annotate_redolist_free(void)
 {
-  guint   i              = annotation_data->current_save_index;
-  GSList *savepoint_list = NULL;
-  savepoint_list         = annotation_data->savepoint_list;
-  GSList *stop_list      = g_slist_nth (savepoint_list, i);
+    if (!annotation_data || !annotation_data->savepoint_list)
+        return;
 
-  while (savepoint_list != stop_list)
-    {
-      AnnotateSavepoint *savepoint = NULL;
-      savepoint = (AnnotateSavepoint *) g_slist_nth_data (savepoint_list, 0);
-      delete_savepoint (savepoint);
-    }
+    guint i = annotation_data->current_save_index;
+    GSList *current_node = annotation_data->savepoint_list;
+    
+    while (i > 0 && current_node != NULL)
+      {
+        delete_savepoint(current_node->data);
+        current_node =  annotation_data->savepoint_list;
+        i--;
+      }
+
+    annotation_data->savepoint_list = current_node;
 }
 
 /* Free the list of all the save-point. */
@@ -1003,80 +1003,125 @@ annotate_configure_pen_options (AnnotateData *data)
 }
 
 /**
- * annotate_add_savepoint:
+ * annotate_add_savepoint_final:
  *
- * Add a save point for undo/redo functionality.
+ * Adds a save point for undo/redo functionality.
  *
- * This function should be called at the end of each painting action, such as:
- *   - on_button_release
- *   - annotate_push_context
- *   - annotate_fill
- *   - annotate_clear_screen
+ * This function should be called at the end of each user action that
+ * modifies the annotation, such as a mouse button release, a fill
+ * operation, or a clear screen action.
  *
- * It creates a new `AnnotateSavepoint` structure, copies the current content
- * of the annotation Cairo context into a new surface, writes the surface
- * to a PNG file in the savepoint directory, and updates the savepoint list.
+ * It creates a new savepoint structure, copies the current content of the
+ * annotation's Cairo context to a PNG file in the savepoint directory,
+ * and prepends the new savepoint to the history list.
  *
- * The function also clears the redo history (future states) to maintain
- * a consistent undo/redo stack.
+ * Crucially, this function is "atomic": the undo/redo history is
+ * modified (redo list cleared, new savepoint prepended) only after the
+ * PNG file is successfully written. If any step fails, the history
+ * remains unchanged, ensuring application state consistency.
  *
  * Postcondition:
- *   The new savepoint is stored in the savepoint list, the current save index
- *   is reset to 0, and the corresponding PNG file is written to disk.
- **/
+ * - Redo history cleared
+ * - New savepoint prepended to the savepoint list
+ * - Current save index reset to 0
+ * - Corresponding PNG file written to disk
+ */
 void
 annotate_add_savepoint (void)
 {
-  AnnotateSavepoint *savepoint = g_malloc ((gsize) sizeof (AnnotateSavepoint));
-  cairo_surface_t   *saved_surface  = (cairo_surface_t *) NULL;
-  cairo_surface_t   *source_surface = (cairo_surface_t *) NULL;
-  cairo_t           *cr             = (cairo_t *) NULL;
+  AnnotateSavepoint *savepoint = NULL;
+  cairo_surface_t   *saved_surface = NULL;
+  cairo_t           *cr = NULL;
+  cairo_surface_t   *source_surface = NULL;
+  cairo_status_t     status;
+  int                w = 0, h = 0;
+  guint              savepoint_index;
 
-  /* The story about the future is deleted. */
-  annotate_redolist_free ();
+  g_return_if_fail (annotation_data != NULL);
+  g_return_if_fail (annotation_data->annotation_cairo_context != NULL);
 
-  guint savepoint_index = g_slist_length (annotation_data->savepoint_list) + 1;
+  savepoint = g_malloc0 (sizeof (AnnotateSavepoint));
+  if (!savepoint)
+    {
+      g_warning ("Failed to allocate savepoint");
+      return;
+    }
+  get_context_size (annotation_data->annotation_cairo_context, &w, &h);
+  
+  if (w <= 0 || h <= 0)
+    {
+      g_warning ("Invalid annotation context size: %dx%d", w, h);
+      goto cleanup;
+    }
 
+  savepoint_index = g_slist_length (annotation_data->savepoint_list) + 1;
   savepoint->filename = g_strdup_printf ("%s%s%s_%d_vellum.png",
                                          annotation_data->savepoint_dir,
                                          G_DIR_SEPARATOR_S,
                                          PACKAGE_NAME,
                                          savepoint_index);
+  if (!savepoint->filename)
+    {
+      g_warning ("Failed to allocate filename for savepoint");
+      goto cleanup;
+    }
 
-  GSList *savepoint_list = (GSList *) NULL;
-  savepoint_list         = annotation_data->savepoint_list;
-
-  /* Add a new save-point. */
-  annotation_data->savepoint_list = g_slist_prepend (savepoint_list,
-                                                     savepoint);
-
-  annotation_data->current_save_index = 0;
-
-  int w;
-  int h;
-  get_context_size (annotation_data->annotation_cairo_context, &w, &h);
-
-  /*
-   * Load a surface with the annotation_data->annotation_cairo_context
-   * content and write the file.
-   */
   saved_surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, w, h);
+  if (cairo_surface_status (saved_surface) != CAIRO_STATUS_SUCCESS)
+    {
+      g_warning ("Failed to create cairo surface");
+      goto cleanup;
+    }
 
   source_surface = cairo_get_target (annotation_data->annotation_cairo_context);
-  cr             = cairo_create (saved_surface);
+  if (!source_surface)
+    {
+      g_warning ("Annotation context target is NULL");
+      goto cleanup;
+    }
+
+  cr = cairo_create (saved_surface);
+  if (cairo_status (cr) != CAIRO_STATUS_SUCCESS)
+    {
+      g_warning ("Failed to create cairo context");
+      goto cleanup;
+    }
+
   cairo_set_source_surface (cr, source_surface, 0, 0);
   cairo_paint (cr);
-  /* Postcondition: the saved_surface now contains the save-point image. */
 
-  /*
-   * Will be create a file in the save-point folder
-   * with format PACKAGE_NAME_1.png.
-   */
-  cairo_surface_write_to_png (saved_surface, savepoint->filename);
-  cairo_surface_destroy (saved_surface);
-  g_debug ("The save point %s has been stored in file\n", savepoint->filename);
+  status = cairo_surface_write_to_png (saved_surface, savepoint->filename);
+  if (status != CAIRO_STATUS_SUCCESS)
+    {
+      g_warning ("Failed to write savepoint PNG: %s",
+                 cairo_status_to_string (status));
+      goto cleanup;
+    }
 
-  cairo_destroy (cr);
+  /* Success: commit the new state to the application's history */
+  annotate_redolist_free ();
+
+  annotation_data->savepoint_list =
+    g_slist_prepend (annotation_data->savepoint_list, savepoint);
+  annotation_data->current_save_index = 0;
+
+  g_debug ("Savepoint stored in file: %s", savepoint->filename);
+
+  /* The savepoint now belongs to the list; prevent it from being freed */
+  savepoint = NULL;
+
+cleanup:
+  if (cr)
+    cairo_destroy (cr);
+  if (saved_surface)
+    cairo_surface_destroy (saved_surface);
+
+  if (savepoint)
+    {
+      /* An error occurred before the savepoint could be added to the list */
+      g_free (savepoint->filename);
+      g_free (savepoint);
+    }
 }
 
 /**
@@ -1118,12 +1163,15 @@ initialize_annotation_cairo_context (AnnotateData *data)
 
       annotation_data->annotation_cairo_context = cairo_create (surface);
 #else
-      int width  = gtk_widget_get_allocated_width (annotation_window);
-      int height = gtk_widget_get_allocated_height (annotation_window);
-      annotation_data->annotation_cairo_context = create_new_context (width,
-                                                                      height);
-      background_data->cr = create_new_context (width, height);
+      if (background_data->cr == NULL)
+        {
+          int width  = gtk_widget_get_allocated_width (annotation_window);
+          int height = gtk_widget_get_allocated_height (annotation_window);
 
+          annotation_data->annotation_cairo_context =
+              create_new_context (width, height);
+          background_data->cr = create_new_context (width, height);
+        }
 #endif
 
       cairo_t *annotation_cr;
@@ -1194,7 +1242,12 @@ get_annotation_window (void)
 void
 annotate_set_color (gchar *color)
 {
-  annotation_data->color = color;
+  if (annotation_data->color != NULL)
+  {
+    g_free (annotation_data->color);
+    annotation_data->color = NULL;
+  }
+  annotation_data->color = g_strdup (color);
 }
 
 /**
@@ -1313,8 +1366,7 @@ annotate_coord_list_prepend (AnnotateDeviceData *devdata, gdouble x, gdouble y,
   point->width         = width;
   point->pressure      = pressure;
   devdata->coord_list  = g_slist_prepend (devdata->coord_list, point);
-  devdata->length++;
-  replace_status_message (g_strdup_printf ("%d points", devdata->length));
+  g_debug ("add to coord list (%f, %f)", point->x, point->y);
 }
 
 /**
@@ -1338,11 +1390,6 @@ annotate_coord_dev_list_free (AnnotateDeviceData *devdata)
       g_slist_foreach (devdata->coord_list, (GFunc) g_free, (gpointer) NULL);
       g_slist_free (devdata->coord_list);
       devdata->coord_list = (GSList *) NULL;
-      devdata->length     = 0;
-    }
-  else
-    {
-      devdata->length = 0;
     }
 }
 
@@ -1772,12 +1819,11 @@ annotate_quit (void)
           gtk_widget_destroy (annotation_data->font_window);
           annotation_data->font_window = NULL;
         }
-    }
-
-  if (annotation_data->monitor)
-    {
-      g_free (annotation_data->monitor);
-      annotation_data->monitor = NULL;
+      if (annotation_data->monitor != NULL)
+        {
+          g_free (annotation_data->monitor);
+          annotation_data->monitor = NULL;
+        }
     }
 }
 
@@ -1927,8 +1973,12 @@ annotate_clear_screen (void)
 static void
 create_annotation_data (void)
 {
-  annotation_data = g_malloc ((gsize) sizeof (AnnotateData));
+  annotation_data = g_malloc0 ((gsize) sizeof (AnnotateData));
+
+  annotation_data->color = NULL;
   gchar *color    = g_strdup ("FFFF0088");
+  annotate_set_color (color);
+  g_free (color);
 
   /* Initialize the data structure. */
   annotation_data->is_background_visible      = FALSE;
@@ -1943,7 +1993,6 @@ create_annotation_data (void)
   annotation_data->cursor                   = (GdkCursor *) NULL;
   annotation_data->devdatatable             = (GHashTable *) NULL;
 
-  annotation_data->color          = color;
   annotation_data->is_grabbed     = FALSE;
   annotation_data->arrow          = FALSE;
   annotation_data->rectify        = FALSE;
@@ -1959,6 +2008,8 @@ create_annotation_data (void)
 
   annotation_data->default_filler = annotate_paint_context_new (
       ANNOTATE_FILLER);
+
+  annotation_data->cur_context    = annotation_data->default_pen;
 
   annotation_data->monitor = NULL;
 
@@ -2134,23 +2185,46 @@ annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
     {
       return FALSE;
     }
-
   GdkDevice *master = gdk_event_get_device ((GdkEvent *) ev);
+  if (! ev)
+    {
+      g_printerr ("Device '%s': Invalid event; I ungrab all\n",
+                  gdk_device_get_name (master));
+      annotate_release_grab ();
+      return FALSE;
+    }
+
   GdkDevice *slave  = gdk_event_get_source_device ((GdkEvent *) ev);
+  if (slave == NULL)
+    {
+      g_warning ("Could not find slave device.");
+      return FALSE;
+    }
+  GHashTable *devdatatable = data->devdatatable;
 
   /* Get the data for this device. */
-  AnnotateDeviceData *masterdata = g_hash_table_lookup (data->devdatatable,
-                                                        master);
+  AnnotateDeviceData *masterdata = g_hash_table_lookup (devdatatable, master);
+  if (masterdata == NULL)
+    {
+      g_warning ("Could not find device data for master pointer.");
+      return FALSE;
+    }
 
-  AnnotateDeviceData *slavedata = g_hash_table_lookup (data->devdatatable,
-                                                       slave);
+  AnnotateDeviceData *slavedata = g_hash_table_lookup (devdatatable, slave);
+
+  if (slavedata == NULL)
+    {
+      g_warning ("Could not find device data for slave pointer.");
+      return FALSE;
+    }
 
   if (data->cur_context == data->default_filler)
     {
       return FALSE;
     }
 
-  if (ev->state != masterdata->state || ev->state != slavedata->state ||
+  if (ev->state != masterdata->state ||
+      ev->state != slavedata->state ||
       masterdata->lastslave != slave)
     {
       annotate_select_tool (data, master, slave, ev->state);
@@ -2161,14 +2235,6 @@ annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
 
   if (! data->is_grabbed)
     {
-      return FALSE;
-    }
-
-  if (! ev)
-    {
-      g_printerr ("Device '%s': Invalid event; I ungrab all\n",
-                  gdk_device_get_name (master));
-      annotate_release_grab ();
       return FALSE;
     }
 

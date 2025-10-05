@@ -132,27 +132,6 @@ get_statusbar (void)
   return GTK_STATUSBAR (g_object);
 }
 
-/**
- * replace_status_message:
- * @message: the message string to display in the status bar
- *
- * Replaces the current message on the application's status bar with
- * the provided message. If no status bar exists, the function does nothing.
- *
- * This function first removes the top message from the status bar stack
- * and then pushes the new message.
- **/
-void
-replace_status_message (gchar *message)
-{
-  GtkStatusbar *bar = get_statusbar ();
-  if (bar != NULL)
-    {
-      gtk_statusbar_pop (bar, 0);
-      gtk_statusbar_push (bar, 0, message);
-    }
-}
-
 /* Allocate and initialize the bar data structure. */
 static BarData *
 init_bar_data (void)
@@ -167,10 +146,13 @@ init_bar_data (void)
   bar_data->screenshot_saved_location_x = -1;
   bar_data->screenshot_saved_location_y = -1;
   bar_data->snapshot_surface            = NULL;
+  bar_data->color                       = NULL;
   /* default to yellow highlighter */
   activate_tool_button ("buttonHighlighter");
   activate_tool_button ("buttonYellow");
-  set_color (bar_data, "FFFF0088");
+  // gchar *color = g_strdup ("FFFF0088");
+  // set_color (bar_data, color);
+  // g_free (color);
   return bar_data;
 }
 
@@ -323,7 +305,7 @@ setup_bar_mode (GtkToolButton *toolbutton, BarData *bar_data)
 
           bar_data->rounder   = TRUE;
           bar_data->rectifier = FALSE;
-          replace_status_message (gettext ("Rounder mode selected"));
+          g_debug("Rounder mode selected");
         }
       else
         {
@@ -331,7 +313,7 @@ setup_bar_mode (GtkToolButton *toolbutton, BarData *bar_data)
           set_rectifier_icon (toolbutton);
           bar_data->rectifier = TRUE;
           bar_data->rounder   = FALSE;
-          replace_status_message (gettext ("Polygon mode selected"));
+          g_debug("Polygon mode selected");
         }
     }
   else
@@ -340,7 +322,7 @@ setup_bar_mode (GtkToolButton *toolbutton, BarData *bar_data)
       set_hand_icon (toolbutton);
       bar_data->rectifier = FALSE;
       bar_data->rounder   = FALSE;
-      replace_status_message (gettext ("Freehand mode selected"));
+      g_debug ("Freehand mode selected");
     }
 }
 
@@ -372,10 +354,12 @@ set_modifiers (BarData *bar_data, AnnotateData *data)
   if (data->rectify)
     {
       bar_data->rectifier = TRUE;
+      bar_data->rounder = FALSE;
     }
   if (data->roundify)
     {
       bar_data->rounder = TRUE;
+      bar_data->rectifier = FALSE;
     }
 }
 
@@ -432,7 +416,7 @@ update_bar_data_state (BarData *bar_data, AnnotateData *data)
 
   update_thickness_in_bar (thickness_label);
 
-  bar_data->color = data->color;
+  bar_data->color = g_strdup (data->color);
   update_color_in_bar (bar_data->color);
 
   set_modifiers (bar_data, data);
@@ -778,7 +762,6 @@ is_arrow_toggle_tool_button_active (void)
 void
 add_alpha (BarData *bar_data)
 {
-  assert (strlen (bar_data->color) == 8);
   if (is_highlighter_toggle_tool_button_active ())
     {
       memcpy (&bar_data->color[6], SEMI_OPAQUE_ALPHA, 2);
@@ -950,10 +933,22 @@ lock (BarData *bar_data)
 void
 set_color (BarData *bar_data, gchar *selected_color)
 {
+  if (selected_color == NULL)
+  {
+    g_warning ("Attempting to set NULL color");
+    return;
+  }
   take_pen_tool ();
   lock (bar_data);
-  bar_data->color = g_strdup_printf ("%s", selected_color);
-  annotate_set_color (bar_data->color);
+  if (bar_data->color != NULL)
+  {
+    g_free (bar_data->color);
+    bar_data->color = NULL;
+  }
+  bar_data->color = g_strdup (selected_color);
+  gchar *annotate_color = g_strdup (selected_color);
+  annotate_set_color (selected_color);
+  g_free (annotate_color);
   add_alpha (bar_data);
 }
 
@@ -986,7 +981,9 @@ set_options (BarData *bar_data)
       is_highlighter_toggle_tool_button_active () ||
       is_arrow_toggle_tool_button_active ())
     {
-      annotate_set_color (bar_data->color);
+      gchar *color = g_strdup (bar_data->color);
+      annotate_set_color (color);
+      g_free (color);
       annotate_select_pen ();
     }
   else if (is_eraser_toggle_tool_button_active ())
