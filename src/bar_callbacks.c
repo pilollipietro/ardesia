@@ -186,7 +186,7 @@ on_bar_text_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
   BarData *bar_data = (BarData *) func_data;
   lock (bar_data);
-  g_debug("Text tool selected");
+  g_debug ("Text tool selected");
 }
 
 /* Push mode button. */
@@ -526,7 +526,7 @@ background_selection_on_toggled (GtkToggleToolButton *toggle_tool_button,
       update_background_image (data->filename);
 
       /* Persist the selected background image */
-      gchar *name = background_config_filename_to_label(data->filename);
+      gchar *name = background_config_filename_to_label (data->filename);
       background_config_set_current_background (name);
       g_free (name);
     }
@@ -816,7 +816,7 @@ on_background_selection_size_allocate (GtkWidget *widget,
 static void
 load_backgrounds_from_config (void)
 {
-  gsize n_colors = 0;
+  gsize   n_colors   = 0;
   gchar **color_keys = background_config_get_color_keys (&n_colors);
 
   if (color_keys)
@@ -883,12 +883,9 @@ create_bar_preference_window (GtkWindow *parent)
 
   load_backgrounds_from_config ();
 
-  /*
   GtkWidget *add_image =
     gtk_image_new_from_icon_name ("list-add",
                                   GTK_ICON_SIZE_LARGE_TOOLBAR);
-  */
-  GtkWidget *add_image = gtk_image_new_from_file ("/usr/share/icons/hicolor/48x48/apps/gimp.png");
 
   button = gtk_tool_button_new (add_image, NULL);
 
@@ -1013,7 +1010,7 @@ G_MODULE_EXPORT void
 on_bar_blue_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
   BarData *bar_data = (BarData *) func_data;
-  gchar *color = g_strdup (BLUE);
+  gchar   *color    = g_strdup (BLUE);
   set_color (bar_data, color);
   g_free (color);
 }
@@ -1023,7 +1020,7 @@ G_MODULE_EXPORT void
 on_bar_red_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
   BarData *bar_data = (BarData *) func_data;
-  gchar *color = g_strdup (RED);
+  gchar   *color    = g_strdup (RED);
   set_color (bar_data, color);
   g_free (color);
 }
@@ -1033,7 +1030,7 @@ G_MODULE_EXPORT void
 on_bar_green_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
   BarData *bar_data = (BarData *) func_data;
-  gchar *color = g_strdup (GREEN);
+  gchar   *color    = g_strdup (GREEN);
   set_color (bar_data, color);
   g_free (color);
 }
@@ -1043,7 +1040,7 @@ G_MODULE_EXPORT void
 on_bar_yellow_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
   BarData *bar_data = (BarData *) func_data;
-  gchar *color = g_strdup (YELLOW);
+  gchar   *color    = g_strdup (YELLOW);
   set_color (bar_data, color);
   g_free (color);
 }
@@ -1053,7 +1050,7 @@ G_MODULE_EXPORT void
 on_bar_white_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
   BarData *bar_data = (BarData *) func_data;
-  gchar *color = g_strdup (WHITE);
+  gchar   *color    = g_strdup (WHITE);
   set_color (bar_data, color);
   g_free (color);
 }
