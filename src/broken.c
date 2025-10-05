@@ -712,7 +712,7 @@ build_outbounded_rectangle (GSList *list)
   AnnotatePoint *point4 = allocate_point (minx,
                                           maxy,
                                           point->width,
-     33                                     point->pressure);
+                                          point->pressure);
 
   ret_list = g_slist_prepend (ret_list, point4);
 
@@ -730,17 +730,17 @@ build_outbounded_rectangle (GSList *list)
  *     ellipse to the two foci is constant.
  *
  * Algorithm:
- * 1. Compute the bounding box of the path (minx, miny, maxx, maxy).
- * 2. Compute the semi-axes a (horizontal) and b (vertical) of the ellipse.
- * 3. Compute the focal distance c = sqrt(|a^2 - b^2|).
- * 4. Determine the coordinates of the two foci (f1, f2) depending on the
+ * -  Compute the bounding box of the path (minx, miny, maxx, maxy).
+ * -  Compute the semi-axes a (horizontal) and b (vertical) of the ellipse.
+ * -  Compute the focal distance c = sqrt(|a^2 - b^2|).
+ * -  Determine the coordinates of the two foci (f1, f2) depending on the
  *    orientation (horizontal or vertical).
- * 5. Compute the sum of distances from the first point (minx, miny) to
+ * -  Compute the sum of distances from the first point (minx, miny) to
  *    both foci. This serves as the "ideal sum" for a perfect ellipse.
- * 6. Iterate over all points in the path, compute the sum of distances to
+ * -  Iterate over all points in the path, compute the sum of distances to
  *    the foci, and check if the difference from the ideal sum exceeds
  *    the tolerance.
- * 7. If any point violates the tolerance, the path is not considered
+ * -  If any point violates the tolerance, the path is not considered
  *    similar to an ellipse; otherwise, it is.
  *
  * Notes:

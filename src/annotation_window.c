@@ -49,7 +49,23 @@
 /* Internal data for the annotation window. */
 AnnotateData *annotation_data;
 
-/* Return the pressure passing the event. */
+/**
+ * get_pressure:
+ * @ev: The #GdkEvent from which to extract the axis value.
+ *
+ * Extracts the pressure value from a GdkEvent, typically from a stylus
+ * or touch device.
+ *
+ * This function queries the event for the %GDK_AXIS_PRESSURE value. If the
+ * axis is available and successfully read, its value (usually between
+ * 0.0 and 1.0) is returned.
+ *
+ * If the device does not support pressure or the axis value cannot be
+ * read, the function safely returns a default value of 1.0, representing
+ * full pressure.
+ *
+ * Returns: A gdouble representing the pressure, or 1.0 as a fallback.
+ */
 static gdouble
 get_pressure (GdkEvent *ev)
 {
@@ -66,7 +82,19 @@ get_pressure (GdkEvent *ev)
   return ret_value;
 }
 
-/* Create a new paint context. */
+/**
+ * annotate_paint_context_new:
+ * @type: The #AnnotatePaintType to assign to the new context.
+ *
+ * A simple constructor for creating a new #AnnotatePaintContext.
+ *
+ * This function allocates a new #AnnotatePaintContext structure and
+ * initializes its `type` field with the provided value.
+ *
+ * Returns: (transfer full): A pointer to the newly allocated
+ * #AnnotatePaintContext. The caller is responsible for freeing
+ * this memory with g_free() when it is no longer needed.
+ */
 static AnnotatePaintContext *
 annotate_paint_context_new (AnnotatePaintType type)
 {
@@ -77,7 +105,23 @@ annotate_paint_context_new (AnnotatePaintType type)
   return context;
 }
 
-/* Calculate the direction in radiant. */
+/**
+ * annotate_get_arrow_direction:
+ * @devdata: The #AnnotateDeviceData containing the coordinate list.
+ *
+ * Calculates the direction of the end of a stroke for drawing an arrowhead.
+ *
+ * This function simplifies the user's drawn path into a temporary list of
+ * significant points using build_meaningful_point_list(). It then
+ * calculates the angle between the last two points of this simplified list.
+ *
+ * The temporary list is freed before the function returns. If the simplified
+ * path contains fewer than two points, a direction cannot be determined,
+ * and the function returns 0.0.
+ *
+ * Returns: A gdouble representing the direction of the stroke end in radians,
+ * or 0.0 if a direction cannot be determined.
+ */
 static gdouble
 annotate_get_arrow_direction (AnnotateDeviceData *devdata)
 {
@@ -108,9 +152,21 @@ annotate_get_arrow_direction (AnnotateDeviceData *devdata)
   return ret;
 }
 
-/*
- * Color selector; if eraser than select the transparent color
- * else allocate the right color.
+/**
+ * select_color:
+ *
+ * Sets the appropriate Cairo source and operator based on the current tool.
+ *
+ * This is a helper function that configures the global Cairo context for
+ * either drawing or erasing.
+ *
+ * If the current tool is not the eraser (e.g., pen, highlighter), it sets
+ * the drawing operator to %CAIRO_OPERATOR_SOURCE and applies the color
+ * stored in `annotation_data->color`.
+ *
+ * If the current tool is the eraser, it sets the operator to
+ * %CAIRO_OPERATOR_CLEAR, which makes subsequent drawing operations erase
+ * content by setting the alpha channel to 0.
  */
 static void
 select_color (void)
@@ -167,7 +223,15 @@ annotate_acquire_pointer_grab (void)
   grab_pointer (annotation_data->annotation_window, GDK_ALL_EVENTS_MASK);
 }
 
-/* Release the grab pointer. */
+/**
+ * annotate_release_pointer_grab:
+ *
+ * Releases the input pointer grab from the annotation window (Windows only).
+ *
+ * This function is a platform-specific helper for Windows that releases
+ * a previously acquired pointer grab, allowing input events to be
+ * processed by other windows.
+ */
 static void
 annotate_release_pointer_grab (void)
 {
@@ -176,7 +240,18 @@ annotate_release_pointer_grab (void)
 
 #endif
 
-/* Update the cursor icon. */
+/**
+ * update_cursor:
+ *
+ * Applies the currently selected cursor to the annotation window.
+ *
+ * This function sets the cursor for the annotation window's underlying
+ * GdkWindow to the one stored in `annotation_data->cursor`.
+ *
+ * On Windows, it includes a workaround that briefly releases and re-acquires
+ * the pointer grab, which can be necessary to ensure the cursor update is
+ * visually applied correctly while a grab is active.
+ */
 static void
 update_cursor (void)
 {
@@ -198,7 +273,15 @@ update_cursor (void)
 #endif
 }
 
-/* Dis-allocate cursor. */
+/**
+ * disallocate_cursor:
+ *
+ * Safely unreferences the global cursor object.
+ *
+ * This function checks if a cursor is currently allocated in the global
+ * annotation data. If it exists, it unreferences the GdkCursor object
+ * and sets the pointer to NULL to prevent dangling pointers.
+ */
 static void
 disallocate_cursor (void)
 {
@@ -209,7 +292,16 @@ disallocate_cursor (void)
     }
 }
 
-/* Take the input mouse focus. */
+/**
+ * annotate_acquire_input_grab:
+ *
+ * Acquires the input grab for the annotation window.
+ *
+ * This function attempts to capture all mouse and stylus events for the
+ * annotation window. The implementation is platform-dependent. On Windows,
+ * it uses a custom `grab_pointer` function. On other platforms like Linux,
+ * it resets the window's input shape to its default state.
+ */
 static void
 annotate_acquire_input_grab (void)
 {
@@ -226,7 +318,19 @@ annotate_acquire_input_grab (void)
 #endif
 }
 
-/* Destroy cairo context. */
+/**
+ * destroy_cairo:
+ * @ctxt: The Cairo context to destroy.
+ *
+ * Attempts to release all references to a Cairo context by calling
+ * cairo_destroy() multiple times, based on the object's initial
+ * reference count.
+ *
+ * WARNING: This implementation deviates from the standard reference
+ * counting pattern of Cairo. The expected usage is to call cairo_destroy()
+ * once for each reference the code owns, not in a loop based on the
+ * total reference count.
+ */
 static void
 destroy_cairo (cairo_t *ctxt)
 {
@@ -242,7 +346,21 @@ destroy_cairo (cairo_t *ctxt)
   ctxt = (cairo_t *) NULL;
 }
 
-/* Modify color according to the pressure. */
+/**
+ * annotate_modify_color:
+ * @devdata:  Device-specific data, including the previous point's pressure.
+ * @data:     The main #AnnotateData application context.
+ * @pressure: The current pressure value from the input device (0.0 to 1.0).
+ *
+ * Sets the source color for the Cairo context, adjusting the alpha channel
+ * based on stylus pressure.
+ *
+ * This function creates a dynamic, pressure-sensitive stroke effect. It
+ * smooths the pressure value by averaging it with the previous point's
+ * pressure, applies a curve (square root) to make strokes more responsive
+ * at low pressures, and combines it with a contrast factor. The final
+ * calculated alpha is applied to the current base color.
+ */
 void
 annotate_modify_color (AnnotateDeviceData *devdata,
                        AnnotateData *data,
@@ -306,9 +424,20 @@ annotate_modify_color (AnnotateDeviceData *devdata,
                          new_alpha * (gdouble) a / 255.0);
 }
 
-/*
- * This an ellipse taking the top left edge coordinates
- * and the width and the height of the bounded rectangle.
+/**
+ * annotate_draw_ellipse:
+ * @devdata:  Device-specific data for color modification.
+ * @x:        The x-coordinate of the top-left corner of the bounding box.
+ * @y:        The y-coordinate of the top-left corner of the bounding box.
+ * @width:    The width of the ellipse.
+ * @height:   The height of the ellipse.
+ * @pressure: The pressure value to apply for this shape.
+ *
+ * Draws a pressure-sensitive ellipse on the annotation context.
+ *
+ * The function first sets the drawing color and alpha based on pressure by
+ * calling annotate_modify_color(). It then constructs the ellipse path
+ * within the specified bounding box using Cairo transformations and an arc.
  */
 static void
 annotate_draw_ellipse (AnnotateDeviceData *devdata, gdouble x, gdouble y,
@@ -331,7 +460,19 @@ annotate_draw_ellipse (AnnotateDeviceData *devdata, gdouble x, gdouble y,
   cairo_restore (annotation_cairo_context);
 }
 
-/* Draw a point in x,y respecting the context. */
+/**
+ * annotate_draw_point:
+ * @devdata:  Device-specific data for color modification.
+ * @x:        The x-coordinate of the point.
+ * @y:        The y-coordinate of the point.
+ * @pressure: The pressure value to apply.
+ *
+ * Draws a single, pressure-sensitive point on the annotation context.
+ *
+ * The color is first adjusted for pressure. A point is then rendered by
+ * drawing a zero-length line, which appears as a dot styled according to
+ * the current line cap settings (e.g., `CAIRO_LINE_CAP_ROUND`).
+ */
 void
 annotate_draw_point (AnnotateDeviceData *devdata,
                      gdouble x,
@@ -346,9 +487,20 @@ annotate_draw_point (AnnotateDeviceData *devdata,
   cairo_restore (annotation_data->annotation_cairo_context);
 }
 
-/*
- * Draw line from the last point drawn to (x2,y2);
- * if stroke is false the cairo path is not forgotten.
+/**
+ * annotate_draw_line:
+ * @devdata: Device data containing the last point of the stroke.
+ * @x2:      The x-coordinate of the new point to draw to.
+ * @y2:      The y-coordinate of the new point to draw to.
+ * @stroke:  If %TRUE, a self-contained stroke is drawn from the last
+ * point to the new point. If %FALSE, a line segment is simply
+ * added to the current Cairo path without stroking it.
+ *
+ * Draws a line segment.
+ *
+ * Depending on the @stroke flag, this function either adds a line segment
+ * to the current path (for building complex shapes) or immediately renders
+ * a line from the previously recorded point to the new coordinates.
  */
 void
 annotate_draw_line (AnnotateDeviceData *devdata,
@@ -381,7 +533,18 @@ annotate_draw_line (AnnotateDeviceData *devdata,
   cairo_restore (annotation_data->annotation_cairo_context);
 }
 
-/* Draw the point list. */
+/**
+ * annotate_draw_point_list:
+ * @devdata: Device data for color modification.
+ * @list:    A #GSList of #AnnotatePoint structs to be drawn.
+ *
+ * Constructs a continuous path from a list of points on the Cairo context.
+ *
+ * This function iterates through the @list, creating a single path of
+ * connected line segments. The color/alpha is updated for each point based
+ * on its pressure. Note that this function only builds the path; the caller
+ * is responsible for stroking or filling it.
+ */
 void
 annotate_draw_point_list (AnnotateDeviceData *devdata, GSList *list)
 {
@@ -415,9 +578,17 @@ annotate_draw_point_list (AnnotateDeviceData *devdata, GSList *list)
   cairo_restore (annotation_data->annotation_cairo_context);
 }
 
-/*
- * Draw a curve using a cubic bezier splines passing
- * the list's coordinate.
+/**
+ * annotate_draw_curve:
+ * @devdata: Device data for color modification.
+ * @list:    A #GSList of #AnnotatePoint structs to be used as control points.
+ *
+ * Renders a smooth curve by constructing a path of cubic Bezier splines.
+ *
+ * This function iterates through the @list, taking points three at a time
+ * to create a series of `cairo_curve_to` segments. This is used to
+ * render a smoothed version of a freehand stroke. The path is not stroked;
+ * the caller is responsible for rendering.
  */
 static void
 annotate_draw_curve (AnnotateDeviceData *devdata, GSList *list)
@@ -484,7 +655,15 @@ annotate_draw_curve (AnnotateDeviceData *devdata, GSList *list)
     }
 }
 
-/* Draw the last save point on the window restoring the surface. */
+/**
+ * annotate_restore_surface:
+ *
+ * Restores the drawing canvas to a previous state from a savepoint.
+ *
+ * This function identifies the current savepoint based on the undo/redo
+ * index, clears the current canvas, and paints the contents of the
+ * savepoint's corresponding PNG file onto the annotation context.
+ */
 void
 annotate_restore_surface (void)
 {
@@ -544,7 +723,18 @@ annotate_restore_surface (void)
   gtk_widget_queue_draw (annotation_data->annotation_window);
 }
 
-/* Rectify the line. */
+/**
+ * rectify:
+ * @devdata:     The device data containing the stroke to process.
+ * @closed_path: %TRUE if the stroke is a closed shape.
+ *
+ * A shape-recognition helper that attempts to straighten a freehand stroke.
+ *
+ * It erases the original freehand stroke by restoring the last savepoint,
+ * then analyzes the stroke's points to generate a simplified, straightened
+ * version, which it then redraws. The device's coordinate list is updated
+ * with the new, rectified points.
+ */
 static void
 rectify (AnnotateDeviceData *devdata, gboolean closed_path)
 {
@@ -565,7 +755,18 @@ rectify (AnnotateDeviceData *devdata, gboolean closed_path)
   devdata->coord_list = broken_list;
 }
 
-/* Roundify the line. */
+/**
+ * roundify:
+ * @devdata:     The device data containing the stroke to process.
+ * @closed_path: %TRUE if the stroke is a closed shape.
+ *
+ * A shape-recognition helper that attempts to smooth a freehand stroke.
+ *
+ * It erases the original stroke and analyzes its points. If the shape
+ * resembles an ellipse, it draws a clean ellipse. Otherwise, it generates
+ * a smooth Bezier spline curve and redraws the stroke. The device's
+ * coordinate list is updated with the new points.
+ */
 static void
 roundify (AnnotateDeviceData *devdata, gboolean closed_path)
 {
@@ -646,7 +847,17 @@ roundify (AnnotateDeviceData *devdata, gboolean closed_path)
   g_slist_free (meaningful_point_list);
 }
 
-/* Splinify the line. */
+/**
+ * splinify:
+ * @devdata: The device data containing the stroke to process.
+ *
+ * A shape-recognition helper that converts a freehand stroke into a smooth
+ * Bezier spline curve.
+ *
+ * It erases the original stroke, calculates a new set of points
+ * representing a spline, redraws the curve, and updates the device's
+ * coordinate list.
+ */
 static void
 splinify (AnnotateDeviceData *devdata)
 {
@@ -673,7 +884,7 @@ splinify (AnnotateDeviceData *devdata)
  *
  * Returns: (transfer none): A pointer to the newly created annotation
  * #GtkWidget, or %NULL on failure.
- **/
+ */
 GtkWidget *
 create_annotation_window (Workspace *workspace, CommandLine *commandline)
 {
@@ -744,6 +955,16 @@ create_annotation_window (Workspace *workspace, CommandLine *commandline)
   return widget;
 }
 
+/**
+ * make_annotation_window_transparent:
+ *
+ * Configures the annotation window for transparency.
+ *
+ * This function sets the window's visual to one that supports an alpha
+ * channel (RGBA). It includes platform-specific workarounds, such as
+ * using layered windows on Windows, to achieve click-through
+ * transparency when not drawing.
+ */
 static void
 make_annotation_window_transparent (void)
 {
@@ -807,7 +1028,15 @@ position_annotation_window (int x, int y, int width, int height)
     }
 }
 
-/* Create the directory where put the save-point files. */
+/**
+ * create_savepoint_dir:
+ *
+ * Creates the temporary directory for storing undo/redo image snapshots.
+ *
+ * This function constructs a unique path in the system's temporary
+ * directory (e.g., /tmp/ardesia/project_name/images) and creates it.
+ * If a directory from a previous session exists, it is removed first.
+ */
 static void
 create_savepoint_dir (void)
 {
@@ -834,7 +1063,16 @@ create_savepoint_dir (void)
   g_free (project_tmp_dir);
 }
 
-/* Delete the save-point. */
+/**
+ * delete_savepoint:
+ * @savepoint: The #AnnotateSavepoint object to delete.
+ *
+ * Frees all resources associated with a single savepoint.
+ *
+ * This function removes the savepoint's snapshot PNG file from disk,
+ * removes the corresponding node from the global savepoint list, and
+ * frees the #AnnotateSavepoint struct itself.
+ */
 static void
 delete_savepoint (AnnotateSavepoint *savepoint)
 {
@@ -856,6 +1094,16 @@ delete_savepoint (AnnotateSavepoint *savepoint)
     }
 }
 
+/**
+ * annotate_redolist_free:
+ *
+ * Frees all savepoints in the "redo" list.
+ *
+ * When a new drawing action occurs after an undo, the "future" history
+ * (the redo list) becomes invalid. This function clears that part of the
+ * history by deleting all savepoints from the current undo position to
+ * the head of the list.
+ */
 static void
 annotate_redolist_free (void)
 {
@@ -875,7 +1123,15 @@ annotate_redolist_free (void)
   annotation_data->savepoint_list = current_node;
 }
 
-/* Free the list of all the save-point. */
+/**
+ * annotate_savepoint_list_free:
+ *
+ * Frees the entire list of savepoints.
+ *
+ * This function iterates through all savepoints in the global list and calls
+ * delete_savepoint() on each one to free its resources and remove it from
+ * disk. This is typically called during application shutdown.
+ */
 static void
 annotate_savepoint_list_free (void)
 {
@@ -896,9 +1152,17 @@ delete_ardesia_tmp_dir (void)
   g_free (ardesia_tmp_dir);
 }
 
-/*
- * Draw an arrow starting from the point
- * whith the width and the direction in radiant.
+/**
+ * draw_arrow_in_point:
+ * @point:     The #AnnotatePoint where the arrowhead's tip should be.
+ * @width:     The base width of the stroke, used to scale the arrowhead.
+ * @direction: The direction in radians for the arrow to point.
+ *
+ * Draws a filled arrowhead at a specific point.
+ *
+ * This helper function calculates the vertices of a polygonal arrowhead
+ * based on the given point, width, and direction, and then renders it
+ * as a filled shape on the Cairo context.
  */
 static void
 draw_arrow_in_point (AnnotatePoint *point, gdouble width, gdouble direction)
@@ -963,7 +1227,23 @@ draw_arrow_in_point (AnnotatePoint *point, gdouble width, gdouble direction)
   g_debug ("with vertex at (x,y)= (%f : %f)\n", arrow_head_0_x, arrow_head_0_y);
 }
 
-/* Configure pen option for cairo context. */
+/**
+ * annotate_configure_pen_options:
+ * @data: The main #AnnotateData application context.
+ *
+ * Configures the Cairo context for a drawing operation based on the
+ * current tool settings.
+ *
+ * This function acts as a bridge between the application's high-level
+ * state (stored in @data) and the low-level Cairo drawing context. It
+ * should be called immediately before a drawing or erasing stroke begins.
+ *
+ * It sets the line cap and join styles to `ROUND` for smooth strokes.
+ * Based on the currently selected tool, it sets the appropriate Cairo
+ * operator (`CAIRO_OPERATOR_CLEAR` for the eraser or `CAIRO_OPERATOR_SOURCE`
+ * for pens) and line width. Finally, it applies the current drawing
+ * color by calling the select_color() helper function.
+ */
 void
 annotate_configure_pen_options (AnnotateData *data)
 {
@@ -987,8 +1267,13 @@ annotate_configure_pen_options (AnnotateData *data)
           cairo_set_operator (annotation_cairo_context,
                               CAIRO_OPERATOR_CLEAR);
 
+	  /* 
+	   * Make eraser slightly larger to overpaint and
+	   * clear anti-aliasing artifacts.
+	   */
+	  gdouble delta = 2.0;
           cairo_set_line_width (annotation_cairo_context,
-                                annotate_get_thickness ());
+                                annotate_get_thickness () + delta);
         }
       else
         {
@@ -1003,7 +1288,7 @@ annotate_configure_pen_options (AnnotateData *data)
 }
 
 /**
- * annotate_add_savepoint_final:
+ * annotate_add_savepoint:
  *
  * Adds a save point for undo/redo functionality.
  *
@@ -1215,7 +1500,7 @@ initialize_annotation_cairo_context (AnnotateData *data)
  * Returns: (transfer none): the #GtkWidget representing the annotation
  * window. The returned widget is owned by the application and must not
  * be freed by the caller.
- **/
+ */
 GtkWidget *
 get_annotation_window (void)
 {
@@ -1273,7 +1558,7 @@ annotate_set_rectifier (gboolean rectify)
  * annotate_set_rounder:
  * @roundify: %TRUE to enable rounding mode, %FALSE to disable.
  *
- * Enable or disable the rounder mode for annotations.
+ * Enables or disables the rounder mode for annotations.
  *
  * When enabled, drawn shapes may be automatically smoothed
  * into rounded forms instead of sharp edges.
@@ -1290,12 +1575,10 @@ annotate_set_rounder (gboolean roundify)
  * annotate_set_arrow:
  * @arrow: %TRUE to enable arrow drawing, %FALSE to disable.
  *
- * Enable or disable arrow mode for annotations.
+ * Enables or disables arrow mode for annotations.
  *
- * When enabled, drawn strokes may automatically terminate
- * with an arrowhead to emphasize direction.
- *
- * Since: 1.0
+ * When enabled, freehand strokes will automatically terminate with an
+ * arrowhead.
  */
 void
 annotate_set_arrow (gboolean arrow)
@@ -1305,14 +1588,12 @@ annotate_set_arrow (gboolean arrow)
 
 /**
  * annotate_set_thickness:
- * @thickness: the base line thickness to use for annotation strokes.
+ * @thickness: The base line thickness to use for annotation strokes.
  *
- * Set the base line thickness for drawing operations.
+ * Sets the base line thickness for drawing operations.
  *
  * The actual stroke thickness may be modified by tool-specific
- * multipliers (e.g. eraser, highlighter, or pen) when rendering.
- *
- * Since: 1.0
+ * multipliers (e.g. for the eraser or highlighter) when rendering.
  */
 void
 annotate_set_thickness (gdouble thickness)
@@ -1323,7 +1604,7 @@ annotate_set_thickness (gdouble thickness)
 /**
  * annotate_get_thickness:
  *
- * Get the effective line thickness for the current tool.
+ * Gets the effective line thickness for the current tool.
  *
  * This function returns the base thickness set with
  * annotate_set_thickness(), multiplied by a corrective factor
@@ -1334,8 +1615,6 @@ annotate_set_thickness (gdouble thickness)
  * - Pen: scaled by `pen_multiplier`.
  *
  * Returns: (transfer none): the effective line thickness.
- *
- * Since: 1.0
  */
 gdouble
 annotate_get_thickness (void)
@@ -1356,7 +1635,17 @@ annotate_get_thickness (void)
   return annotation_data->thickness * corrective_factor;
 }
 
-/* Add to the list of the painted point the point (x,y). */
+/**
+ * annotate_coord_list_prepend:
+ * @devdata:  The #AnnotateDeviceData to which the point will be added.
+ * @x:        The x-coordinate of the new point.
+ * @y:        The y-coordinate of the new point.
+ * @width:    The width associated with the point (legacy, may not be used).
+ * @pressure: The pressure value (0.0 to 1.0) for the point.
+ *
+ * Allocates a new #AnnotatePoint and prepends it to a device's coordinate
+ * list.
+ */
 void
 annotate_coord_list_prepend (AnnotateDeviceData *devdata, gdouble x, gdouble y,
                              gdouble width, gdouble pressure)
@@ -1372,8 +1661,8 @@ annotate_coord_list_prepend (AnnotateDeviceData *devdata, gdouble x, gdouble y,
 
 /**
  * annotate_coord_dev_list_free:
- * @devdata: a pointer to an #AnnotateDeviceData structure whose
- *           coordinate list will be freed.
+ * @devdata: A pointer to an #AnnotateDeviceData structure whose
+ * coordinate list will be freed.
  *
  * Frees the list of coordinates associated with a given input device.
  * This function releases each element of the coordinate list, clears
@@ -1544,7 +1833,11 @@ annotate_select_eraser (void)
   update_cursor ();
 }
 
-/* Unhide the cursor. */
+/**
+ * annotate_unhide_cursor:
+ *
+ * Makes the custom drawing cursor visible if it was previously hidden.
+ */
 void
 annotate_unhide_cursor (void)
 {
@@ -1555,7 +1848,11 @@ annotate_unhide_cursor (void)
     }
 }
 
-/* Hide the cursor icon. */
+/**
+ * annotate_hide_cursor:
+ *
+ * Hides the custom drawing cursor, replacing it with an invisible one.
+ */
 void
 annotate_hide_cursor (void)
 {
@@ -1566,7 +1863,15 @@ annotate_hide_cursor (void)
   annotation_data->is_cursor_hidden = TRUE;
 }
 
-/* Acquire the grab. */
+/**
+ * annotate_acquire_grab:
+ *
+ * Ensures an input grab is active on the annotation window.
+ *
+ * If a grab is not already active, this function acquires one, ensuring
+ * that subsequent mouse/stylus events are captured by the application.
+ * It is idempotent and safe to call multiple times.
+ */
 void
 annotate_acquire_grab (void)
 {
@@ -1579,7 +1884,16 @@ annotate_acquire_grab (void)
     }
 }
 
-/* Draw an arrow using some polygons. */
+/**
+ * annotate_draw_arrow:
+ * @devdata:  Device data containing the stroke's coordinate list.
+ * @distance: The length of the last segment of the stroke.
+ *
+ * Draws an arrowhead at the end of the current stroke if conditions are met.
+ *
+ * The arrow is only drawn if the stroke is long enough. The direction is
+ * calculated from the last few points of the stroke.
+ */
 void
 annotate_draw_arrow (AnnotateDeviceData *devdata, gdouble distance)
 {
@@ -1614,7 +1928,18 @@ annotate_draw_arrow (AnnotateDeviceData *devdata, gdouble distance)
   draw_arrow_in_point (point, pen_width, direction);
 }
 
-/* Fill the contiguos area around point with coordinates (x,y). */
+/**
+ * annotate_fill:
+ * @devdata:  Device data (unused).
+ * @data:     The main #AnnotateData application context.
+ * @x:        The x-coordinate of the point to start the fill from.
+ * @y:        The y-coordinate of the point to start the fill from.
+ *
+ * Performs a flood-fill operation starting at the given coordinates.
+ *
+ * This function uses the current color to fill a contiguous area on the
+ * annotation canvas and creates a new savepoint for the undo history.
+ */
 void
 annotate_fill (AnnotateDeviceData *devdata,
                AnnotateData *data,
@@ -1629,7 +1954,18 @@ annotate_fill (AnnotateDeviceData *devdata,
   annotate_add_savepoint ();
 }
 
-/* Call the geometric shape recognizer. */
+/**
+ * annotate_shape_recognize:
+ * @devdata:     The device data containing the stroke to process.
+ * @closed_path: %TRUE if the stroke is a closed shape.
+ *
+ * Triggers the shape recognition and beautification process on a completed
+ * stroke.
+ *
+ * Based on the currently active mode (`rectify` or `roundify`), this
+ * function calls the appropriate helper to convert the freehand stroke
+ * into a cleaner geometric shape (e.g., rectangle, ellipse, or spline).
+ */
 void
 annotate_shape_recognize (AnnotateDeviceData *devdata, gboolean closed_path)
 {
@@ -1647,7 +1983,19 @@ annotate_shape_recognize (AnnotateDeviceData *devdata, gboolean closed_path)
     }
 }
 
-/* Select eraser, pen or other tool for tablet. */
+/**
+ * annotate_select_tool:
+ * @data:         The main #AnnotateData application context.
+ * @masterdevice: The master pointer device.
+ * @slavedevice:  The physical device that generated the event (e.g., stylus).
+ * @state:        The current modifier state.
+ *
+ * Selects the appropriate tool based on the physical device in use.
+ *
+ * This function is used for devices like tablets that have a separate
+ * eraser tip. It checks if the source device is an eraser and selects the
+ * eraser tool accordingly, otherwise defaulting to the previously used tool.
+ */
 void
 annotate_select_tool (AnnotateData *data, GdkDevice *masterdevice,
                       GdkDevice *slavedevice, guint state)
@@ -1691,7 +2039,12 @@ annotate_select_tool (AnnotateData *data, GdkDevice *masterdevice,
   slavedata->state      = state;
 }
 
-/* Free the memory allocated by paint context */
+/**
+ * annotate_paint_context_free:
+ * @context: The #AnnotatePaintContext to free.
+ *
+ * A simple destructor for an #AnnotatePaintContext object.
+ */
 void
 annotate_paint_context_free (AnnotatePaintContext *context)
 {
@@ -1828,7 +2181,14 @@ annotate_quit (void)
     }
 }
 
-/* Release input grab; the input event will be passed below the window. */
+/**
+ * annotate_release_input_grab:
+ *
+ * Releases the input grab, allowing events to pass through the window.
+ *
+ * The implementation is platform-specific and may involve modifying the
+ * window's input shape to make it 'click-through'.
+ */
 void
 annotate_release_input_grab (void)
 {
@@ -1869,15 +2229,11 @@ annotate_release_input_grab (void)
 /**
  * annotate_release_grab:
  *
- * Release the input grab if it is currently active.
+ * Releases the input grab if it is currently active.
  *
- * This function checks whether the annotation system currently has a grab
- * (e.g., mouse or stylus capture). If so, it calls
- * `annotate_release_input_grab()` to release it and updates the internal
- * state flag `is_grabbed` to FALSE.
- *
- * Debug messages are printed to trace the release process.
- **/
+ * This function checks if the system has an input grab and calls the
+ * appropriate helper to release it, updating the internal application state.
+ */
 void
 annotate_release_grab (void)
 {
@@ -1971,6 +2327,15 @@ annotate_clear_screen (void)
     }
 }
 
+/**
+ * create_annotation_data:
+ *
+ * Allocates and initializes the main #AnnotateData struct.
+ *
+ * This function is called once at startup. It allocates the global
+ * `annotation_data` struct and sets all its fields to their initial
+ * default values.
+ */
 static void
 create_annotation_data (void)
 {
@@ -2080,15 +2445,17 @@ annotate_init (Monitor *monitor)
 
 /**
  * annotation_window_button_press:
+ * @ev:   The #GdkEventButton for the mouse button press.
+ * @data: A pointer to the main #AnnotateData struct.
  *
- * Handle a button press event in the annotation window.
+ * Handles a button press event in the annotation window.
  *
  * This function initializes the drawing context if needed, acquires the
  * input grab, computes the pressure, updates the cursor, and starts a new
  * stroke by storing the initial point.
  *
- * Returns TRUE if the event was handled, FALSE otherwise.
- **/
+ * Returns: %TRUE if the event was handled, %FALSE otherwise.
+ */
 gboolean
 annotation_window_button_press (GdkEventButton *ev, AnnotateData *data)
 {
@@ -2170,6 +2537,8 @@ annotation_window_button_press (GdkEventButton *ev, AnnotateData *data)
 
 /**
  * annotation_window_mouse_move:
+ * @ev:   The #GdkEventMotion for the mouse motion.
+ * @data: A pointer to the main #AnnotateData struct.
  *
  * Handle mouse or stylus motion events in the annotation window.
  *
@@ -2177,8 +2546,8 @@ annotation_window_button_press (GdkEventButton *ev, AnnotateData *data)
  * successive points, applies pressure sensitivity, modifies color if
  * necessary, and queues a redraw of the annotation window.
  *
- * Returns TRUE if the event was handled, FALSE otherwise.
- **/
+ * Returns: %TRUE if the event was handled, %FALSE otherwise.
+ */
 gboolean
 annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
 {
@@ -2329,6 +2698,14 @@ annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
   return TRUE;
 }
 
+/**
+ * save_closed_path:
+ *
+ * Saves a copy of the current Cairo path to a list for later use.
+ *
+ * This is used to store complex, closed paths that might need to be
+ * redrawn or manipulated later.
+ */
 void
 save_closed_path (void)
 {
@@ -2339,6 +2716,8 @@ save_closed_path (void)
 
 /**
  * annotation_window_button_release:
+ * @ev:   The #GdkEventButton for the mouse button release.
+ * @data: A pointer to the main #AnnotateData struct.
  *
  * Handle a button release event in the annotation window.
  *
@@ -2347,8 +2726,8 @@ save_closed_path (void)
  * needed, updates the stroke on the Cairo context, and creates a new
  * undo savepoint.
  *
- * Returns TRUE if the event was handled, FALSE otherwise.
- **/
+ * Returns: %TRUE if the event was handled, %FALSE otherwise.
+ */
 gboolean
 annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
 {
@@ -2522,14 +2901,12 @@ annotation_window_change (int width, int height)
 /**
  * initialize_font:
  *
- * Initialize the annotation font used for text annotations.
+ * Initializes the default font for text annotations.
  *
- * This function attempts to load a font configuration via `font_config_load()`.
- * If no configuration is found, it creates a default Pango font description
- * with a size of 32 points.
- *
- * The resulting font description is stored in `annotation_data->font`.
- **/
+ * This function attempts to load a font configuration from the user's
+ * settings. If no configuration is found, it falls back to a default
+ * Pango font description. The result is stored in `annotation_data->font`.
+ */
 void
 initialize_font (void)
 {
