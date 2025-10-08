@@ -319,34 +319,6 @@ annotate_acquire_input_grab (void)
 }
 
 /**
- * destroy_cairo:
- * @ctxt: The Cairo context to destroy.
- *
- * Attempts to release all references to a Cairo context by calling
- * cairo_destroy() multiple times, based on the object's initial
- * reference count.
- *
- * WARNING: This implementation deviates from the standard reference
- * counting pattern of Cairo. The expected usage is to call cairo_destroy()
- * once for each reference the code owns, not in a loop based on the
- * total reference count.
- */
-static void
-destroy_cairo (cairo_t *ctxt)
-{
-  guint refcount = (guint) cairo_get_reference_count (ctxt);
-
-  guint i = 0;
-
-  for (i = 0; i < refcount; i++)
-    {
-      cairo_destroy (ctxt);
-    }
-
-  ctxt = (cairo_t *) NULL;
-}
-
-/**
  * annotate_modify_color:
  * @devdata:  Device-specific data, including the previous point's pressure.
  * @data:     The main #AnnotateData application context.
@@ -2099,11 +2071,11 @@ annotate_quit (void)
         }
 
       /* Destroy cairo object. */
-      destroy_cairo (annotation_data->annotation_cairo_context);
+      cairo_destroy (annotation_data->annotation_cairo_context);
 
       if (annotation_data->clapperboard_cairo_context)
         {
-          destroy_cairo (annotation_data->clapperboard_cairo_context);
+          cairo_destroy (annotation_data->clapperboard_cairo_context);
         }
 
       if (annotation_data->recordingstudio_options)
