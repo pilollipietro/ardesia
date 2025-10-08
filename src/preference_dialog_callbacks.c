@@ -122,12 +122,16 @@ on_preference_ok_button_clicked (GtkButton *buton, gpointer data)
       gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER (bg_color_obj), gdkcolor);
       rgba = gdkrgba_to_rgba (gdkcolor);
 
-      add_background_button (rgba, BACKGROUND_MODE_COLOR, NULL, rgba);
+      add_background_button (g_strdup (rgba),
+                             BACKGROUND_MODE_COLOR,
+                             NULL,
+                             g_strdup (rgba));
 
       /* Add chosen color to user configuration */
       background_config_add_color (rgba, rgba);
 
       g_free (gdkcolor);
+      g_free (rgba);
     }
   else
     {
@@ -164,13 +168,14 @@ on_preference_ok_button_clicked (GtkButton *buton, gpointer data)
               else
                 {
                   gchar *name = background_config_filename_to_label (filename);
-                  add_background_button (name,
+                  add_background_button (g_strdup (name),
                                          BACKGROUND_MODE_FILE,
-                                         filename,
+                                         g_strdup (filename),
                                          NULL);
                   /* Save chosen image to user configuration */
                   background_config_add_image (name, filename);
-
+		  g_free (name);
+		  g_free (filename);
                   fclose (stream);
                 }
             }

@@ -505,9 +505,12 @@ start_text_widget (GtkWidget *widget, gchar *color, gint thickness)
   text_data->color     = color;
   text_data->pen_width = (gdouble) thickness;
 
-  text_data->cr = create_new_context (
-      gtk_widget_get_allocated_width (widget),
-      gtk_widget_get_allocated_height (widget));
+  if (text_data->cr != NULL)
+    {
+      text_data->cr = create_new_context (
+          gtk_widget_get_allocated_width (widget),
+          gtk_widget_get_allocated_height (widget));
+    }
 
   init_text_widget (widget);
   annotation_data->is_text_editor_visible = TRUE;

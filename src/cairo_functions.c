@@ -161,7 +161,9 @@ create_new_context (int width, int height)
                                                          width,
                                                          height);
 
-  return cairo_create (surface);
+  cairo_t *cr = cairo_create (surface);
+  cairo_surface_destroy (surface);
+  return cr;
 }
 
 cairo_t *
@@ -183,6 +185,7 @@ create_copy_of_context (cairo_t *current_context)
       cairo_set_operator (dest_cr, CAIRO_OPERATOR_SOURCE);
       cairo_set_source_surface (dest_cr, source_surface, 0, 0);
       cairo_paint (dest_cr);
+      cairo_surface_destroy (dest_surface);
       return dest_cr;
     }
   return NULL;

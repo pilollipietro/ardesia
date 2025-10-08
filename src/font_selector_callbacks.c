@@ -60,7 +60,8 @@ on_font_selector_response (GtkDialog *dialog,
       font_config_save (annotation_data->font);
     }
 
-  gtk_widget_destroy (GTK_WIDGET (dialog));
+  //gtk_widget_destroy (GTK_WIDGET (dialog));
+  gtk_widget_hide (GTK_WIDGET (dialog));
 }
 
 /**

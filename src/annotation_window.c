@@ -1374,6 +1374,8 @@ annotate_add_savepoint (void)
 
   cairo_set_source_surface (cr, source_surface, 0, 0);
   cairo_paint (cr);
+  if (saved_surface)
+    cairo_surface_destroy (saved_surface);
 
   status = cairo_surface_write_to_png (saved_surface, savepoint->filename);
   if (status != CAIRO_STATUS_SUCCESS)
@@ -1398,8 +1400,6 @@ annotate_add_savepoint (void)
 cleanup:
   if (cr)
     cairo_destroy (cr);
-  if (saved_surface)
-    cairo_surface_destroy (saved_surface);
 
   if (savepoint)
     {
@@ -1448,13 +1448,15 @@ initialize_annotation_cairo_context (AnnotateData *data)
 
       annotation_data->annotation_cairo_context = cairo_create (surface);
 #else
-      if (background_data->cr == NULL)
+      int width  = gtk_widget_get_allocated_width (annotation_window);
+      int height = gtk_widget_get_allocated_height (annotation_window);
+      if (annotation_data->annotation_cairo_context == NULL)
         {
-          int width  = gtk_widget_get_allocated_width (annotation_window);
-          int height = gtk_widget_get_allocated_height (annotation_window);
-
           annotation_data->annotation_cairo_context =
               create_new_context (width, height);
+        }
+      if (background_data->cr == NULL)
+        {
           background_data->cr = create_new_context (width, height);
         }
 #endif
@@ -1707,36 +1709,45 @@ annotate_coord_dev_list_free (AnnotateDeviceData *devdata)
 void
 annotate_push_context (cairo_t *cr)
 {
-  cairo_save (annotation_data->annotation_cairo_context);
+  cairo_t *annotation_cairo_context =
+      annotation_data->annotation_cairo_context;
+
+  if (annotation_cairo_context == NULL)
+  {
+    g_warning ("Cannot push context on null annotation_cairo_context");
+    return;
+  }
+  cairo_save (annotation_cairo_context);
   cairo_surface_t *source_surface = (cairo_surface_t *) NULL;
   g_debug ("The text window content has been painted over the "
            "annotation window\n");
 
   /* this clears the current path from the cairo context */
-  cairo_new_path (annotation_data->annotation_cairo_context);
+  cairo_new_path (annotation_cairo_context);
   /* this gets the target surface for the cairo context */
   source_surface = cairo_get_target (cr);
 
-  cairo_set_operator (annotation_data->annotation_cairo_context,
+  cairo_set_operator (annotation_cairo_context,
                       CAIRO_OPERATOR_ADD);
-
+ 
   /*
    * Creates a pattern from surface at x,y on the context
    * at 0, left screen -> right screen, right screen disappears
    * at -1920, left screen -> disappears, right screen is good
    */
-  cairo_set_source_surface (annotation_data->annotation_cairo_context,
+  cairo_set_source_surface (annotation_cairo_context,
                             source_surface,
                             0,
                             0);
 
   /* paints the current source everywhere in clip region. */
-  cairo_paint (annotation_data->annotation_cairo_context);
+  cairo_paint (annotation_cairo_context);
 
   /* strokes the current path according to current line settings. */
-  cairo_stroke (annotation_data->annotation_cairo_context);
+  cairo_stroke (annotation_cairo_context);
 
-  cairo_restore (annotation_data->annotation_cairo_context);
+  cairo_restore (annotation_cairo_context);
+
   annotate_add_savepoint ();
 }
 
@@ -1831,36 +1842,6 @@ annotate_select_eraser (void)
   set_eraser_cursor (&annotation_data->cursor, annotate_get_thickness ());
 
   update_cursor ();
-}
-
-/**
- * annotate_unhide_cursor:
- *
- * Makes the custom drawing cursor visible if it was previously hidden.
- */
-void
-annotate_unhide_cursor (void)
-{
-  if (annotation_data->is_cursor_hidden)
-    {
-      update_cursor ();
-      annotation_data->is_cursor_hidden = FALSE;
-    }
-}
-
-/**
- * annotate_hide_cursor:
- *
- * Hides the custom drawing cursor, replacing it with an invisible one.
- */
-void
-annotate_hide_cursor (void)
-{
-  GtkWidget *annotation_window = get_annotation_window ();
-  gdk_window_set_cursor (gtk_widget_get_window (annotation_window),
-                         annotation_data->invisible_cursor);
-
-  annotation_data->is_cursor_hidden = TRUE;
 }
 
 /**
@@ -2055,6 +2036,14 @@ annotate_paint_context_free (AnnotatePaintContext *context)
     }
 }
 
+void
+destroy_text_config (TextConfig *cfg)
+{
+  if (cfg == NULL)
+    return;
+  g_free (cfg);
+}
+
 /**
  * annotate_quit:
  *
@@ -2084,6 +2073,12 @@ annotate_quit (void)
       destroy_background_data ();
     }
 
+  if (text_config)
+    {
+      destroy_text_config (text_config);
+      text_config = NULL;
+    }
+
   if (annotation_data)
     {
       annotation_config_save_state (annotation_data);
@@ -2097,14 +2092,14 @@ annotate_quit (void)
       disallocate_cursor ();
       cursors_main_quit ();
 
+      if (annotation_data->font != NULL)
+        {
+          pango_font_description_free (annotation_data->font);
+	  annotation_data->font = NULL;
+        }
+
       /* Destroy cairo object. */
       destroy_cairo (annotation_data->annotation_cairo_context);
-
-      if (annotation_data->invisible_cursor)
-        {
-          g_object_unref (annotation_data->invisible_cursor);
-          annotation_data->invisible_cursor = (GdkCursor *) NULL;
-        }
 
       if (annotation_data->clapperboard_cairo_context)
         {
@@ -2120,13 +2115,6 @@ annotate_quit (void)
         {
           gtk_widget_destroy (annotation_data->recordingstudio_window);
           annotation_data->recordingstudio_window = (GtkWidget *) NULL;
-        }
-
-      /* Free all. */
-      if (annotation_data->annotation_window)
-        {
-          gtk_widget_destroy (annotation_data->annotation_window);
-          annotation_data->annotation_window = (GtkWidget *) NULL;
         }
 
       remove_input_devices (annotation_data);
@@ -2177,6 +2165,12 @@ annotate_quit (void)
         {
           g_free (annotation_data->monitor);
           annotation_data->monitor = NULL;
+        }
+      /* Free all. */
+      if (annotation_data->annotation_window)
+        {
+          gtk_widget_destroy (annotation_data->annotation_window);
+          annotation_data->annotation_window = (GtkWidget *) NULL;
         }
     }
 }
@@ -2365,8 +2359,6 @@ create_annotation_data (void)
   annotation_data->roundify       = FALSE;
   annotation_data->old_paint_type = ANNOTATE_POINTER;
 
-  annotation_data->is_cursor_hidden = TRUE;
-
   annotation_data->default_pen = annotate_paint_context_new (ANNOTATE_PEN);
 
   annotation_data->default_eraser = annotate_paint_context_new (
@@ -2438,7 +2430,6 @@ annotate_init (Monitor *monitor)
   annotation_data->monitor = monitor;
 
   setup_input_devices (annotation_data);
-  allocate_invisible_cursor (&annotation_data->invisible_cursor);
 
   create_savepoint_dir ();
 }
@@ -2515,7 +2506,6 @@ annotation_window_button_press (GdkEventButton *ev, AnnotateData *data)
       return FALSE;
     }
 
-  annotate_unhide_cursor ();
 
   /* Acquires the grab capability. */
   initialize_annotation_cairo_context (data);
@@ -2623,8 +2613,6 @@ annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
       return FALSE;
     }
 #endif
-
-  annotate_unhide_cursor ();
 
   /* Only the first 5 buttons allowed. */
   if (! (ev->state & (GDK_BUTTON1_MASK | GDK_BUTTON2_MASK | GDK_BUTTON3_MASK |
@@ -2871,8 +2859,6 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
   cairo_stroke (data->annotation_cairo_context);
 
   annotate_add_savepoint ();
-
-  annotate_hide_cursor ();
 
   gtk_widget_queue_draw (annotation_data->annotation_window);
   return TRUE;

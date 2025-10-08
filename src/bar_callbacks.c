@@ -125,6 +125,7 @@ on_bar_quit (GtkToolButton *toolbutton, gpointer func_data)
 
   /* Quit the gtk engine. */
   gtk_main_quit ();
+
   return FALSE;
 }
 
@@ -617,6 +618,8 @@ resize_image_to_button (BackgroundButtonData *data, gint size)
   GdkPixbuf *pixbuf = gdk_pixbuf_get_from_surface (surface, x, y, w, h);
   output            = g_strdup_printf ("test_output%d.png", data->index);
   gdk_pixbuf_save (pixbuf, output, "png", &error, NULL);
+  g_free (output);
+
   if (error != NULL)
     {
       g_printerr ("%s\n", error->message);
@@ -637,6 +640,7 @@ resize_image_to_button (BackgroundButtonData *data, gint size)
   gtk_tool_button_set_icon_widget (GTK_TOOL_BUTTON (data->button),
                                    GTK_WIDGET (image));
 
+  g_object_unref (pixbuf);
   cairo_surface_destroy (surface);
   cairo_destroy (cr);
 }
@@ -716,7 +720,7 @@ add_background_button (gchar *label, gint mode, gchar *filename, gchar *color)
     }
   g_object_set_data_full (G_OBJECT (button),
                         "background-label",      /* key */
-                        g_strdup (label),        /* value */
+                        label,                   /* value */
                         g_free);                 /* destroy notify */
 
   if (g_slist_length (annotation_data->background_button_data) == 0)
@@ -794,12 +798,51 @@ add_background_button (gchar *label, gint mode, gchar *filename, gchar *color)
     }
 }
 
+/**
+ * background_button_data_free:
+ * @data: A pointer to a #BackgroundButtonData struct.
+ *
+ * GDestroyNotify function for freeing a BackgroundButtonData struct
+ * and its internally allocated strings.
+ */
+static void
+background_button_data_free (gpointer data)
+{
+  BackgroundButtonData *background_data = (BackgroundButtonData *) data;
+
+  if (background_data == NULL)
+    {
+      return;
+    }
+
+  if (background_data->filename != NULL)
+    {
+      g_free (background_data->filename);
+      background_data->filename = NULL;
+    }
+
+  if (background_data->color != NULL)
+    {
+      g_free (background_data->color);
+      background_data->color = NULL;
+    }
+
+  // NOTE: Do NOT free bdata->button. It's a GtkWidget and its
+  // lifecycle is managed by its parent container.
+
+  g_free (background_data);
+  background_data = NULL;
+}
+
 void
 on_background_selection_window_destroy (GtkWidget *object, gpointer user_data)
 {
   annotation_data->background_selection_window    = NULL;
   annotation_data->background_selection_container = NULL;
-  g_slist_free (annotation_data->background_button_data);
+
+  g_slist_free_full (annotation_data->background_button_data,
+		     background_button_data_free);
+
   annotation_data->background_button_data          = NULL;
   annotation_data->background_button_last_selected = BACKGROUND_NONE_SELECTED;
 }
@@ -827,10 +870,11 @@ load_backgrounds_from_config (void)
           if (hex)
             {
               g_debug ("Load background color %s in preference", hex);
-              add_background_button (color_keys[i],
+              add_background_button (g_strdup (color_keys[i]),
                                      BACKGROUND_MODE_COLOR,
                                      NULL,
                                      g_strdup (hex));
+	      g_free (hex);
             }
         }
       g_strfreev (color_keys);
@@ -847,7 +891,7 @@ load_backgrounds_from_config (void)
           if (path)
             {
               g_debug ("Load background image %s in preference", path);
-              add_background_button (image_keys[i],
+              add_background_button (g_strdup(image_keys[i]),
                                      BACKGROUND_MODE_FILE,
                                      g_strdup (path),
                                      NULL);
@@ -876,9 +920,9 @@ create_bar_preference_window (GtkWindow *parent)
   annotation_data->background_selection_window    = window;
   annotation_data->background_selection_container = GTK_WIDGET (box);
 
-  add_background_button ("transparent",
+  add_background_button (g_strdup ("transparent"),
                          BACKGROUND_MODE_NONE,
-                         TRANSPARENT_BACKGROUND_FILE,
+                         g_strdup (TRANSPARENT_BACKGROUND_FILE),
                          NULL);
 
   load_backgrounds_from_config ();

@@ -532,22 +532,6 @@ cursors_main (void)
 }
 
 /**
- * allocate_invisible_cursor:
- * @cursor: (out): A location to store the newly created invisible cursor.
- *
- * Creates a new, invisible cursor by wrapping the standard %GDK_BLANK_CURSOR.
- *
- * The object returned in @cursor has a reference count of 1 and must be
- * freed by the caller using g_object_unref().
- **/
-void
-allocate_invisible_cursor (GdkCursor **cursor)
-{
-  GdkDisplay *display = gdk_display_get_default ();
-  *cursor             = gdk_cursor_new_for_display (display, GDK_BLANK_CURSOR);
-}
-
-/**
  * set_pen_cursor:
  * @cursor: (out): A location to store the newly created pen cursor.
  * @thickness: The thickness of the pen, used for the cursor's size.
@@ -640,8 +624,9 @@ set_filler_cursor (GdkCursor **cursor, gchar *color)
 
   *cursor = gdk_cursor_new_from_pixbuf (gdk_display_get_default (),
                                         pixbuf,
-                                        gdk_pixbuf_get_width (pixbuf) - 1,
+                                        0,
                                         gdk_pixbuf_get_height (pixbuf) - 1);
+  g_object_unref (pixbuf);
 }
 
 /**

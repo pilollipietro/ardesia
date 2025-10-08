@@ -56,18 +56,20 @@ create_font_selector_window (GtkWindow *parent)
           gtk_font_chooser_set_font_desc (GTK_FONT_CHOOSER (font_dialog),
                                           annotation_data->font);
         }
-
-    g_signal_connect (font_dialog,
-                      "response",
-                      G_CALLBACK (on_font_selector_response),
-                      NULL);
-
-    g_signal_connect (font_dialog,
-                      "destroy",
-                      G_CALLBACK (on_font_selector_destroy),
-                      NULL);
+      
+      g_signal_connect (font_dialog,
+                        "response",
+                        G_CALLBACK (on_font_selector_response),
+                        NULL);
+      
+      g_signal_connect (font_dialog,
+                        "destroy",
+                        G_CALLBACK (on_font_selector_destroy),
+                        NULL);
 
       annotation_data->font_window = font_dialog;
+
+      g_object_unref (builder);
     }
 }
 
@@ -79,5 +81,8 @@ create_font_selector_window (GtkWindow *parent)
 void
 show_font_selector_window (void)
 {
-  gtk_widget_show_all (annotation_data->font_window);
+  if (annotation_data->font_window != NULL)
+  {
+    gtk_widget_show_all (annotation_data->font_window);
+  }
 }

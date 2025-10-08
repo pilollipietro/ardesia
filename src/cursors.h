@@ -46,8 +46,6 @@
 
 void cursors_main ();
 
-void allocate_invisible_cursor (GdkCursor **cursor);
-
 void set_pen_cursor (GdkCursor **cursor,
                      gdouble thickness,
                      gchar *color,

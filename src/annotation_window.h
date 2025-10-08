@@ -177,9 +177,6 @@ typedef struct
   /* Mouse cursor to be used. */
   GdkCursor *cursor;
 
-  /* Mouse invisible cursor. */
-  GdkCursor *invisible_cursor;
-
   /* List of the savepoint. */
   GSList *savepoint_list;
 
@@ -228,9 +225,6 @@ typedef struct
 
   /* Is the cursor grabbed. */
   gboolean is_grabbed;
-
-  /* Is the cursor hidden. */
-  gboolean is_cursor_hidden;
 
   /* Pen color. */
   gchar *color;

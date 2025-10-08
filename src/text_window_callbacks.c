@@ -454,6 +454,7 @@ handle_printable_char (char ch)
 
   /* Move cursor to the x step using the correct advance width */
   text_data->pos->x += char_info->text_width;
+  destroy_text_properties (char_info);
 }
 
 /**
