@@ -1347,7 +1347,9 @@ annotate_add_savepoint (void)
   cairo_set_source_surface (cr, source_surface, 0, 0);
   cairo_paint (cr);
   if (saved_surface)
-    cairo_surface_destroy (saved_surface);
+    {
+      cairo_surface_destroy (saved_surface);
+    }
 
   status = cairo_surface_write_to_png (saved_surface, savepoint->filename);
   if (status != CAIRO_STATUS_SUCCESS)
@@ -1371,7 +1373,9 @@ annotate_add_savepoint (void)
 
 cleanup:
   if (cr)
-    cairo_destroy (cr);
+    {
+      cairo_destroy (cr);
+    }
 
   if (savepoint)
     {
