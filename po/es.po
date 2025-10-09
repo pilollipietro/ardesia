@@ -2,21 +2,20 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Ardesia 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-04-30 12:25+0200\n"
+"POT-Creation-Date: 2025-10-09 23:58+0200\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Pilolli Pietro <pilolli.pietro@gmail.com>\n"
 "Language-Team: Ardesia Team <pilolli.pietro@gmail.com>\n"
-"Language: \n"
+"Language: es_ES\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Poedit-Language: Spanish\n"
-"X-Poedit-Country: SPAIN\n"
 "X-Poedit-SourceCharset: utf-8\n"
+"X-Generator: Poedit 3.4.2\n"
 
 #: ../desktop/crash_dialog.glade.h:1
 msgid "An error is occurred. Do you want send the crash report?"
-msgstr "Un error se produjo. Desea enviar el informe de accidente?"
+msgstr "Ha ocurrido un error. ¿Desea enviar el informe de error?"
 
 #: ../desktop/info_dialog.glade.h:1
 msgid ""
@@ -55,34 +54,37 @@ msgstr ""
 "\n"
 "    Ardesia -- un programa para pintar en la pantalla\n"
 "    con este programa puedes jugar, dibujar, aprender y enseñar\n"
-"    Este programa fue escrito como un soneto de la libertad\n"
-"    Creemos en la libertad y en la libertad de enseñanza\n"
+"    Este programa fue escrito como un soneto a la libertad\n"
+"    Creemos en la libertad y en la libertad de educación\n"
 " \n"
 "    Copyright (C) 2009 Pilolli Pietro <pilolli.pietro@gmail.com>\n"
 " \n"
-"    This program is free software; you can redistribute it and/or modify\n"
-"    it under the terms of the GNU General Public License as published by\n"
-"    the Free Software Foundation; either version 2 of the License, or\n"
-"    (at your option) any later version.\n"
+"    Este programa es software libre; usted puede redistribuirlo y/o "
+"modificarlo\n"
+"    bajo los términos de la Licencia Pública General de GNU según es "
+"publicada por\n"
+"    la Free Software Foundation; ya sea la versión 2 de la Licencia, o\n"
+"    (a su elección) cualquier versión posterior.\n"
 " \n"
-"    This program is distributed in the hope that it will be useful,\n"
-"    but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-"    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
-"    GNU General Public License for more details.\n"
+"    Este programa se distribuye con la esperanza de que sea útil,\n"
+"    pero SIN NINGUNA GARANTÍA; ni siquiera la garantía implícita de\n"
+"    COMERCIALIZACIÓN o IDONEIDAD PARA UN PROPÓSITO PARTICULAR. Vea la\n"
+"    Licencia Pública General de GNU para más detalles.\n"
 " \n"
-"    You should have received a copy of the GNU General Public License\n"
-"    along with this program; if not, write to the Free Software\n"
-"    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, "
-"USA.\n"
+"    Usted debería haber recibido una copia de la Licencia Pública General de "
+"GNU\n"
+"    junto con este programa; si no, escriba a la Free Software\n"
+"    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, EE."
+"UU.\n"
 "   "
 
 #: ../desktop/preference_dialog.glade.h:1
 msgid "Choose the background"
-msgstr "Elegir de fondo"
+msgstr "Elegir el fondo"
 
 #: ../desktop/preference_dialog.glade.h:2
 msgid "image"
-msgstr "immagine"
+msgstr "imagen"
 
 #: ../desktop/preference_dialog.glade.h:3
 msgid "background color"
@@ -94,23 +96,27 @@ msgstr "Elegir color de fondo"
 
 #: ../desktop/preference_dialog.glade.h:5
 msgid "none"
-msgstr "ninguna"
+msgstr "ninguno"
 
 #: ../desktop/project_dialog.glade.h:1
 msgid "Choose a project name"
-msgstr "Elegir el nombre del proyecto"
+msgstr "Elegir un nombre de proyecto"
 
 #: ../desktop/share_confirmation_dialog.glade.h:1
 msgid "Do you want to share your work by email?"
-msgstr "Quieres compartir tu trabajo por correo electronico?"
+msgstr "¿Quiere compartir su trabajo por correo electrónico?"
 
-#: ../desktop/vertical_bar.glade.h:1
-msgid "Thickness"
-msgstr "Espesor"
+#: ../desktop/font_selector.glade.h:1
+msgid "Choose Font"
+msgstr "Elegir Fuente"
+
+#: ../desktop/vertical_bar.glade.h:1 ../src/bar_callbacks.c:404
+msgid "Hide Annotations"
+msgstr "Ocultar Anotaciones"
 
 #: ../desktop/vertical_bar.glade.h:2
-msgid "Drawing Mode"
-msgstr "Modo del dibujo"
+msgid "Hide"
+msgstr "Ocultar"
 
 #: ../desktop/vertical_bar.glade.h:3
 msgid "Undo"
@@ -122,128 +128,217 @@ msgstr "Rehacer"
 
 #: ../desktop/vertical_bar.glade.h:5
 msgid "Clear"
-msgstr "Limpio"
+msgstr "Limpiar"
 
 #: ../desktop/vertical_bar.glade.h:6
 msgid "Mouse"
-msgstr "Raton"
+msgstr "Ratón"
 
 #: ../desktop/vertical_bar.glade.h:7
-msgid "Filler"
-msgstr "Relleno"
+msgid "Default Pointer"
+msgstr "Puntero Predeterminado"
 
 #: ../desktop/vertical_bar.glade.h:8
-msgid "Arrow"
-msgstr "Flecha"
+msgid "Pencil"
+msgstr "Lápiz"
 
 #: ../desktop/vertical_bar.glade.h:9
-msgid "Insert Text"
-msgstr "Insertar tesxto"
-
-#: ../desktop/vertical_bar.glade.h:10
 msgid "Highlighter"
 msgstr "Resaltador"
 
+#: ../desktop/vertical_bar.glade.h:10
+msgid "Insert Text"
+msgstr "Insertar Texto"
+
 #: ../desktop/vertical_bar.glade.h:11
-msgid "Eraser"
-msgstr "Goma de borrar"
+msgid "Text"
+msgstr "Texto"
 
 #: ../desktop/vertical_bar.glade.h:12
-msgid "Pencil"
-msgstr "Lapiz"
+msgid "Arrow"
+msgstr "Flecha"
 
 #: ../desktop/vertical_bar.glade.h:13
-msgid "Blue"
-msgstr "Azul"
+msgid "Filler"
+msgstr "Relleno"
 
 #: ../desktop/vertical_bar.glade.h:14
-msgid "Green"
-msgstr "Verde"
+msgid "Bucket Fill"
+msgstr "Cubo de Pintura"
 
 #: ../desktop/vertical_bar.glade.h:15
-msgid "Yellow"
-msgstr "Amarillo"
+msgid "Eraser"
+msgstr "Goma de Borrar"
 
 #: ../desktop/vertical_bar.glade.h:16
+msgid "Drawing Mode"
+msgstr "Modo de Dibujo"
+
+#: ../desktop/vertical_bar.glade.h:17
+msgid "Align to Shape"
+msgstr "Ajustar a la Forma"
+
+#: ../desktop/vertical_bar.glade.h:18
+msgid "Thickness"
+msgstr "Grosor"
+
+#: ../desktop/vertical_bar.glade.h:19
 msgid "Red"
 msgstr "Rojo"
 
-#: ../desktop/vertical_bar.glade.h:17
+#: ../desktop/vertical_bar.glade.h:20
+msgid "Green"
+msgstr "Verde"
+
+#: ../desktop/vertical_bar.glade.h:21
+msgid "Blue"
+msgstr "Azul"
+
+#: ../desktop/vertical_bar.glade.h:22
+msgid "Yellow"
+msgstr "Amarillo"
+
+#: ../desktop/vertical_bar.glade.h:23
 msgid "White"
 msgstr "Blanco"
 
-#: ../desktop/vertical_bar.glade.h:18
+#: ../desktop/vertical_bar.glade.h:24
 msgid "Color Chooser"
-msgstr "Elegir un color"
+msgstr "Selector de Color"
 
-#: ../desktop/vertical_bar.glade.h:19
-msgid "Preferences"
-msgstr "Preferencias"
+#: ../desktop/vertical_bar.glade.h:25
+msgid "Select Color"
+msgstr "Seleccionar Color"
 
-#: ../desktop/vertical_bar.glade.h:20
+#: ../desktop/vertical_bar.glade.h:26
 msgid "Screenshot"
-msgstr "Captura de pantalla"
+msgstr "Captura de Pantalla"
 
-#: ../desktop/vertical_bar.glade.h:21
-msgid "Add to pdf"
-msgstr "Anadir a pdf"
-
-#: ../desktop/vertical_bar.glade.h:22 ../src/bar_callbacks.c:664
+#: ../desktop/vertical_bar.glade.h:27
 msgid "Record"
 msgstr "Grabar"
 
-#: ../desktop/vertical_bar.glade.h:23
+#: ../desktop/vertical_bar.glade.h:28
+msgid "Capture Screen"
+msgstr "Capturar Pantalla"
+
+#: ../desktop/vertical_bar.glade.h:29
+msgid "Add to pdf"
+msgstr "Añadir a PDF"
+
+#: ../desktop/vertical_bar.glade.h:30
+msgid "Save to PDF"
+msgstr "Guardar en PDF"
+
+#: ../desktop/vertical_bar.glade.h:31
+msgid "Background"
+msgstr "Fondo"
+
+#: ../desktop/vertical_bar.glade.h:32
+msgid "Fonts"
+msgstr "Fuentes"
+
+#: ../desktop/vertical_bar.glade.h:33
 msgid "Info"
-msgstr "Info"
+msgstr "Información"
 
-#: ../desktop/vertical_bar.glade.h:24
-msgid "info"
-msgstr "informacion"
+#: ../desktop/vertical_bar.glade.h:34
+msgid "About"
+msgstr "Acerca de"
 
-#: ../desktop/vertical_bar.glade.h:25
+#: ../desktop/vertical_bar.glade.h:35
 msgid "Quit"
-msgstr "Cerrar"
+msgstr "Salir"
 
-#: ../src/ardesia.c:87
-msgid "In order to run Ardesia you need to enable a composite manager"
-msgstr "Para ejecutar Ardesia necesita habilitar el administrador compuestos"
+#: ../desktop/recordingstudio_window.glade.h:1
+msgid "Recording Studio"
+msgstr "Estudio de Grabación"
 
-#. Set the stop tool-tip.
-#: ../src/bar_callbacks.c:698
+#: ../desktop/recordingstudio_window.glade.h:2
+msgid "Record\n"
+msgstr "Grabar\n"
+
+#: ../desktop/recordingstudio_window.glade.h:4
 msgid "Stop"
 msgstr "Detener"
 
-#. Open colour widget.
-#: ../src/color_selector.c:55
-msgid "Changing colour"
-msgstr "Cambiar el color"
+#: ../desktop/recordingstudio_window.glade.h:5
+msgid "_New"
+msgstr "_Nuevo"
+
+#: ../desktop/recordingstudio_window.glade.h:6
+msgid "_Clapperboard"
+msgstr "_Claqueta"
+
+#: ../desktop/recordingstudio_window.glade.h:7
+msgid "Show Cursor"
+msgstr "Mostrar Cursor"
+
+#: ../src/ardesia.c:143
+msgid "In order to run Ardesia you need to enable a composite manager"
+msgstr "Para ejecutar Ardesia necesita habilitar un gestor de composición"
+
+#: ../src/bar_callbacks.c:373
+msgid "Show Annotations"
+msgstr "Mostrar Anotaciones"
+
+#. Put the show icon.
+#: ../src/bar_callbacks.c:376
+msgid "show"
+msgstr "mostrar"
+
+#. Put the hide icon.
+#: ../src/bar_callbacks.c:407
+msgid "hide"
+msgstr "ocultar"
+
+#: ../src/bar_callbacks.c:561
+msgid "Remove"
+msgstr "Eliminar"
+
+#: ../src/bar_callbacks.c:913
+msgid "Backgrounds"
+msgstr "Fondos"
+
+#: ../src/bar_callbacks.c:937
+msgid "Add background"
+msgstr "Añadir fondo"
+
+#: ../src/color_selector.c:68
+msgid "Changing color"
+msgstr "Cambiando color"
 
 #: ../src/preference_dialog.c:46
 msgid "Fail to open the file: Permission denied"
-msgstr "No puedo abrir el fichero: Permiso negado"
+msgstr "Fallo al abrir el archivo: Permiso denegado"
 
-#: ../src/recorder.c:174
-msgid ""
-"In order to record with Ardesia you must install the vlc program and add it "
-"to the PATH environment variable"
-msgstr "Para grabar con Ardesia debe instalar el programa vlc y anadir al path"
-
-#: ../src/recorder.c:201
+#: ../src/recorder.c:333
 msgid "Save video as ogv"
-msgstr "Guardar el vídeo como ogv"
+msgstr "Guardar vídeo como OGV"
 
-#: ../src/recorder.c:213 ../src/saver.c:115
+#: ../src/recorder.c:345
 msgid "Choose a file"
 msgstr "Elegir un archivo"
 
-#: ../src/saver.c:45
-msgid "File Exists. Overwrite"
-msgstr "El archivo existe. Sobrescribir"
-
-#: ../src/saver.c:70
+#: ../src/saver.c:78
 msgid "Couldn't open file for writing: Permission denied"
-msgstr "No puedo abrir el fichero: Permiso negado"
+msgstr "No se pudo abrir el archivo para escritura: Permiso denegado"
 
-#: ../src/saver.c:103
-msgid "Export as pdf"
-msgstr "Exportar como PDF"
+#~ msgid "Preferences"
+#~ msgstr "Preferencias"
+
+#~ msgid "info"
+#~ msgstr "información"
+
+#~ msgid ""
+#~ "In order to record with Ardesia you must install the vlc program and add "
+#~ "it to the PATH environment variable"
+#~ msgstr ""
+#~ "Para grabar con Ardesia debe instalar el programa VLC y añadirlo a la "
+#~ "variable de entorno PATH"
+
+#~ msgid "File Exists. Overwrite"
+#~ msgstr "El archivo ya existe. ¿Sobrescribir?"
+
+#~ msgid "Export as pdf"
+#~ msgstr "Exportar como PDF"
