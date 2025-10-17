@@ -124,11 +124,7 @@ background_config_get_image (const gchar *key)
 gboolean
 background_config_save (GKeyFile *kf)
 {
-  /*
-   * For writes ensure the user file exists first (this will copy system
-   * config to the user's location if necessary), then write the content.
-   */
-  gchar *usrfile = get_user_file ();
+  gchar *usrfile = get_user_config_file ();
   if (usrfile == NULL)
     {
       g_key_file_unref (kf);
@@ -323,6 +319,12 @@ background_config_restore_last_background (void)
 
   GKeyFile           *kf = user_config_load_keyfile ();
   BackgroundRestored *br = g_new0 (BackgroundRestored, 1);
+  if (last_bg == NULL)
+    {
+      br->type = BACKGROUND_RESTORED_NONE;
+      br->value = NULL;
+      return br;
+    }
 
   /* check colors section */
   if (g_key_file_has_key (kf, "colors", last_bg, NULL))
@@ -337,8 +339,8 @@ background_config_restore_last_background (void)
     }
   else
     {
-      br->type  = BACKGROUND_RESTORED_NONE;
-      br->value = NULL;
+      br->type  = BACKGROUND_RESTORED_COLOR;
+      br->value = g_strdup (last_bg);
     }
 
   g_free (last_bg);

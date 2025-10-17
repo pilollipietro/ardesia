@@ -163,7 +163,7 @@ annotation_config_save_state (AnnotateData *data)
   if (! data)
     return;
 
-  gchar *userfile = get_user_file (); /* ensures user file exists */
+  gchar *userfile = get_user_config_file ();
   if (userfile == NULL)
     return;
 

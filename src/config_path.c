@@ -61,21 +61,6 @@ get_system_config_file (void)
 }
 
 /**
- * get_user_config_file:
- *
- * Returns the full path to the user-specific configuration file.
- *
- * Returns: (transfer full): a newly-allocated string containing the path,
- * which must be freed with g_free().
- **/
-gchar *
-get_user_config_file (void)
-{
-  const gchar *user_config_dir = g_get_user_config_dir ();
-  return g_build_filename (user_config_dir, USER_CONFIG_BASENAME, NULL);
-}
-
-/**
  * get_config_file:
  *
  * Returns the configuration file path to be used for reading. If the user
@@ -106,19 +91,19 @@ get_config_file (void)
 }
 
 /**
- * get_user_file:
+ * get_user_config_file:
  *
- * Ensures that the user configuration file exists (creating it from the
- * system configuration if necessary) and returns its path.
+ * Returns the full path to the user-specific configuration file;
+ * This ensure a user config exists (copy from system if needed).
  *
- * Returns: (transfer full): a newly-allocated string containing the user
- * configuration file path.
+ * Returns: (transfer full): a newly-allocated string containing the path,
+ * which must be freed with g_free().
  **/
 gchar *
-get_user_file (void)
+get_user_config_file (void)
 {
   /* Ensure ~/.config/ardesiarc exists (the function will copy system config
    * into the user location if appropriate). */
   user_config_ensure_file ();
-  return get_user_config_file ();
+  return g_build_filename (g_get_user_config_dir (), USER_CONFIG_BASENAME, NULL);
 }

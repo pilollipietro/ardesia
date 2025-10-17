@@ -99,7 +99,7 @@ font_config_save (const PangoFontDescription *font_desc)
   if (font_desc == NULL)
     return;
 
-  gchar *user = get_user_file (); /* ensures user file exists */
+  gchar *user = get_user_config_file ();
   if (user == NULL)
     return;
 

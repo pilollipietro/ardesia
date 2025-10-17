@@ -1,9 +1,10 @@
 [colors]
+transparent=00000000
 black=000000ff
 white=ffffffff
 
 [images]
-paper=@prefix@/share/ardesia/ui/backgrounds/notebook_paper.png
+notebook_paper=@prefix@/share/ardesia/ui/backgrounds/notebook_paper.png
 
 [background]
 current_background=transparent
