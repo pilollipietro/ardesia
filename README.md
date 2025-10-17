@@ -120,7 +120,7 @@ Button explanation
     it transforms the open path in broken lines.
   * Rounder: it rounds your sketch; 
     it transforms the closed path in ellipses or smoothed closed path,
-    it transforms the open path in smoothed lines with bezier spline
+    it transforms the open path in smoothed lines with spline
 * Filler: it fills the contiguos area with the selected colour
 * Arrow: it puts an arrow at the end of the line sketched
 * Text: insert a text annotation;

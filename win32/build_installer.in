@@ -45,8 +45,6 @@ cp /mingw/bin/libgio-2.0-0.dll $DESTDIR/bin
 cp /mingw/bin/libglib-2.0-0.dll $DESTDIR/bin
 cp /mingw/bin/libgmodule-2.0-0.dll $DESTDIR/bin
 cp /mingw/bin/libgobject-2.0-0.dll $DESTDIR/bin
-cp /mingw/bin/libgsl-0.dll $DESTDIR/bin
-cp /mingw/bin/libgslcblas-0.dll $DESTDIR/bin
 cp /mingw/bin/libgthread-2.0-0.dll $DESTDIR/bin
 cp /mingw/bin/libgtk-win32-2.0-0.dll $DESTDIR/bin
 cp /mingw/bin/libpango-1.0-0.dll $DESTDIR/bin

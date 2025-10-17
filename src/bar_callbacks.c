@@ -422,7 +422,7 @@ on_bar_recorder_activate (GtkToolButton *toolbutton, gpointer func_data)
       if (annotation_data->recordingstudio_options == NULL)
         {
           annotation_data->recordingstudio_options =
-            g_malloc ((gsize) sizeof (RecordingStudioData));
+            g_malloc0 ((gsize) sizeof (RecordingStudioData));
         }
 
       // create new window  /* Initialize the main window. */
@@ -841,7 +841,7 @@ on_background_selection_window_destroy (GtkWidget *object, gpointer user_data)
   annotation_data->background_selection_container = NULL;
 
   g_slist_free_full (annotation_data->background_button_data,
-		     background_button_data_free);
+                     background_button_data_free);
 
   annotation_data->background_button_data          = NULL;
   annotation_data->background_button_last_selected = BACKGROUND_NONE_SELECTED;
@@ -874,7 +874,7 @@ load_backgrounds_from_config (void)
                                      BACKGROUND_MODE_COLOR,
                                      NULL,
                                      g_strdup (hex));
-	      g_free (hex);
+              g_free (hex);
             }
         }
       g_strfreev (color_keys);

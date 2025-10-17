@@ -284,7 +284,25 @@ draw_character (cairo_t *cr, CharInfo *char_info)
       cairo_restore (cr);
       g_object_unref (layout);
 
-      gtk_widget_queue_draw (annotation_data->annotation_window);
+      /*
+       * Invalidate the character's bounding box to trigger a redraw
+       * only for the modified area.
+       */
+      GtkWidget *annotation_window = annotation_data->annotation_window;
+      gint dirty_x, dirty_y, dirty_width, dirty_height;
+
+      dirty_x = (gint) (char_info->x + ink_rect.x);
+      dirty_y = (gint) (char_info->y -
+                        (gdouble) char_info->baseline / PANGO_SCALE +
+                        ink_rect.y);
+      dirty_width = ink_rect.width;
+      dirty_height = ink_rect.height;
+
+      gtk_widget_queue_draw_area (annotation_window,
+                                  dirty_x,
+                                  dirty_y,
+                                  dirty_width,
+                                  dirty_height);
     }
 }
 
@@ -386,17 +404,40 @@ delete_character (void)
           origin_x + ink_rect.x - (visual_thickness / 2.0) - padding;
       gdouble rect_y =
           origin_y + ink_rect.y - (visual_thickness / 2.0) - padding;
-      gdouble rect_w =
+      gdouble rect_width =
           (gdouble) ink_rect.width + visual_thickness + (padding * 2);
-      gdouble rect_h =
+      gdouble rect_height =
           (gdouble) ink_rect.height + visual_thickness + (padding * 2);
 
       /* 5. Clear only this exact, calculated rectangle. */
-      cairo_rectangle (text_data->cr, rect_x, rect_y, rect_w, rect_h);
+      cairo_rectangle (text_data->cr, rect_x, rect_y, rect_width, rect_height);
       cairo_fill (text_data->cr);
 
       cairo_restore (text_data->cr);
       g_object_unref (layout);
+
+      GtkWidget *annotation_window = annotation_data->annotation_window;
+
+      gtk_widget_queue_draw_area (annotation_window,
+                                  (gint)rect_x,
+                                  (gint)rect_y,
+                                  (gint)rect_width,
+                                  (gint)rect_height);
+
+      gint dirty_x, dirty_y, dirty_width, dirty_height;
+
+      dirty_x = char_info->x + ink_rect.x;
+      dirty_y = (char_info->y -
+                 (gdouble) char_info->baseline / PANGO_SCALE +
+                 ink_rect.y);
+      dirty_width  = ink_rect.width;
+      dirty_height = ink_rect.height;
+
+      gtk_widget_queue_draw_area (annotation_window,
+                                  (gint)dirty_x,
+                                  (gint)dirty_y,
+                                  (gint)dirty_width,
+                                  (gint)dirty_height);
     }
 
   /* Reset cursor position to where the deleted character was */
@@ -454,7 +495,6 @@ handle_printable_char (char ch)
 
   /* Move cursor to the x step using the correct advance width */
   text_data->pos->x += char_info->text_width;
-  destroy_text_properties (char_info);
 }
 
 /**

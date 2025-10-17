@@ -158,7 +158,18 @@ blink_cursor (gpointer data)
         }
 
       cairo_restore (cr);
-      gtk_widget_queue_draw (annotation_data->annotation_window);
+        GtkWidget *annotation_window = get_annotation_window ();
+	
+      gint dirty_x      = (gint) text_data->pos->x - 1;
+      gint dirty_y      = (gint) top_y - 1;
+      gint dirty_width  = (gint) width + 2;
+      gint dirty_height = (gint) height + 2;
+
+      gtk_widget_queue_draw_area (annotation_window,
+                                  dirty_x,
+                                  dirty_y,
+                                  dirty_width,
+                                  dirty_height);
     }
   return TRUE;
 }
@@ -507,10 +518,13 @@ start_text_widget (GtkWidget *widget, gchar *color, gint thickness)
 
   if (text_data->cr != NULL)
     {
-      text_data->cr = create_new_context (
-          gtk_widget_get_allocated_width (widget),
-          gtk_widget_get_allocated_height (widget));
+      cairo_destroy (text_data->cr);
+      text_data->cr=NULL;
     }
+
+  text_data->cr = create_new_context (
+      gtk_widget_get_allocated_width (widget),
+      gtk_widget_get_allocated_height (widget));
 
   init_text_widget (widget);
   annotation_data->is_text_editor_visible = TRUE;

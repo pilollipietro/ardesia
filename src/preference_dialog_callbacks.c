@@ -174,8 +174,8 @@ on_preference_ok_button_clicked (GtkButton *buton, gpointer data)
                                          NULL);
                   /* Save chosen image to user configuration */
                   background_config_add_image (name, filename);
-		  g_free (name);
-		  g_free (filename);
+                  g_free (name);
+                  g_free (filename);
                   fclose (stream);
                 }
             }

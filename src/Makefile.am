@@ -32,8 +32,8 @@ ardesia_SOURCES = \
 	background_window.h                       \
         broken.c                                  \
 	broken.h                                  \
-        bezier_spline.c                           \
-	bezier_spline.h                           \
+        spline.c                                  \
+	spline.h                                  \
         crash_dialog.c                            \
 	cairo_functions.c                         \
 	cairo_functions.h                         \

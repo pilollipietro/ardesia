@@ -73,8 +73,25 @@ fill (AnnotateData *annotation_data,
         {
           g_debug ("found closed path to fill");
           cairo_set_source_rgba (cr, fr, fg, fb, fa);
-          cairo_fill (cr);
+	  gdouble padding = 2.0;
 
+          gdouble x1, y1, x2, y2;
+	  cairo_path_extents (cr, &x1, &y1, &x2, &y2);
+
+	  x1 -= padding;
+	  y1 -= padding;
+	  x2 += padding;
+	  y2 += padding;
+
+	  gtk_widget_queue_draw_area (
+	      GTK_WIDGET (annotation_data->annotation_window),
+              (int)x1,
+	      (int)y1,
+              (int)(x2 - x1),
+              (int)(y2 - y1)
+	  );
+
+          cairo_fill (cr);
           return;
         }
     }

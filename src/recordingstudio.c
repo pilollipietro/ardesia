@@ -208,7 +208,106 @@ move_cursor_window (gpointer data)
     }
 }
 
-void draw_video_cursor (cairo_t *cr, GtkWidget *widget);
+/*
+ * Draw the cursor with animated rings based on the current step.
+ * Chooses a color that contrasts with the background.
+ *
+ * @param cr     Cairo context to draw on.
+ * @param widget GTK widget that represents the drawing area.
+ */
+void
+draw_video_cursor (cairo_t *cr, GtkWidget *widget)
+{
+  if (!annotation_data->is_cursor_visible)
+    return;
+
+  /* Get mouse position on the desktop */
+  int x, y;
+  get_desktop_mouse_location (&x, &y);
+
+  /* Capture a small 16x16 area around the cursor */
+  int size = 16;
+  GdkWindow *root_win = gdk_get_default_root_window ();
+  GdkPixbuf *pb = gdk_pixbuf_get_from_window (root_win,
+                                              x - size/2,
+                                              y - size/2,
+                                              size,
+                                              size);
+  if (!pb)
+    return;
+
+  /* Compute average pixel brightness to choose cursor color */
+  int width = gdk_pixbuf_get_width (pb);
+  int height = gdk_pixbuf_get_height (pb);
+  int rowstride = gdk_pixbuf_get_rowstride (pb);
+  int n_channels = gdk_pixbuf_get_n_channels (pb);
+  unsigned char *pixels = gdk_pixbuf_get_pixels (pb);
+  int sum = 0;
+
+  for (int j = 0; j < height; j++)
+    {
+      unsigned char *p = pixels + j*rowstride;
+      for (int i = 0; i < width; i++)
+        {
+          sum += p[0] + p[1] + p[2]; /* ignore alpha */
+          p += n_channels;
+        }
+    }
+  int avg_pixel = sum / (width * height * 3);
+
+  /* Determine contrast color */
+  gint r = 0, g = 0, b = 0;
+  if (avg_pixel < 128)
+    {
+      /* dark background → light cursor */
+      r = 0; g = 1; b = 0;
+    }
+  else
+    {
+      /* light background → dark cursor */
+      r = 1; g = 1; b = 0;
+    }
+
+  /* Center of the widget */
+  gint w = gtk_widget_get_allocated_width (widget);
+  gint h = gtk_widget_get_allocated_height (widget);
+
+  /* Clear previous cursor */
+  cairo_set_source_rgba (cr, 0, 0, 0, 0);
+  cairo_paint (cr);
+
+  /* Draw main cursor circle */
+  cairo_set_line_width (cr, 1);
+  cairo_set_source_rgb (cr, r, g, b);
+  cairo_translate (cr, w/2, h/2);
+  cairo_arc (cr, 0, 0, 5, 0, 2*M_PI);
+  cairo_stroke_preserve (cr);
+  cairo_fill (cr);
+
+  /* Draw animated rings based on cursor_step */
+  int step = annotation_data->cursor_step / 10;
+  for (int i = 1; i <= step; i++)
+    {
+      cairo_set_line_width (cr, 2);
+      cairo_set_source_rgb (cr, r, g, b);
+      cairo_arc (cr, 0, 0, 5 + i*5, 0, 2*M_PI);
+      cairo_stroke (cr);
+    }
+
+  /* Update step for next frame */
+  annotation_data->cursor_step = (annotation_data->cursor_step + 1) % 60;
+
+  /* Compute bounding box for the cursor */
+  int cursor_radius = 20;
+  int draw_x = (w / 2) - cursor_radius;
+  int draw_y = (h / 2) - cursor_radius;
+  int draw_size = 2 * cursor_radius;
+
+  /* Queue redraw only for the bounding box */
+  gtk_widget_queue_draw_area (widget, draw_x, draw_y, draw_size, draw_size);
+
+  g_object_unref (pb);
+}
 
 /**
  * Called by Gtk on draw event for cursor window
@@ -280,134 +379,6 @@ create_cursor_window (void)
 
   setup_transparency (window);
   return window;
-}
-
-/*
- * Draw the cursor as per the current step
- * @param cr     [description]
- * @param widget [description]
- */
-void
-draw_video_cursor (cairo_t *cr, GtkWidget *widget)
-{
-  if (annotation_data->is_cursor_visible == FALSE)
-    {
-      return;
-    }
-
-  /*
-   * Take a screen grab around where the mouse is
-   * check to see if the pixel is nearer to white than black
-   * change color accordingly
-   */
-  int x, y;
-  get_desktop_mouse_location (&x, &y);
-  GdkWindow *root_win = gdk_get_default_root_window ();
-  cairo_surface_t *surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-                                                         32,
-                                                         32);
-
-  GdkPixbuf *pb = gdk_pixbuf_get_from_window (root_win, 
-                                              x - 16,
-                                              y - 16,
-                                              32,
-                                              32);
-  cairo_t   *desktop = cairo_create (surface);
-  gdk_cairo_set_source_pixbuf (desktop, pb, 0, 0);
-  cairo_paint (desktop);
-
-  /* average over all pixels */
-  unsigned char *pixels    = cairo_image_surface_get_data (surface);
-  /* gives back 128 = 32 pixels * 4 bytes each */
-  int            stride    = cairo_image_surface_get_stride (surface);
-  gint           avg_pixel = 0;
-  for (int ii = 0; ii < 32; ii++)
-    {
-      for (int jj = 0; jj < stride; jj++)
-        {
-          if (jj % 4 < 3)
-            { // ignore alpha channel
-              avg_pixel += pixels[(ii * 32) + jj];
-            }
-        }
-    }
-  avg_pixel /= (stride * 32);
-  gint white = 255;
-  gint r = 0, g = 0, b = 0;
-  if (white - avg_pixel > avg_pixel)
-    {
-      // nearer to black
-      r = 1;
-      g = 1;
-      b = 0;
-    }
-  else
-    {
-      // nearer to white
-      r = 0;
-      g = 1;
-      b = 0;
-    }
-
-  gint width  = gtk_widget_get_allocated_width (widget);
-  gint height = gtk_widget_get_allocated_width (widget);
-  // cursor step increments to provide user with an animation
-  cairo_set_source_rgba (cr, 0, 0, 0, 0);
-  cairo_paint (cr);
-
-  cairo_set_line_width (cr, 1);
-  cairo_set_source_rgb (cr, r, g, b);
-  cairo_translate (cr, width / 2, height / 2);
-  cairo_arc (cr, 0, 0, 5, 0, 2 * M_PI);
-  cairo_stroke_preserve (cr);
-  cairo_fill (cr);
-
-  // now we draw lines depending on the step
-  switch ((gint) (annotation_data->cursor_step / 10))
-    {
-    case 0:
-      break;
-    case 1:
-    case 5:
-      // 1 line
-      cairo_set_line_width (cr, 2);
-      cairo_set_source_rgb (cr, r, g, b);
-      cairo_arc (cr, 0, 0, 10, 0, 2 * M_PI);
-      cairo_stroke (cr);
-      break;
-    case 2:
-    case 4:
-      cairo_set_line_width (cr, 2);
-      cairo_set_source_rgb (cr, r, g, b);
-      cairo_arc (cr, 0, 0, 10, 0, 2 * M_PI);
-      cairo_stroke (cr);
-
-      cairo_set_line_width (cr, 2);
-      cairo_set_source_rgb (cr, r, g, b);
-      cairo_arc (cr, 0, 0, 15, 0, 2 * M_PI);
-      cairo_stroke (cr);
-      break;
-    case 3:
-      cairo_set_line_width (cr, 2);
-      cairo_set_source_rgb (cr, r, g, b);
-      cairo_arc (cr, 0, 0, 10, 0, 2 * M_PI);
-      cairo_stroke (cr);
-
-      cairo_set_line_width (cr, 2);
-      cairo_set_source_rgb (cr, r, g, b);
-      cairo_arc (cr, 0, 0, 15, 0, 2 * M_PI);
-      cairo_stroke (cr);
-
-      cairo_set_line_width (cr, 2);
-      cairo_set_source_rgb (cr, r, g, b);
-      cairo_arc (cr, 0, 0, 20, 0, 2 * M_PI);
-      cairo_stroke (cr);
-      break;
-    }
-  annotation_data->cursor_step++;
-  annotation_data->cursor_step = annotation_data->cursor_step % 60;
-
-  gtk_widget_queue_draw (widget);
 }
 
 G_MODULE_EXPORT void

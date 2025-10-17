@@ -26,6 +26,156 @@
 #include "bar.h"
 #include "utils.h"
 
+/**
+ * get_perpendicular_distance:
+ * @p: The point to check.
+ * @p1: The start point of the line segment.
+ * @p2: The end point of the line segment.
+ *
+ * Helper for Douglas-Peucker. Calculates the perpendicular distance of a
+ * point from the line segment connecting two other points.
+ *
+ * Returns: The perpendicular distance.
+ */
+static gdouble
+get_perpendicular_distance (AnnotatePoint *p,
+                            AnnotatePoint *p1,
+                            AnnotatePoint *p2)
+{
+  gdouble dx = p2->x - p1->x;
+  gdouble dy = p2->y - p1->y;
+  gdouble mag_sq;
+  gdouble t;
+
+  mag_sq = dx * dx + dy * dy;
+
+  if (mag_sq < 1e-9) /* Points are identical */
+    {
+      return get_distance (p->x, p->y, p1->x, p1->y);
+    }
+
+  t = ((p->x - p1->x) * dx + (p->y - p1->y) * dy) / mag_sq;
+
+  if (t < 0.0)
+    {
+      return get_distance (p->x, p->y, p1->x, p1->y);
+    }
+  else if (t > 1.0)
+    {
+      return get_distance (p->x, p->y, p2->x, p2->y);
+    }
+  else
+    {
+      gdouble ix = p1->x + t * dx;
+      gdouble iy = p1->y + t * dy;
+      return get_distance (p->x, p->y, ix, iy);
+    }
+}
+
+/**
+ * copy_annotate_point:
+ * @src: Source #AnnotatePoint.
+ * @user_data: Unused.
+ *
+ * GCopyFunc to properly duplicate an AnnotatePoint for use with
+ * g_slist_copy_deep.
+ *
+ * Returns: (transfer full): A new copy of the point.
+ */
+static gpointer
+copy_annotate_point (gconstpointer src,
+                     gpointer      user_data)
+{
+  return g_memdup2 (src, sizeof (AnnotatePoint));
+}
+
+/**
+ * douglas_peucker_recursive:
+ * @points: (transfer none): The list of points to simplify.
+ * @epsilon: The simplification tolerance.
+ *
+ * The recursive part of the Douglas-Peucker algorithm.
+ *
+ * Returns: (transfer full): A new list with the simplified points.
+ */
+static GSList *
+douglas_peucker_recursive (GSList *points, gdouble epsilon)
+{
+  gdouble  max_dist = 0.0;
+  GSList  *pivot_node = NULL;
+  GSList  *iter;
+  guint    length;
+  guint    pivot_index = 0;
+  GSList  *result = NULL;
+
+  length = g_slist_length (points);
+  if (length < 3)
+    {
+      return g_slist_copy_deep (points, copy_annotate_point, NULL);
+    }
+
+  AnnotatePoint *first = points->data;
+  AnnotatePoint *last = g_slist_last (points)->data;
+
+  iter = g_slist_next (points);
+  for (guint i = 1; i < length - 1; i++)
+    {
+      gdouble dist = get_perpendicular_distance (iter->data, first, last);
+      if (dist > max_dist)
+        {
+          max_dist = dist;
+          pivot_node = iter;
+          pivot_index = i;
+        }
+      iter = g_slist_next (iter);
+    }
+
+  if (max_dist > epsilon && pivot_node)
+    {
+      GSList *first_half = NULL;
+      GSList *second_half = NULL;
+      GSList *res1, *res2;
+      
+      iter = points;
+      for (guint i = 0; i <= pivot_index; i++)
+        {
+          first_half = g_slist_prepend (first_half, iter->data);
+          iter = g_slist_next (iter);
+        }
+      first_half = g_slist_reverse (first_half);
+
+      iter = pivot_node;
+      while (iter)
+        {
+          second_half = g_slist_prepend (second_half, iter->data);
+          iter = g_slist_next (iter);
+        }
+      second_half = g_slist_reverse (second_half);
+
+      res1 = douglas_peucker_recursive (first_half, epsilon);
+      res2 = douglas_peucker_recursive (second_half, epsilon);
+
+      g_slist_free (first_half);
+      g_slist_free (second_half);
+      
+      GSList *last_of_res1 = g_slist_last (res1);
+      res1 = g_slist_remove_link (res1, last_of_res1);
+      g_free (last_of_res1->data);
+      g_slist_free (last_of_res1);
+
+      result = g_slist_concat (res1, res2);
+    }
+  else
+    {
+      result = g_slist_append (result, 
+                               g_memdup2 (first, sizeof (AnnotatePoint)));
+      result = g_slist_append (result, 
+                               g_memdup2 (last, sizeof (AnnotatePoint)));
+    }
+  
+  return result;
+}
+
 /* Number x is roundable to y. */
 static gboolean
 is_similar (gdouble x, gdouble y, gdouble pixel_tollerance)
@@ -189,13 +339,16 @@ calculate_medium_pression (GSList *list)
   gdouble total_pressure = 0;
   guint   length         = g_slist_length (list);
 
+  if (length == 0)
+    return 1.0;
+
   for (i = 0; i < length; i++)
     {
       AnnotatePoint *cur_point = (AnnotatePoint *) g_slist_nth_data (list, i);
       total_pressure           = total_pressure + cur_point->pressure;
     }
 
-  return total_pressure / i;
+  return total_pressure / length;
 }
 
 /*
@@ -279,8 +432,6 @@ is_similar_to_a_regular_polygon (GSList *list, gdouble pixel_tollerance)
     }
 
   ideal_distance = total_distance / length;
-
-  // printf ("Ideal %f\n\n",ideal_distance);
 
   i         = 0;
   old_point = (AnnotatePoint *) g_slist_nth_data (list, i);
@@ -392,14 +543,14 @@ calculate_edge_degree (AnnotatePoint *point_a, AnnotatePoint *point_b)
  * horizontal or vertical alignment.
  *
  * Parameters:
- *   list - a GSList of AnnotatePoint* representing the input points.
+ * list - a GSList of AnnotatePoint* representing the input points.
  *
  * Returns:
- *   A new GSList of AnnotatePoint* containing the straightened points.
+ * A new GSList of AnnotatePoint* containing the straightened points.
  *
  * Note:
- *   The original list is not modified. The returned list must be freed
- *   by the caller when no longer needed.
+ * The original list is not modified. The returned list must be freed
+ * by the caller when no longer needed.
  */
 static GSList *
 straighten (GSList *list)
@@ -502,139 +653,47 @@ straighten (GSList *list)
 /**
  * build_meaningful_point_list:
  * @list_inp:          a GSList of AnnotatePoint representing a stroke or path
- * @rectify:           whether to rectify points
- *                     (currently unused in this function)
  * @pixel_tollerance:  threshold in pixels for determining meaningful deviation
  *
  * This function returns a new GSList containing a subset of points from
- * @list_inp, filtering out redundant points based on the standard deviation
- * (or geometric deviation) algorithm. It approximates the original stroke
- * by keeping only points that contribute significant visual deviation.
+ * @list_inp, filtering out redundant points. It approximates the original
+ * stroke by keeping only points that contribute significant visual deviation.
+ * It uses the Ramer-Douglas-Peucker algorithm.
  *
- * Algorithm:
- * -  Calculate a medium pressure value over all points for
- *    consistent point width.
- * -  Always add the first point of the stroke to the output list.
- * -  If the input contains only two points, also add the second point.
- * -  For three or more points, iterate over points in order and compute the
- *    signed area of the triangle formed by points A, B, C. This gives a measure
- *    of deviation of point C from the line AB.
- * -  Compute height h from area to determine if the deviation exceeds the 
- *    pixel_tolerance threshold.
- * -  If deviation is meaningful, add point B to the output list, reset the
- *    accumulated area, and continue with B as the new reference.
- * -  Always add the last point of the stroke to the output list.
- * -  Reverse the list to preserve the original input order.
- *
- * Returns:
- * - A new GSList containing AnnotatePoint objects. Each point is allocated
- *   using allocate_point(). The caller is responsible for freeing the list
- *   and its points.
+ * Returns: (transfer full): A new, simplified list of #AnnotatePoint.
+ * The caller is responsible for freeing the list and its points.
  **/
 GSList *
 build_meaningful_point_list (GSList *list_inp,
-                             gboolean rectify,
                              gdouble pixel_tollerance)
 {
-  guint          length  = g_slist_length (list_inp);
-  guint          i       = 0;
-  AnnotatePoint *point_a = (AnnotatePoint *) g_slist_nth_data (list_inp, i);
-  AnnotatePoint *point_b = (AnnotatePoint *) g_slist_nth_data (list_inp, i + 1);
-  AnnotatePoint *point_c = NULL;
-  gdouble        pressure = calculate_medium_pression (list_inp);
-
-  gdouble a_x     = point_a->x;
-  gdouble a_y     = point_a->y;
-  gdouble a_width = point_a->width;
-
-  gdouble b_x     = point_b->x;
-  gdouble b_y     = point_b->y;
-  gdouble b_width = point_b->width;
-
-  gdouble c_x     = point_b->x;
-  gdouble c_y     = point_b->y;
-  gdouble c_width = point_b->width;
-
-  /* Initialize the list. */
-  GSList *list_out = (GSList *) NULL;
-
-  AnnotatePoint *first_point = allocate_point (a_x, a_y, a_width, pressure);
-  /* Add a point with the coordinates of point_a. */
-  list_out                   = g_slist_prepend (list_out, first_point);
-
-  if (length == 2)
+  GSList *simplified_list;
+  
+  if (g_slist_length (list_inp) < 3)
     {
-      AnnotatePoint *second_point = allocate_point (b_x,
-                                                    b_y,
-                                                    b_width,
-                                                    pressure);
-
-      /* Add a point with the coordinates of point_a. */
-      list_out = g_slist_prepend (list_out, second_point);
+      return g_slist_copy_deep (list_inp,
+                                copy_annotate_point,
+                                NULL);
     }
-  else
+
+  simplified_list = douglas_peucker_recursive (list_inp, pixel_tollerance);
+
+  /*
+   * The pressure of the simplified points can be uneven. We recalculate a
+   * medium pressure from the original list and apply it to all points
+   * in the new list for a consistent stroke width.
+   */
+  if (simplified_list)
     {
-      gdouble area = 0.0;
-      gdouble h    = 0.0;
-      gdouble x1   = 0.0;
-      gdouble y1   = 0.0;
-      gdouble x2   = 0.0;
-      gdouble y2   = 0.0;
-
-      AnnotatePoint *last_point =
-          (AnnotatePoint *) g_slist_nth_data (list_inp, length - 1);
-
-      AnnotatePoint *last_point_copy = (AnnotatePoint *) NULL;
-
-      for (i = i + 2; i < length; i++)
+      gdouble medium_pressure = calculate_medium_pression (list_inp);
+      for (GSList *iter = simplified_list; iter; iter = g_slist_next (iter))
         {
-          point_c = (AnnotatePoint *) g_slist_nth_data (list_inp, i);
-          c_x     = point_c->x;
-          c_y     = point_c->y;
-          c_width = point_c->width;
-
-          x1 = b_x - a_x;
-          y1 = b_y - a_y;
-          x2 = c_x - a_x;
-          y2 = c_y - a_y;
-
-          area += (gdouble) (x1 * y2 - x2 * y1);
-
-          h = (2 * area) / sqrt (x2 * x2 + y2 * y2);
-
-          if (fabs (h) >= (pixel_tollerance))
-            {
-              /* Add a point with the B coordinates. */
-              AnnotatePoint *new_point = allocate_point (b_x,
-                                                         b_y,
-                                                         b_width,
-                                                         pressure);
-
-              list_out = g_slist_prepend (list_out, new_point);
-              area     = 0.0;
-              a_x      = b_x;
-              a_y      = b_y;
-              a_width  = b_width;
-            }
-          /* Put to B the C coordinates. */
-          b_x     = c_x;
-          b_y     = c_y;
-          b_width = c_width;
+          AnnotatePoint *p = iter->data;
+          p->pressure = medium_pressure;
         }
-
-      /* Add the last point with the coordinates. */
-      last_point_copy = allocate_point (last_point->x,
-                                        last_point->y,
-                                        last_point->width,
-                                        last_point->pressure);
-
-      list_out = g_slist_prepend (list_out, last_point_copy);
     }
-
-  /* I reverse the list to preserve the initial order. */
-  list_out = g_slist_reverse (list_out);
-
-  return list_out;
+  
+  return simplified_list;
 }
 
 /**
@@ -646,25 +705,25 @@ build_meaningful_point_list (GSList *list_inp,
  *
  * Algorithm:
  * 1. Determine the minimum and maximum x and y coordinates from all points
- *    in the list using the helper function found_min_and_max().
+ * in the list using the helper function found_min_and_max().
  * 2. Create four AnnotatePoint instances representing the corners of the
- *    bounding rectangle:
- *       - Bottom-left (minx, miny)
- *       - Top-left    (minx, maxy)
- *       - Top-right   (maxx, maxy)
- *       - Bottom-right(maxx, miny)
+ * bounding rectangle:
+ * - Bottom-left (minx, miny)
+ * - Top-left    (minx, maxy)
+ * - Top-right   (maxx, maxy)
+ * - Bottom-right(maxx, miny)
  * 3. Add an extra point equal to the first corner to "close" the rectangle
- *    path for drawing purposes.
+ * path for drawing purposes.
  * 4. Return a new GSList containing these AnnotatePoint objects in order.
  *
  * Notes:
  * - The width and pressure values are copied from the middle point of the
- *   input list to maintain consistent visual properties.
+ * input list to maintain consistent visual properties.
  * - The caller is responsible for freeing the returned GSList and its points.
  *
  * Returns:
  * - A GSList of AnnotatePoint representing the bounding rectangle around
- *   the input stroke/path.
+ * the input stroke/path.
  **/
 GSList *
 build_outbounded_rectangle (GSList *list)
@@ -726,26 +785,26 @@ build_outbounded_rectangle (GSList *list)
  *
  * Determines if the path represented by the points in @list is similar
  * to an ellipse, using the geometric definition of an ellipse:
- *   - For an ellipse, the sum of the distances from any point on the
- *     ellipse to the two foci is constant.
+ * - For an ellipse, the sum of the distances from any point on the
+ * ellipse to the two foci is constant.
  *
  * Algorithm:
  * -  Compute the bounding box of the path (minx, miny, maxx, maxy).
  * -  Compute the semi-axes a (horizontal) and b (vertical) of the ellipse.
  * -  Compute the focal distance c = sqrt(|a^2 - b^2|).
  * -  Determine the coordinates of the two foci (f1, f2) depending on the
- *    orientation (horizontal or vertical).
+ * orientation (horizontal or vertical).
  * -  Compute the sum of distances from the first point (minx, miny) to
- *    both foci. This serves as the "ideal sum" for a perfect ellipse.
+ * both foci. This serves as the "ideal sum" for a perfect ellipse.
  * -  Iterate over all points in the path, compute the sum of distances to
- *    the foci, and check if the difference from the ideal sum exceeds
- *    the tolerance.
+ * the foci, and check if the difference from the ideal sum exceeds
+ * the tolerance.
  * -  If any point violates the tolerance, the path is not considered
- *    similar to an ellipse; otherwise, it is.
+ * similar to an ellipse; otherwise, it is.
  *
  * Notes:
  * - The tolerance is increased slightly based on the average semi-axis
- *   length to account for larger ellipses.
+ * length to account for larger ellipses.
  * - Uses Euclidean distance (get_distance function) for computation.
  *
  * Returns:
@@ -869,14 +928,14 @@ is_similar_to_an_ellipse (GSList *list, gdouble pixel_tollerance)
  * build_rectified_list:
  * @list_inp:        input GSList of AnnotatePoint (assumed ordered subpath)
  * @close_path:      TRUE if the subpath is closed (shape),
- *                   FALSE for open strokes
+ * FALSE for open strokes
  * @pixel_tollerance: tolerance in pixels used by detectors / simplification
  *
  * Returns a new GSList with rectified points. The function copies input points
  * (so returned list elements are newly allocated via allocate_point ()) and
  * either:
- *  - recognizes and returns a geometric shape (rectangle, triangle, polygon)
- *  - or returns a straightened / simplified polyline.
+ * - recognizes and returns a geometric shape (rectangle, triangle, polygon)
+ * - or returns a straightened / simplified polyline.
  *
  * Important: this function does NOT try to be overly aggressive. Regular
  * polygon extraction is only performed for convex shapes (prevents stars
@@ -958,12 +1017,12 @@ build_rectified_list (GSList *list_inp,
  *
  * Steps:
  * -  Calls build_meaningful_point_list() to extract only the points that
- *    contribute significantly to the path shape (removes small deviations).
+ * contribute significantly to the path shape (removes small deviations).
  * -  If @rectify is TRUE, calls build_rectified_list() on the meaningful points
- *    to further smooth or regularize the path.
+ * to further smooth or regularize the path.
  * -  Frees the intermediate meaningful points list if rectification is applied.
  * -  Returns the processed list of points, either rectified or just the
- *    meaningful points.
+ * meaningful points.
  *
  * Returns:
  * - A GSList of AnnotatePoint representing the simplified/smoothed path.
@@ -976,7 +1035,6 @@ broken (GSList *list_inp,
         gdouble pixel_tollerance)
 {
   GSList *meaningful_points = build_meaningful_point_list (list_inp,
-                                                           close_path,
                                                            pixel_tollerance);
 
   if (meaningful_points && rectify)

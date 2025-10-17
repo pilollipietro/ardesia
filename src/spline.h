@@ -25,6 +25,4 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include <gsl/gsl_linalg.h>
-
 GSList *spline (GSList *list);

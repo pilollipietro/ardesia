@@ -27,7 +27,6 @@
 #define BROKEN_FILE
 
 GSList *build_meaningful_point_list (GSList *list_inp,
-                                     gboolean rectify,
                                      gdouble pixel_tollerance);
 
 GSList *build_outbounded_rectangle (GSList *list);

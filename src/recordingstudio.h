@@ -35,6 +35,8 @@ typedef struct
 {
   gboolean recording;
   gboolean cursor_visible;
+  gint cursor_step;
+  cairo_surface_t *cursor_surface;
 } RecordingStudioData;
 
 #endif // RECORDINGSTUDIO_H

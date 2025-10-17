@@ -944,8 +944,6 @@ release_lock (BarData *bar_data)
           gtk_window_set_opacity (GTK_WINDOW (get_annotation_window ()), 0);
         }
 #endif
-
-      gtk_widget_queue_draw (annotation_data->annotation_window);
     }
 }
 

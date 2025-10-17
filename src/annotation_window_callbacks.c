@@ -81,7 +81,7 @@ on_configure (GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
  * This function acts as a dispatcher. If the text editor mode is active,
  * it forwards the key event to the specialized handler for the text
  * window (`on_text_window_key_press_event`). Otherwise, it ignores the
- * key press. In all cases, it queues a redraw of the widget.
+ * key press.
  *
  * Returns: The value returned by the text window's handler if called,
  * otherwise %FALSE.
@@ -99,8 +99,6 @@ on_keypress (GtkWidget *widget, GdkEvent *event, gpointer user_data)
     {
       retval = on_text_window_key_press_event (widget, event, text_data);
     }
-
-  gtk_widget_queue_draw (widget);
   return retval;
 }
 
