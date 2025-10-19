@@ -34,6 +34,52 @@
 BackgroundData *background_data;
 
 /**
+ * destroy_background_data_preview:
+ *
+ * Frees the resources used by the background preview.
+ *
+ * This function safely destroys the Cairo context (`preview_cr`)
+ * associated with the temporary background preview, if it exists,
+ * and sets the pointer to %NULL. It should be called to clean up
+ * the preview state.
+ */
+void
+destroy_background_data_preview (void)
+{
+    if (background_data->preview_cr)
+    {
+        cairo_destroy (background_data->preview_cr);
+        background_data->preview_cr = NULL;
+    }
+}
+
+/**
+ * create_preview_background:
+ *
+ * Creates a new Cairo context for rendering a background preview.
+ *
+ * This function initializes a temporary drawing surface whose size matches
+ * the main annotation window. It first destroys any existing preview
+ * context, then creates a new one (`preview_cr`) ready for drawing.
+ * This allows a background to be rendered as a preview without
+ * modifying the main canvas directly.
+ */
+void
+create_preview_background (void)
+{
+    destroy_background_data_preview ();
+    cairo_surface_t *preview_surface = NULL;
+    GtkAllocation allocation;
+    gtk_widget_get_allocation (annotation_data->annotation_window, &allocation);
+
+    preview_surface = cairo_image_surface_create (
+        CAIRO_FORMAT_ARGB32, allocation.width, allocation.height);
+
+    background_data->preview_cr = cairo_create (preview_surface);
+    cairo_surface_destroy (preview_surface);
+}
+
+/**
  * create_background_data:
  *
  * Allocates and initializes a new #BackgroundData structure.
@@ -53,6 +99,7 @@ create_background_data (void)
   background_data->color          = (gchar *) NULL;
   background_data->image          = (gchar *) NULL;
   background_data->cr             = (cairo_t *) NULL;
+  background_data->preview_cr             = (cairo_t *) NULL;
   background_data->type           = 0;
   return background_data;
 }
@@ -72,13 +119,12 @@ destroy_background_data (void)
 {
   if (background_data)
     {
-
+      destroy_background_data_preview ();
       if (background_data->cr)
         {
           cairo_destroy (background_data->cr);
           background_data->cr = (cairo_t *) NULL;
-        }
-
+        }     
       if (background_data->color)
         {
           g_free (background_data->color);

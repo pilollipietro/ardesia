@@ -198,7 +198,11 @@ on_expose (GtkWidget *widget, cairo_t *cr, gpointer user_data)
   cairo_rectangle (cr, ann_x, ann_y, ann_width, ann_height);
   use_paint = TRUE;
 
-  if (annotation_data->is_background_visible)
+    if (background_data->preview_cr != NULL)
+      {
+        draw_cairo_context (cr, background_data->preview_cr, use_paint);
+      }
+    else if (annotation_data->is_background_visible)
     {
       /* Draw background layer on context cr. */
       if (background_data->cr)

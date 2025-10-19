@@ -30,4 +30,5 @@
 void add_background_button (gchar *label,
                             gint mode,
                             gchar *filename,
-                            gchar *color);
+                            gchar *color,
+			    gboolean active);

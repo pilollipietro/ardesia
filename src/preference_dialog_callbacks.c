@@ -125,7 +125,8 @@ on_preference_ok_button_clicked (GtkButton *buton, gpointer data)
       add_background_button (g_strdup (rgba),
                              BACKGROUND_MODE_COLOR,
                              NULL,
-                             g_strdup (rgba));
+                             g_strdup (rgba),
+			     TRUE);
 
       /* Add chosen color to user configuration */
       background_config_add_color (rgba, rgba);
@@ -171,7 +172,8 @@ on_preference_ok_button_clicked (GtkButton *buton, gpointer data)
                   add_background_button (g_strdup (name),
                                          BACKGROUND_MODE_FILE,
                                          g_strdup (filename),
-                                         NULL);
+                                         NULL,
+					 TRUE);
                   /* Save chosen image to user configuration */
                   background_config_add_image (name, filename);
                   g_free (name);

@@ -280,12 +280,23 @@ background_config_set_current_background (const gchar *background)
 /**
  * background_config_get_current_background:
  *
- * Retrieve the currently selected background from the user configuration.
+ * Retrieve the currently selected background from the user
+ * configuration.
+ *
+ * The returned string is a symbolic identifier for the background.
+ * It can be one of:
+ *
+ *  - a predefined background key, e.g. "notebook_paper"
+ *  - a symbolic color name, e.g. "white"
+ *  - an RGBA hex color string (8 hex digits, alpha last), e.g.
+ *    "FF88FF88" (R G B A, each two hex digits)
  *
  * Returns:
- *   A newly allocated string containing the current background name or path.
- *   The caller is responsible for freeing the returned string.
- **/
+ *   A newly allocated NUL-terminated gchar * containing the symbolic
+ *   background value. The caller is responsible for freeing the
+ *   returned string with g_free (). On error (no setting available)
+ *   the function returns NULL.
+ */
 gchar *
 background_config_get_current_background (void)
 {

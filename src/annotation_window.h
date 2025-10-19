@@ -58,7 +58,7 @@
 #define PAPER_BACKGROUND_FILE \
   ANNOTATION_UI_FOLDER "/backgrounds/notebook_paper.png"
 #define TRANSPARENT_BACKGROUND_FILE \
-  ANNOTATION_UI_FOLDER "/icons/desktop_transparent.png"
+  ANNOTATION_UI_FOLDER "/icons/transparent_desktop.png"
 #endif
 
 #define MICRO_THICKNESS  3

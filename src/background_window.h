@@ -43,12 +43,19 @@ typedef struct
 
   /* cairo context to draw on the background window. */
   cairo_t *cr;
+  
+  /* preview cairo context to draw on the background window. */
+  cairo_t *preview_cr;
 
 } BackgroundData;
 
 extern BackgroundData *background_data;
 
 BackgroundData *create_background_data (void);
+
+void create_preview_background(void);
+
+void destroy_background_data_preview(void);
 
 void destroy_background_data (void);
 

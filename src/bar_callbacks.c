@@ -410,7 +410,7 @@ on_bar_showhide_activate (GtkToolButton *toolButton, gpointer func_data)
     }
 }
 
-/* Push recorder button. */
+ /* Push recorder button. */
 G_MODULE_EXPORT void
 on_bar_recorder_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -503,43 +503,26 @@ on_remove_background_button (GtkMenuItem *menuitem, gpointer user_data)
 }
 
 void
-background_selection_on_toggled (GtkToggleToolButton *toggle_tool_button,
-                                 gpointer userdata)
+background_selection_on_toggled (GtkToggleToolButton *toggle_tool_button, gpointer userdata)
 {
-  BackgroundButtonData *button_data = (BackgroundButtonData *) userdata;
-  annotation_data->background_button_last_selected = button_data->index;
-
-  GSList               *node;
-  BackgroundButtonData *data;
-  node = g_slist_nth (annotation_data->background_button_data,
-                      button_data->index);
-  data = (BackgroundButtonData *) node->data;
-
+  if (!gtk_toggle_tool_button_get_active (toggle_tool_button))
+    {
+      return;
+    }
+  BackgroundButtonData *data = (BackgroundButtonData *) userdata;
+    
+  if (background_data->preview_cr==NULL)
+    {
+        create_preview_background();
+    }
   if (data->mode == BACKGROUND_MODE_COLOR)
-    {
-      update_background_color (data->color);
-
-      /* Persist the selected background color */
-      background_config_set_current_background (data->color);
-    }
+    load_color_onto_context (data->color, background_data->preview_cr);
   else if (data->mode == BACKGROUND_MODE_FILE)
-    {
-      update_background_image (data->filename);
+    load_file_onto_context (data->filename, background_data->preview_cr);
 
-      /* Persist the selected background image */
-      gchar *name = background_config_filename_to_label (data->filename);
-      background_config_set_current_background (name);
-      g_free (name);
-    }
-  else
-    {
-      clear_background_context ();
-      background_config_set_current_background ("transparent");
-
-      annotation_data->background_button_last_selected =
-        BACKGROUND_NONE_SELECTED;
-    }
+  gtk_widget_queue_draw (annotation_data->annotation_window);
 }
+
 
 gboolean
 background_selection_on_button_press (GtkWidget *widget,
@@ -630,7 +613,7 @@ resize_image_to_button (BackgroundButtonData *data, gint size)
       g_debug ("create new image\n");
       image = GTK_IMAGE (gtk_image_new_from_pixbuf (pixbuf));
     }
-  else
+    else
     {
       g_debug ("setting image\n");
       gtk_image_set_from_pixbuf (image, pixbuf);
@@ -685,6 +668,7 @@ on_background_selection_window_configure_event (GtkWidget *widget,
  * @mode:    background mode (color or image)
  * @filename: path to the image file (if mode is image)
  * @color:   color value (if mode is color)
+ * @active:  %TRUE to set this button as the initially active one
  *
  * Creates a new radio tool button representing a background (color or image)
  * and appends it to the annotation background selection container. If there
@@ -699,7 +683,11 @@ on_background_selection_window_configure_event (GtkWidget *widget,
  * If more than 3 buttons exist, the background selection window is shown.
  **/
 void
-add_background_button (gchar *label, gint mode, gchar *filename, gchar *color)
+add_background_button (gchar *label,
+                       gint mode,
+                       gchar *filename,
+                       gchar *color,
+                       gboolean active)
 {
   GtkToolItem *button = NULL;
 
@@ -707,7 +695,7 @@ add_background_button (gchar *label, gint mode, gchar *filename, gchar *color)
     {
       button = gtk_radio_tool_button_new (NULL);
     }
-  else
+    else
     {
       GSList               *last_node;
       BackgroundButtonData *data;
@@ -719,20 +707,12 @@ add_background_button (gchar *label, gint mode, gchar *filename, gchar *color)
       button       = gtk_radio_tool_button_new_from_widget (radio_button);
     }
   g_object_set_data_full (G_OBJECT (button),
-                        "background-label",      /* key */
-                        label,                   /* value */
-                        g_free);                 /* destroy notify */
-
-  if (g_slist_length (annotation_data->background_button_data) == 0)
-    {
-      gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON (button),
-                                         TRUE);
-    }
-  else
-    {
-      gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON (button),
-                                         FALSE);
-    }
+                          "background-label",      /* key */
+                          label,                   /* value */
+                          g_free);                 /* destroy notify */
+                        
+  gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON (button),
+                                     active);
 
   GtkWidget *background_selection_container;
   background_selection_container =
@@ -834,6 +814,74 @@ background_button_data_free (gpointer data)
   background_data = NULL;
 }
 
+/* Persist the currently selected background in the user config.
+ * Scan radio buttons and store the selected key or image label using
+ * the background_config API. Mark the window as committed to avoid
+ * a restore in the destroy handler.
+ */
+static void
+persist_current_selection (GtkWidget *window)
+{
+  GSList *node = annotation_data->background_button_data;
+  for (; node != NULL; node = node->next)
+    {
+      BackgroundButtonData *bdata = (BackgroundButtonData *) node->data;
+      gboolean active = gtk_toggle_tool_button_get_active (
+        GTK_TOGGLE_TOOL_BUTTON (bdata->button));
+      if (! active)
+        continue;
+
+      /* Prefer the stored label for persistence when available. */
+      const gchar *label = g_object_get_data (G_OBJECT (bdata->button),
+                                              "background-label");
+
+      if (label != NULL)
+        {
+          background_config_set_current_background (label);
+        }
+      else if (bdata->mode == BACKGROUND_MODE_FILE && bdata->filename)
+        {
+          gchar *name = background_config_filename_to_label (bdata->filename);
+          background_config_set_current_background (name);
+          g_free (name);
+        }
+      else if (bdata->mode == BACKGROUND_MODE_NONE)
+        {
+          background_config_set_current_background ("transparent");
+        }
+
+      /* Mark window as committed so destroy handler won't revert. */
+      g_object_set_data (G_OBJECT (window), "background-committed",
+                         GINT_TO_POINTER (1));
+      return;
+    }
+}
+
+G_MODULE_EXPORT void
+on_background_ok_clicked (GtkButton *button, gpointer user_data)
+{
+    GtkWidget *window = GTK_WIDGET (user_data);
+
+    /* Free preview */
+    destroy_background_data_preview ();
+
+    persist_current_selection (window);
+    gtk_widget_destroy (window);
+}
+
+G_MODULE_EXPORT void
+on_background_cancel_clicked (GtkButton *button, gpointer user_data)
+{
+    GtkWidget *window = GTK_WIDGET (user_data);
+
+    /* Free preview */
+    destroy_background_data_preview ();
+    
+    gtk_widget_queue_draw (annotation_window);
+    
+    gtk_widget_destroy (window);
+}
+
 void
 on_background_selection_window_destroy (GtkWidget *object, gpointer user_data)
 {
@@ -859,6 +907,8 @@ on_background_selection_size_allocate (GtkWidget *widget,
 static void
 load_backgrounds_from_config (void)
 {
+  gchar *current_bg_label = background_config_get_current_background ();
+  
   gsize   n_colors   = 0;
   gchar **color_keys = background_config_get_color_keys (&n_colors);
 
@@ -867,19 +917,36 @@ load_backgrounds_from_config (void)
       for (gsize i = 0; i < n_colors; i++)
         {
           gchar *hex = background_config_get_color (color_keys[i]);
-          if (hex)
+          if (! hex)
             {
-              g_debug ("Load background color %s in preference", hex);
+              continue;
+            }
+          gboolean is_active = (current_bg_label && g_strcmp0 (color_keys[i], current_bg_label) == 0);
+                                
+          g_debug ("Load background color %s in preference (active: %d)",
+                   hex, is_active);
+                   
+          if (g_strcmp0 (color_keys[i], "transparent") == 0)
+            {
+              add_background_button (g_strdup ("transparent"),
+                                     BACKGROUND_MODE_NONE,
+                                     g_strdup (TRANSPARENT_BACKGROUND_FILE),
+                                     NULL,
+                                     is_active);
+            }
+          else
+            {             
               add_background_button (g_strdup (color_keys[i]),
                                      BACKGROUND_MODE_COLOR,
                                      NULL,
-                                     g_strdup (hex));
+                                     g_strdup (hex),
+                                     is_active);
               g_free (hex);
             }
         }
       g_strfreev (color_keys);
     }
-
+  
   gsize   n_images   = 0;
   gchar **image_keys = background_config_get_image_keys (&n_images);
 
@@ -888,13 +955,16 @@ load_backgrounds_from_config (void)
       for (gsize i = 0; i < n_images; i++)
         {
           gchar *path = background_config_get_image (image_keys[i]);
+          gboolean is_active = (current_bg_label &&
+                                g_strcmp0 (image_keys[i], current_bg_label) == 0);
           if (path)
             {
-              g_debug ("Load background image %s in preference", path);
+              g_debug ("Load background image %s in preference (active: %d)", path, is_active);
               add_background_button (g_strdup(image_keys[i]),
                                      BACKGROUND_MODE_FILE,
                                      g_strdup (path),
-                                     NULL);
+                                     NULL,
+                                     is_active);
               g_free (path);
             }
         }
@@ -919,11 +989,6 @@ create_bar_preference_window (GtkWindow *parent)
 
   annotation_data->background_selection_window    = window;
   annotation_data->background_selection_container = GTK_WIDGET (box);
-
-  add_background_button (g_strdup ("transparent"),
-                         BACKGROUND_MODE_NONE,
-                         g_strdup (TRANSPARENT_BACKGROUND_FILE),
-                         NULL);
 
   load_backgrounds_from_config ();
 
@@ -952,6 +1017,24 @@ create_bar_preference_window (GtkWindow *parent)
                     "clicked",
                     (GCallback) on_add_new_background,
                     window);
+
+  /* OK / Cancel controls */
+  {
+    GtkWidget *controls = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
+    GtkWidget *ok_btn = gtk_button_new_with_label (gettext ("OK"));
+    GtkWidget *cancel_btn = gtk_button_new_with_label (gettext ("Cancel"));
+
+    g_signal_connect (ok_btn, "clicked",
+                      G_CALLBACK (on_background_ok_clicked),
+                      window);
+    g_signal_connect (cancel_btn, "clicked",
+                      G_CALLBACK (on_background_cancel_clicked),
+                      window);
+
+    gtk_box_pack_end (GTK_BOX (box), controls, FALSE, FALSE, 6);
+    gtk_box_pack_start (GTK_BOX (controls), ok_btn, FALSE, FALSE, 0);
+    gtk_box_pack_start (GTK_BOX (controls), cancel_btn, FALSE, FALSE, 0);
+  }
 
   g_signal_connect (window,
                     "destroy",
