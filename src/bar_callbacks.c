@@ -857,29 +857,34 @@ persist_current_selection (GtkWidget *window)
     }
 }
 
-G_MODULE_EXPORT void
-on_background_ok_clicked (GtkButton *button, gpointer user_data)
+/**
+ * background_dialog_response:
+ * @dialog:  the GtkDialog that emitted the response
+ * @response: the GtkResponseType (OK, CANCEL, etc.)
+ * @user_data: unused
+ *
+ * Handles responses from the background selection dialog.
+ * - OK: persist the chosen background
+ * - CANCEL or others: restore the original background
+ */
+static void
+background_dialog_response (GtkDialog *dialog,
+                            gint       response,
+                            gpointer   user_data)
 {
-    GtkWidget *window = GTK_WIDGET (user_data);
+  GtkWidget *window = GTK_WIDGET (dialog);
+  /* Free preview */
+  destroy_background_data_preview ();
 
-    /* Free preview */
-    destroy_background_data_preview ();
-
-    persist_current_selection (window);
-    gtk_widget_destroy (window);
-}
-
-G_MODULE_EXPORT void
-on_background_cancel_clicked (GtkButton *button, gpointer user_data)
-{
-    GtkWidget *window = GTK_WIDGET (user_data);
-
-    /* Free preview */
-    destroy_background_data_preview ();
-    
-    gtk_widget_queue_draw (annotation_window);
-    
-    gtk_widget_destroy (window);
+  if (response == GTK_RESPONSE_OK)
+	{
+      persist_current_selection (window);
+	}
+  else
+	{
+	  gtk_widget_queue_draw (annotation_window);
+	}
+  gtk_widget_destroy (GTK_WIDGET (window));
 }
 
 void
@@ -972,86 +977,87 @@ load_backgrounds_from_config (void)
     }
 }
 
+/**
+ * create_bar_preference_window:
+ * @parent: the transient parent window
+ *
+ * Creates and displays the background selection dialog using GTK standards.
+ * Uses OK and Cancel buttons with expected GTK behavior.
+ */
 void
 create_bar_preference_window (GtkWindow *parent)
 {
-  GtkWidget   *window = NULL;
-  GtkToolItem *button = NULL;
-  GtkBox      *box    = NULL;
+	GtkWidget *dialog;
+	GtkWidget *content_area;
+	GtkBox *box;
+	GtkToolItem *add_btn;
+	BackgroundRestored *br;
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  gtk_window_set_title (GTK_WINDOW (window), gettext ("Backgrounds"));
-  gtk_window_set_default_size (GTK_WINDOW (window), 400, 128);
+	dialog = gtk_dialog_new_with_buttons (gettext ("Backgrounds"),
+	                                      parent,
+	                                      GTK_DIALOG_MODAL |
+	                                          GTK_DIALOG_DESTROY_WITH_PARENT,
+	                                      gettext ("_Cancel"),
+	                                      GTK_RESPONSE_CANCEL,
+	                                      gettext ("_OK"),
+	                                      GTK_RESPONSE_OK,
+	                                      NULL);
+	gtk_window_set_default_size(GTK_WINDOW(dialog), 800, 320);
 
-  box = GTK_BOX (gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0));
+	annotation_data->background_selection_window = GTK_WIDGET (dialog);
 
-  gtk_container_add (GTK_CONTAINER (window), GTK_WIDGET (box));
+	content_area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
+	box = GTK_BOX (gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0));
+	gtk_container_add (GTK_CONTAINER (content_area), GTK_WIDGET (box));
+	annotation_data->background_selection_container = GTK_WIDGET (box);
 
-  annotation_data->background_selection_window    = window;
-  annotation_data->background_selection_container = GTK_WIDGET (box);
+	/* Load backgrounds from configuration */
+	load_backgrounds_from_config ();
 
-  load_backgrounds_from_config ();
+	/* Store original background to restore on cancel */
+	br = background_config_restore_last_background ();
+	g_object_set_data_full (G_OBJECT (dialog),
+	                        "background-original-br",
+	                        br,
+	                        (GDestroyNotify) background_restored_free);
 
-  GtkWidget *add_image =
-    gtk_image_new_from_icon_name ("list-add",
-                                  GTK_ICON_SIZE_LARGE_TOOLBAR);
+	g_object_set_data (G_OBJECT (dialog), "background-committed",
+	                   GINT_TO_POINTER (0));
 
-  button = gtk_tool_button_new (add_image, NULL);
+	/* Add "Add background" toolbutton */
+	add_btn = GTK_TOOL_ITEM (gtk_tool_button_new (
+	    gtk_image_new_from_icon_name ("list-add",
+	                                  GTK_ICON_SIZE_LARGE_TOOLBAR),
+	    NULL));
+	gtk_tool_item_set_tooltip_text (add_btn, gettext ("Add background"));
+	g_object_set_data (G_OBJECT (box), "background_add_button",
+	                   GTK_WIDGET (add_btn));
+	gtk_box_pack_start (GTK_BOX (box), GTK_WIDGET (add_btn), TRUE, TRUE, 0);
+	g_signal_connect (add_btn, "clicked",
+	                  (GCallback) on_add_new_background,
+	                  dialog);
 
-  gtk_tool_item_set_tooltip_text (GTK_TOOL_ITEM (button),
-                                  gettext ("Add background"));
+	g_signal_connect (dialog,
+	                  "configure-event",
+	                  (GCallback) on_background_selection_window_configure_event,
+	                  NULL);
 
-  gtk_box_pack_start (box, GTK_WIDGET (button), TRUE, TRUE, 0);
+	g_signal_connect (dialog,
+	                  "size-allocate",
+	                  (GCallback) on_background_selection_size_allocate,
+	                  NULL);
 
-  /*
-   * Store a pointer to Add on the container so new backgrounds
-   * can be inserted right before it.
-   */
-  g_object_set_data (G_OBJECT (box),
-                     "background_add_button",
-                     GTK_WIDGET (button));
+	g_signal_connect (dialog,
+	                  "response",
+	                  G_CALLBACK (background_dialog_response),
+	                  NULL);
 
-  gtk_window_set_transient_for (GTK_WINDOW (window), parent);
+	g_signal_connect (dialog,
+	                  "destroy",
+	                  (GCallback) on_background_selection_window_destroy,
+	                  NULL);
 
-  g_signal_connect (button,
-                    "clicked",
-                    (GCallback) on_add_new_background,
-                    window);
-
-  /* OK / Cancel controls */
-  {
-    GtkWidget *controls = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
-    GtkWidget *ok_btn = gtk_button_new_with_label (gettext ("OK"));
-    GtkWidget *cancel_btn = gtk_button_new_with_label (gettext ("Cancel"));
-
-    g_signal_connect (ok_btn, "clicked",
-                      G_CALLBACK (on_background_ok_clicked),
-                      window);
-    g_signal_connect (cancel_btn, "clicked",
-                      G_CALLBACK (on_background_cancel_clicked),
-                      window);
-
-    gtk_box_pack_end (GTK_BOX (box), controls, FALSE, FALSE, 6);
-    gtk_box_pack_start (GTK_BOX (controls), ok_btn, FALSE, FALSE, 0);
-    gtk_box_pack_start (GTK_BOX (controls), cancel_btn, FALSE, FALSE, 0);
-  }
-
-  g_signal_connect (window,
-                    "destroy",
-                    (GCallback) on_background_selection_window_destroy,
-                    NULL);
-
-  g_signal_connect (window,
-                    "configure-event",
-                    (GCallback) on_background_selection_window_configure_event,
-                    NULL);
-
-  g_signal_connect (window,
-                    "size-allocate",
-                    (GCallback) on_background_selection_size_allocate,
-                    NULL);
-
-  gtk_widget_show_all (window);
+	gtk_widget_show_all (dialog);
 }
 
 /* Push fonts button. */
