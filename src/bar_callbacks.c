@@ -503,7 +503,8 @@ on_remove_background_button (GtkMenuItem *menuitem, gpointer user_data)
 }
 
 void
-background_selection_on_toggled (GtkToggleToolButton *toggle_tool_button, gpointer userdata)
+background_selection_on_toggled (GtkToggleToolButton *toggle_tool_button,
+                                 gpointer userdata)
 {
   if (!gtk_toggle_tool_button_get_active (toggle_tool_button))
     {
@@ -513,16 +514,19 @@ background_selection_on_toggled (GtkToggleToolButton *toggle_tool_button, gpoint
     
   if (background_data->preview_cr==NULL)
     {
-        create_preview_background();
+      create_preview_background();
     }
   if (data->mode == BACKGROUND_MODE_COLOR)
-    load_color_onto_context (data->color, background_data->preview_cr);
+    {
+      load_color_onto_context (data->color, background_data->preview_cr);
+    }
   else if (data->mode == BACKGROUND_MODE_FILE)
-    load_file_onto_context (data->filename, background_data->preview_cr);
-
+    {
+      load_file_onto_context (data->filename, background_data->preview_cr);
+    }
+    
   gtk_widget_queue_draw (annotation_data->annotation_window);
 }
-
 
 gboolean
 background_selection_on_button_press (GtkWidget *widget,
@@ -710,10 +714,7 @@ add_background_button (gchar *label,
                           "background-label",      /* key */
                           label,                   /* value */
                           g_free);                 /* destroy notify */
-                        
-  gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON (button),
-                                     active);
-
+                 
   GtkWidget *background_selection_container;
   background_selection_container =
     annotation_data->background_selection_container;
@@ -771,7 +772,10 @@ add_background_button (gchar *label,
                     "button_press_event",
                     (GCallback) background_selection_on_button_press,
                     data);
-
+                    
+  gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON (button),
+                                     active);
+  
   if (g_slist_length (annotation_data->background_button_data) > 3)
     {
       gtk_widget_show_all (annotation_data->background_selection_window);
