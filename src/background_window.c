@@ -67,16 +67,16 @@ destroy_background_data_preview (void)
 void
 create_preview_background (void)
 {
-    destroy_background_data_preview ();
-    cairo_surface_t *preview_surface = NULL;
-    GtkAllocation allocation;
-    gtk_widget_get_allocation (annotation_data->annotation_window, &allocation);
+  destroy_background_data_preview ();
+  cairo_surface_t *preview_surface = NULL;
+  GtkAllocation    allocation;
+  gtk_widget_get_allocation (annotation_data->annotation_window, &allocation);
 
     preview_surface = cairo_image_surface_create (
         CAIRO_FORMAT_ARGB32, allocation.width, allocation.height);
 
-    background_data->preview_cr = cairo_create (preview_surface);
-    cairo_surface_destroy (preview_surface);
+  background_data->preview_cr = cairo_create (preview_surface);
+  cairo_surface_destroy (preview_surface);
 }
 
 /**

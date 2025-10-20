@@ -103,15 +103,12 @@ spline (GSList *points)
       /* Interpolate attributes for the control points */
       cp1_pressure = p1->pressure + (p2->pressure - p1->pressure) / 3.0;
       cp2_pressure = p1->pressure + (p2->pressure - p1->pressure) * 2.0 / 3.0;
-      cp1_width = p1->width + (p2->width - p1->width) / 3.0;
-      cp2_width = p1->width + (p2->width - p1->width) * 2.0 / 3.0;
+      cp1_width    = p1->width + (p2->width - p1->width) / 3.0;
+      cp2_width    = p1->width + (p2->width - p1->width) * 2.0 / 3.0;
 
-      control_point_1 = allocate_point (cp1_x, cp1_y,
-                                        cp1_width, cp1_pressure);
-      control_point_2 = allocate_point (cp2_x, cp2_y,
-                                        cp2_width, cp2_pressure);
-      end_point = allocate_point (p2->x, p2->y,
-                                  p2->width, p2->pressure);
+      control_point_1 = allocate_point (cp1_x, cp1_y, cp1_width, cp1_pressure);
+      control_point_2 = allocate_point (cp2_x, cp2_y, cp2_width, cp2_pressure);
+      end_point       = allocate_point (p2->x, p2->y, p2->width, p2->pressure);
 
       /* Prepend the segment's points (end, cp2, cp1) to the list head */
       ret = g_slist_prepend (ret, end_point);

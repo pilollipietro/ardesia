@@ -60,7 +60,7 @@ add_header (void)
 static void
 close_iwb (void)
 {
-  fputs("</iwb>\n", fp);
+  fputs ("</iwb>\n", fp);
 }
 
 /* Open the svg tag. */

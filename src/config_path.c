@@ -102,8 +102,7 @@ get_config_file (void)
 gchar *
 get_user_config_file (void)
 {
-  /* Ensure ~/.config/ardesiarc exists (the function will copy system config
-   * into the user location if appropriate). */
   user_config_ensure_file ();
-  return g_build_filename (g_get_user_config_dir (), USER_CONFIG_BASENAME, NULL);
+  const gchar *user_dir = g_get_user_config_dir ();
+  return g_build_filename (user_dir, USER_CONFIG_BASENAME, NULL);
 }

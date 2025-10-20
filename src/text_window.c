@@ -519,7 +519,7 @@ start_text_widget (GtkWidget *widget, gchar *color, gint thickness)
   if (text_data->cr != NULL)
     {
       cairo_destroy (text_data->cr);
-      text_data->cr=NULL;
+      text_data->cr = NULL;
     }
 
   text_data->cr = create_new_context (

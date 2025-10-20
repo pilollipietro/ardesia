@@ -101,12 +101,12 @@ copy_annotate_point (gconstpointer src,
 static GSList *
 douglas_peucker_recursive (GSList *points, gdouble epsilon)
 {
-  gdouble  max_dist = 0.0;
-  GSList  *pivot_node = NULL;
-  GSList  *iter;
-  guint    length;
-  guint    pivot_index = 0;
-  GSList  *result = NULL;
+  gdouble max_dist   = 0.0;
+  GSList *pivot_node = NULL;
+  GSList *iter;
+  guint   length;
+  guint   pivot_index = 0;
+  GSList *result      = NULL;
 
   length = g_slist_length (points);
   if (length < 3)
@@ -115,7 +115,7 @@ douglas_peucker_recursive (GSList *points, gdouble epsilon)
     }
 
   AnnotatePoint *first = points->data;
-  AnnotatePoint *last = g_slist_last (points)->data;
+  AnnotatePoint *last  = g_slist_last (points)->data;
 
   iter = g_slist_next (points);
   for (guint i = 1; i < length - 1; i++)
@@ -123,8 +123,8 @@ douglas_peucker_recursive (GSList *points, gdouble epsilon)
       gdouble dist = get_perpendicular_distance (iter->data, first, last);
       if (dist > max_dist)
         {
-          max_dist = dist;
-          pivot_node = iter;
+          max_dist    = dist;
+          pivot_node  = iter;
           pivot_index = i;
         }
       iter = g_slist_next (iter);
@@ -132,15 +132,15 @@ douglas_peucker_recursive (GSList *points, gdouble epsilon)
 
   if (max_dist > epsilon && pivot_node)
     {
-      GSList *first_half = NULL;
+      GSList *first_half  = NULL;
       GSList *second_half = NULL;
       GSList *res1, *res2;
-      
+
       iter = points;
       for (guint i = 0; i <= pivot_index; i++)
         {
           first_half = g_slist_prepend (first_half, iter->data);
-          iter = g_slist_next (iter);
+          iter       = g_slist_next (iter);
         }
       first_half = g_slist_reverse (first_half);
 
@@ -575,7 +575,7 @@ straighten (GSList *list)
                                 inp_point->width,
                                 inp_point->pressure);
 
-  list_out    = g_slist_prepend (list_out, first_point);
+  list_out = g_slist_prepend (list_out, first_point);
 
   for (i = 0; i < length - 2; i++)
     {
@@ -692,7 +692,7 @@ build_meaningful_point_list (GSList *list_inp,
           p->pressure = medium_pressure;
         }
     }
-  
+
   return simplified_list;
 }
 

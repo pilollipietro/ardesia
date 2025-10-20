@@ -408,7 +408,7 @@ on_bar_showhide_activate (GtkToolButton *toolButton, gpointer func_data)
     }
 }
 
- /* Push recorder button. */
+/* Push recorder button. */
 G_MODULE_EXPORT void
 on_bar_recorder_activate (GtkToolButton *toolbutton, gpointer func_data)
 {

@@ -2544,7 +2544,6 @@ annotation_window_button_press (GdkEventButton *ev, AnnotateData *data)
       return FALSE;
     }
 
-
   /* Acquires the grab capability. */
   initialize_annotation_cairo_context (data);
 
