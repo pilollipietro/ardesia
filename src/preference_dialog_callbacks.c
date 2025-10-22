@@ -123,7 +123,7 @@ on_image_chooser_button_file_set (GtkFileChooserButton *button,
   if (! stream)
     {
       GtkWidget *parent_widget = annotation_data->background_selection_window;
-      show_permission_denied_dialog (GTK_WINDOW (parent_window));
+      show_permission_denied_dialog (GTK_WINDOW (parent_widget));
       return;
     }
 
