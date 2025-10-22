@@ -31,36 +31,10 @@
 #include "cairo_functions.h"
 #include "keyboard.h"
 #include "preference_dialog.h"
+#include "preference_dialog_callbacks.h"
 #include "utils.h"
 
-enum
-{
-  RESPONSE_ADD_NEW = 1
-};
-
 const gint BACKGROUND_ICON_SIZE = 128;
-
-/**
- * on_dialog_map:
- * @dialog: The GtkWidget dialog being mapped.
- * @event:  The GdkEvent (ignored here).
- * @user_data: User data (ignored).
- *
- * This signal handler is called when the dialog is mapped (shown).
- * We queue a resize to ensure the window fits all buttons.
- */
-static gboolean
-on_dialog_map (GtkWidget *dialog, GdkEvent *event, gpointer user_data)
-{
-  /* Queue a resize for the dialog after it is realized */
-  gtk_widget_queue_resize (dialog);
-
-  /* Disconnect this handler: we only need it once */
-  g_signal_handlers_disconnect_by_func (dialog,
-                                        G_CALLBACK (on_dialog_map),
-                                        user_data);
-  return TRUE;
-}
 
 /**
  * show_permission_denied_dialog:
@@ -110,11 +84,10 @@ start_add_background_preference_dialog (GtkWindow *parent)
   GtkFileFilter  *filter            = (GtkFileFilter *) NULL;
   GObject        *bg_color_obj      = (GObject *) NULL;
 
-  PreferenceData *preference_data = (PreferenceData *) NULL;
-
   start_virtual_keyboard ();
 
-  preference_data = g_malloc ((gsize) sizeof (PreferenceData));
+  PreferenceData *preference_data = (PreferenceData *) NULL;
+  preference_data                 = g_malloc ((gsize) sizeof (PreferenceData));
 
   /* Initialize the main window. */
   GtkBuilder *preference_dialog_gtk_builder = gtk_builder_new ();
@@ -151,6 +124,7 @@ start_add_background_preference_dialog (GtkWindow *parent)
   gtk_file_chooser_add_filter (chooser, filter);
 
   preference_data->preview = gtk_image_new ();
+
   gtk_file_chooser_set_preview_widget (chooser, preference_data->preview);
 
   bg_color_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
@@ -167,6 +141,7 @@ start_add_background_preference_dialog (GtkWindow *parent)
   if (background_type == 1)
     {
       GObject *color_obj;
+
       color_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
                                           "color");
 
@@ -175,8 +150,10 @@ start_add_background_preference_dialog (GtkWindow *parent)
     }
   else if (background_type == 2)
     {
-      GObject *file_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
-                                                  "file");
+      GObject *file_obj = NULL;
+
+      file_obj = gtk_builder_get_object (preference_dialog_gtk_builder,
+                                         "file");
 
       GtkToggleButton *image_tool_button = GTK_TOGGLE_BUTTON (file_obj);
       gtk_toggle_button_set_active (image_tool_button, TRUE);
@@ -353,7 +330,7 @@ background_selection_on_toggled (GtkToggleToolButton *toggle_tool_button,
  * lifecycle is managed by its parent container. Finally, it frees the
  * #BackgroundButtonData struct itself.
  */
-static void
+void
 background_button_data_free (gpointer data)
 {
   BackgroundButtonData *background_data = (BackgroundButtonData *) data;
@@ -380,148 +357,6 @@ background_button_data_free (gpointer data)
 
   g_free (background_data);
   background_data = NULL;
-}
-
-/**
- * on_remove_background_button:
- * @menuitem:  The #GtkMenuItem that emitted the "activate" signal.
- * @user_data: A pointer to the #GtkWidget (the background button)
- *             to be removed.
- *
- * Callback for the context menu action to remove a user-added background.
- *
- * This function is triggered when the "Remove" option is selected from the
- * right-click menu of a background button. It retrieves the unique label
- * of the background from the widget's data, removes the corresponding
- * entry from the configuration file, and then destroys the button widget
- * itself to remove it from the selection dialog.
- *
- * Returns: %TRUE to indicate the signal was handled.
- */
-gboolean
-on_remove_background_button (GtkMenuItem *menuitem, gpointer user_data)
-{
-  GtkToolItem *button_item         = GTK_TOOL_ITEM (user_data);
-  const gchar *background_key_name = g_object_get_data (G_OBJECT (button_item),
-                                                        "background-label");
-
-  if (! background_key_name)
-    {
-      g_warning ("Could not find background label to remove.");
-      return TRUE;
-    }
-
-  background_config_remove_key (background_key_name);
-
-  GSList *iter = annotation_data->background_button_data;
-  while (iter)
-    {
-      BackgroundButtonData *bdata = (BackgroundButtonData *) iter->data;
-      GSList               *next  = iter->next;
-      if (bdata && bdata->button == button_item)
-        {
-          annotation_data->background_button_data = g_slist_delete_link (
-              annotation_data->background_button_data, iter);
-          background_button_data_free (bdata);
-          break;
-        }
-      iter = next;
-    }
-
-  /* Remove the widget from the container. */
-  GtkWidget *wrapper = gtk_widget_get_parent (GTK_WIDGET (button_item));
-  if (wrapper)
-    gtk_widget_destroy (wrapper);
-
-  /* Force window resize to recalc grid size. */
-  GtkWidget *grid = annotation_data->background_selection_container;
-  gtk_widget_queue_resize (grid);
-
-  GtkWidget *window = annotation_data->background_selection_window;
-  if (window)
-    {
-      /*
-       * This forces GTK to recalc the window size
-       * based on the remaining widgets.
-       */
-      gtk_window_resize (GTK_WINDOW (window), 1, 1);
-      gtk_widget_queue_resize (window);
-    }
-
-  return TRUE;
-}
-
-/**
- * background_selection_on_button_press:
- * @widget:   The background button widget that received the event.
- * @event:    The GdkEvent associated with the button press.
- * @userdata: User data associated with the widget (ignored here).
- *
- * Handles right-click events on background buttons. If the user right-clicks
- * a background, a context menu is created with a "Remove" option to delete
- * the background. The function looks for the "background-label" either on
- * the widget itself or its child widgets.
- *
- * Returns: TRUE if the event was handled (right-click menu shown), FALSE
- *          otherwise (left-click or other events).
- */
-gboolean
-background_selection_on_button_press (GtkWidget *widget,
-                                      GdkEvent *event,
-                                      gpointer userdata)
-{
-  if (event->type != GDK_BUTTON_PRESS)
-    return FALSE;
-
-  GdkEventButton *ev = (GdkEventButton *) event;
-  if (ev->button != GDK_BUTTON_SECONDARY)
-    return FALSE;
-
-  const gchar *background_key_name = g_object_get_data (G_OBJECT (widget),
-                                                        "background-label");
-
-  /* If label not found on the widget itself, search in child widgets */
-  if (! background_key_name && GTK_IS_CONTAINER (widget))
-    {
-      GList *children = gtk_container_get_children (GTK_CONTAINER (widget));
-      for (GList *l = children; l != NULL; l = l->next)
-        {
-          GtkWidget *child = GTK_WIDGET (l->data);
-          if (! child)
-            continue;
-
-          const gchar *lbl = g_object_get_data (G_OBJECT (child),
-                                                "background-label");
-          if (lbl)
-            {
-              background_key_name = lbl;
-              break;
-            }
-        }
-      g_list_free (children);
-    }
-
-  if (! background_key_name)
-    {
-      g_printerr ("no background-label found for widget %p\n", widget);
-      return FALSE;
-    }
-
-  /* Create the context menu. */
-  GtkWidget *menu     = gtk_menu_new ();
-  GtkWidget *menuitem = gtk_menu_item_new_with_label (gettext ("Remove"));
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu), menuitem);
-  gtk_widget_show_all (menu);
-
-  /* Connect the remove callback, passing the container widget. */
-  g_signal_connect (menuitem,
-                    "activate",
-                    G_CALLBACK (on_remove_background_button),
-                    widget);
-
-  gtk_menu_popup_at_pointer (GTK_MENU (menu), (GdkEvent *) ev);
-
-  return TRUE;
 }
 
 /**
@@ -565,11 +400,11 @@ add_background_button (gchar *label,
     button_item = gtk_radio_tool_button_new (NULL);
   else
     {
-      GSList *last_node =
-          g_slist_last (annotation_data->background_button_data);
+      GSList *last_node = NULL;
+      last_node = g_slist_last (annotation_data->background_button_data);
 
-      BackgroundButtonData *last_data =
-          (BackgroundButtonData *) last_node->data;
+      BackgroundButtonData *last_data = NULL;
+      last_data = (BackgroundButtonData *) last_node->data;
 
       button_item = gtk_radio_tool_button_new_from_widget (
           GTK_RADIO_TOOL_BUTTON (last_data->button));
@@ -705,12 +540,7 @@ background_dialog_response (GtkDialog *dialog,
 {
   GtkWidget *window = GTK_WIDGET (dialog);
 
-  if (response == RESPONSE_ADD_NEW)
-    {
-      start_add_background_preference_dialog (GTK_WINDOW (dialog));
-      return;
-    }
-  else if (response == GTK_RESPONSE_OK)
+  if (response == GTK_RESPONSE_OK)
     {
       destroy_background_data_preview ();
       persist_current_selection (window);
@@ -721,28 +551,6 @@ background_dialog_response (GtkDialog *dialog,
       gtk_widget_queue_draw (annotation_window);
     }
   gtk_widget_destroy (GTK_WIDGET (window));
-}
-
-/**
- * on_background_selection_window_destroy:
- * @object:    The background selection window that was destroyed.
- * @user_data: User data passed to the callback (unused here).
- *
- * Cleans up the global annotation_data references when the background
- * selection window is destroyed. Frees all associated background button
- * data and resets the tracking variables.
- */
-void
-on_background_selection_window_destroy (GtkWidget *object, gpointer user_data)
-{
-  annotation_data->background_selection_window    = NULL;
-  annotation_data->background_selection_container = NULL;
-
-  g_slist_free_full (annotation_data->background_button_data,
-                     background_button_data_free);
-
-  annotation_data->background_button_data          = NULL;
-  annotation_data->background_button_last_selected = BACKGROUND_NONE_SELECTED;
 }
 
 /**
@@ -852,65 +660,69 @@ void
 create_bar_preference_window (GtkWindow *parent)
 {
   GtkWidget          *dialog;
-  GtkWidget          *content_area;
   GtkWidget          *grid;
   BackgroundRestored *br;
+  GtkBuilder         *builder;
 
-  /* Create the dialog with buttons. */
-  dialog = gtk_dialog_new_with_buttons (
-      gettext ("Backgrounds"),
-      parent,
-      GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
-      gettext ("Add New..."),
-      RESPONSE_ADD_NEW,
-      gettext ("Cancel"),
-      GTK_RESPONSE_CANCEL,
-      gettext ("OK"),
-      GTK_RESPONSE_OK,
-      NULL);
+  /* Load dialog from Glade */
+  builder = gtk_builder_new ();
+  gtk_builder_add_from_file (builder, PREFERENCE_UI_FILE, NULL);
 
+  /* Get the main dialog widget */
+  dialog = GTK_WIDGET (gtk_builder_get_object (builder, "preferences"));
   annotation_data->background_selection_window = GTK_WIDGET (dialog);
 
-  /* Get the content area of the dialog. */
-  content_area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
-
-  /* Create a GtkGrid for placing icons. */
-  grid = gtk_grid_new ();
-  gtk_grid_set_column_spacing (GTK_GRID (grid), 4);
-  gtk_grid_set_row_spacing (GTK_GRID (grid), 4);
-
-  /* Add the grid to the dialog content area. */
-  gtk_box_pack_start (GTK_BOX (content_area), grid, FALSE, FALSE, 0);
-
-  /* Save the grid in annotation_data for later use. */
+  /* Get the grid from Glade */
+  grid = GTK_WIDGET (gtk_builder_get_object (builder, "background_grid"));
   annotation_data->background_selection_container = grid;
 
   /* Store original background to restore on cancel. */
   br = background_config_restore_last_background ();
-
-  g_object_set_data_full (G_OBJECT (dialog), "background-original-br", br,
+  g_object_set_data_full (G_OBJECT (dialog),
+                          "background-original-br",
+                          br,
                           (GDestroyNotify) background_restored_free);
 
   g_object_set_data (G_OBJECT (dialog),
-                     "background-committed",
-                     GINT_TO_POINTER (0));
+	                 "background-committed",
+	                 GINT_TO_POINTER (0));
 
-  /* Connect dialog signals. */
-  g_signal_connect (dialog,
-                    "response",
-                    G_CALLBACK (background_dialog_response),
-                    NULL);
+  /* Add PNG filter to image chooser */
+  GtkFileChooser *chooser;
+  chooser = GTK_FILE_CHOOSER (
+      gtk_builder_get_object (builder, "imageChooserButton"));
+
+  PreferenceData *preference_data = (PreferenceData *) NULL;
+  preference_data                 = g_malloc ((gsize) sizeof (PreferenceData));
+  preference_data->preference_dialog_gtk_builder = builder;
+
+  if (chooser)
+    {
+      gtk_file_chooser_set_current_folder (chooser, BACKGROUNDS_FOLDER);
+      GtkFileFilter *filter = gtk_file_filter_new ();
+      gtk_file_filter_set_name (filter, "PNG Images");
+      gtk_file_filter_add_pattern (filter, "*.png");
+      gtk_file_filter_add_mime_type (filter, "image/png");
+      gtk_file_chooser_add_filter (chooser, filter);
+      preference_data->preview = gtk_image_new ();
+      gtk_file_chooser_set_preview_widget (chooser, preference_data->preview);
+    }
+
+  /* Load all backgrounds from configuration. */
+  load_backgrounds_from_config ();
+
+  /* Connect all signals by reflection. */
+  gtk_builder_connect_signals (builder, (gpointer) preference_data);
 
   g_signal_connect (dialog,
                     "destroy",
                     G_CALLBACK (on_background_selection_window_destroy),
                     NULL);
 
-  /* Load all backgrounds from configuration. */
-  load_backgrounds_from_config ();
-
-  /* Force automatic resizing when dialog is mapped. */
-  g_signal_connect (dialog, "map", G_CALLBACK (on_dialog_map), NULL);
+  g_signal_connect (dialog,
+                    "response",
+                    G_CALLBACK (background_dialog_response),
+                    NULL);
 
   /* Show everything. */
   gtk_widget_show_all (dialog);

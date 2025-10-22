@@ -22,3 +22,25 @@
  */
 
 #include <gtk/gtk.h>
+
+G_MODULE_EXPORT void on_image_chooser_button_update_preview (
+    GtkFileChooser *file_chooser,
+    gpointer data);
+                                        
+G_MODULE_EXPORT void on_image_chooser_button_file_set(
+    GtkFileChooserButton *button,
+    gpointer user_data);
+
+G_MODULE_EXPORT void on_image_chooser_button_file_set (
+    GtkFileChooserButton *button,
+    gpointer user_data);
+
+gboolean on_remove_background_button (GtkMenuItem *menuitem,
+                                      gpointer user_data);
+
+gboolean background_selection_on_button_press (GtkWidget *widget,
+                                               GdkEvent *event,
+                                               gpointer userdata);
+
+void on_background_selection_window_destroy (GtkWidget *object,
+                                             gpointer user_data);

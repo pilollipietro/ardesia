@@ -46,3 +46,5 @@ typedef struct
 void show_permission_denied_dialog (GtkWindow *parent_window);
 
 void create_bar_preference_window (GtkWindow *parent);
+
+void background_button_data_free (gpointer data);
