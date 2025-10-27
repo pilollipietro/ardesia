@@ -349,19 +349,26 @@ create_cursor_window (void)
   g_debug ("Creating cursor\n");
   gint       size   = 64;
   GtkWidget *window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  // remove titlebar, resize controls etc
+
+  /* Remove titlebar, resize controls etc */
   gtk_window_set_decorated (GTK_WINDOW (window), FALSE);
-  // remove close box
+
+  /* Remove close box */
   gtk_window_set_deletable (GTK_WINDOW (window), FALSE);
-  // remove from taskbar
+
+  /* Remove from taskbar */
   gtk_window_set_skip_taskbar_hint (GTK_WINDOW (window), TRUE);
-  // remove from pager
+
+  /* Remove from pager */
   gtk_window_set_skip_pager_hint (GTK_WINDOW (window), TRUE);
-  // sets initial size
+
+  /* Sets initial size */
   gtk_window_set_default_size (GTK_WINDOW (window), size, size);
-  // sets minimum size
+
+  /* Sets minimum size */
   gtk_widget_set_size_request (window, size, size);
-  // cannot be resized by user
+
+  /* Cannot be resized by user */
   gtk_window_set_resizable (GTK_WINDOW (window), FALSE);
 
   GtkWidget *drawing_area = gtk_drawing_area_new ();
@@ -385,6 +392,7 @@ G_MODULE_EXPORT void
 on_cursor_click (GtkToggleButton *toolbutton, gpointer func_data)
 {
   g_debug ("on_cursor_click\n");
+
   /*
    * vlc --screen-mouse-pointer does not work on linux so
    * instead what we want to do is show an image just under where
@@ -411,8 +419,9 @@ on_cursor_click (GtkToggleButton *toolbutton, gpointer func_data)
       annotation_data->is_cursor_visible = TRUE;
       gtk_window_present (GTK_WINDOW (annotation_data->cursor_window));
       gtk_widget_show_all (annotation_data->cursor_window);
+
       /*
-       * needed this hide and show in here to make window appear again
+       * Needed this hide and show in here to make window appear again
        * after the initial hide - very weird!
        */
       gtk_widget_hide (annotation_data->cursor_window);

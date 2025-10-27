@@ -347,8 +347,10 @@ start_save_video_dialog (GtkButton *toolbutton, GtkWindow *parent)
   gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (chooser),
                                        get_project_dir ());
 
-  // test if ogv file already exists - if it does then add a number to the
-  // end - continue until new file can be made
+  /*
+   * Test if ogv file already exists - if it does then add a number to the
+   * end - continue until new file can be made
+   */
   gchar *supported_extension = ".ogv";
   gchar *filename_copy       = (gchar *) NULL;
   gchar *filename_fullpath   = (gchar *) NULL;
@@ -358,7 +360,7 @@ start_save_video_dialog (GtkButton *toolbutton, GtkWindow *parent)
   gint counter      = 1;
   while (access (filename_fullpath, F_OK) != -1)
     {
-      // file exists
+      /* File exists */
       filename_copy = g_strdup_printf ("%s_%d%s",
                                        filename,
                                        counter,
