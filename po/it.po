@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Ardesia 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-09 23:58+0200\n"
+"POT-Creation-Date: 2025-10-27 23:23+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Pilolli Pietro <pilolli.pietro@gmail.com>\n"
 "Language-Team: Ardesia Team <pilolli.pietro@gmail.com>\n"
@@ -75,25 +75,29 @@ msgstr ""
 "USA.\n"
 "   "
 
-#: ../desktop/preference_dialog.glade.h:1
-msgid "Choose the background"
-msgstr "Scegli lo sfondo"
+#: ../desktop/preference_dialog.glade.h:1 ../desktop/vertical_bar.glade.h:31
+msgid "Background"
+msgstr "Sfondo"
 
 #: ../desktop/preference_dialog.glade.h:2
-msgid "image"
-msgstr "immagine"
+msgid "Existing Backgrounds:"
+msgstr "Sfondi esistenti:"
 
 #: ../desktop/preference_dialog.glade.h:3
-msgid "background color"
-msgstr "colore dello sfondo"
+msgid "Add New Background"
+msgstr "Aggiungi un nuovo sfondo"
 
 #: ../desktop/preference_dialog.glade.h:4
-msgid "Choose the background color"
-msgstr "Scegli il colore dello sfondo"
+msgid "Color:"
+msgstr "Colore:"
 
 #: ../desktop/preference_dialog.glade.h:5
-msgid "none"
-msgstr "nessuno"
+msgid "Image File:"
+msgstr "File immagine:"
+
+#: ../desktop/preference_dialog.glade.h:6
+msgid "Choose background color"
+msgstr "Scegli il colore dello sfondo"
 
 #: ../desktop/project_dialog.glade.h:1
 msgid "Choose a project name"
@@ -107,7 +111,7 @@ msgstr "Vuoi condividere il tuo lavoro attraverso la posta elettronica?"
 msgid "Choose Font"
 msgstr "Scegli un font"
 
-#: ../desktop/vertical_bar.glade.h:1 ../src/bar_callbacks.c:404
+#: ../desktop/vertical_bar.glade.h:1 ../src/bar_callbacks.c:402
 msgid "Hide Annotations"
 msgstr "Nascondi le annotazioni"
 
@@ -227,10 +231,6 @@ msgstr "Aggiungi al pdf"
 msgid "Save to PDF"
 msgstr "Salva PDF"
 
-#: ../desktop/vertical_bar.glade.h:31
-msgid "Background"
-msgstr "Sfondo"
-
 #: ../desktop/vertical_bar.glade.h:32
 msgid "Fonts"
 msgstr "Font"
@@ -275,37 +275,25 @@ msgstr "Mostra cursore"
 msgid "In order to run Ardesia you need to enable a composite manager"
 msgstr "Per far girare Ardesia è necessario abilitare un composite manager"
 
-#: ../src/bar_callbacks.c:373
+#: ../src/bar_callbacks.c:371
 msgid "Show Annotations"
 msgstr "Mostra annotazioni"
 
 #. Put the show icon.
-#: ../src/bar_callbacks.c:376
+#: ../src/bar_callbacks.c:374
 msgid "show"
 msgstr "mostra"
 
 #. Put the hide icon.
-#: ../src/bar_callbacks.c:407
+#: ../src/bar_callbacks.c:405
 msgid "hide"
 msgstr "nascondi"
-
-#: ../src/bar_callbacks.c:561
-msgid "Remove"
-msgstr "Rimuovi"
-
-#: ../src/bar_callbacks.c:913
-msgid "Backgrounds"
-msgstr "Sfondi"
-
-#: ../src/bar_callbacks.c:937
-msgid "Add background"
-msgstr "Aggiungi sfondo"
 
 #: ../src/color_selector.c:68
 msgid "Changing color"
 msgstr "Cambia colore"
 
-#: ../src/preference_dialog.c:46
+#: ../src/preference_dialog.c:51
 msgid "Fail to open the file: Permission denied"
 msgstr "Impossibile aprire il file: Permesso negato"
 
@@ -320,6 +308,21 @@ msgstr "Scegli un file"
 #: ../src/saver.c:78
 msgid "Couldn't open file for writing: Permission denied"
 msgstr "Impossibile aprire il file: Permesso negato"
+
+#~ msgid "Choose the background"
+#~ msgstr "Scegli lo sfondo"
+
+#~ msgid "image"
+#~ msgstr "immagine"
+
+#~ msgid "background color"
+#~ msgstr "colore dello sfondo"
+
+#~ msgid "none"
+#~ msgstr "nessuno"
+
+#~ msgid "Remove"
+#~ msgstr "Rimuovi"
 
 #~ msgid "Preferences"
 #~ msgstr "Preferenze"
