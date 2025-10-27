@@ -1,93 +1,186 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated with glade 3.40.0 -->
 <interface>
   <requires lib="gtk+" version="3.20"/>
   <object class="GtkDialog" id="preferences">
-    <property name="title" translatable="yes">Preferences</property>
+    <property name="title" translatable="yes">Background</property>
     <property name="modal">True</property>
     <property name="destroy-with-parent">True</property>
+    <property name="default-width">450</property>
     <child internal-child="vbox">
       <object class="GtkBox">
+        <property name="visible">True</property>
         <property name="orientation">vertical</property>
-        <property name="spacing">6</property>
-
-        <!-- Action area con OK e Cancel -->
+        <property name="spacing">12</property>
+        <property name="margin">12</property>
         <child internal-child="action_area">
           <object class="GtkButtonBox">
+            <property name="visible">True</property>
             <property name="layout-style">end</property>
             <child>
               <object class="GtkButton" id="preference_cancel_button">
-                <property name="label">Cancel</property>
+                <property name="label">gtk-cancel</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use-stock">True</property>
               </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
             </child>
             <child>
               <object class="GtkButton" id="preference_ok_button">
-                <property name="label">OK</property>
+                <property name="label">gtk-add</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use-stock">True</property>
+                <property name="can-default">True</property>
               </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+              </packing>
             </child>
           </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">True</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
         </child>
         <child>
-          <object class="GtkGrid" id="background_grid">
-            <property name="row-spacing">6</property>
-            <property name="column-spacing">6</property>
-            <property name="margin">6</property>
+          <object class="GtkLabel" id="grid_title_label">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Existing Backgrounds:</property>
+            <property name="halign">start</property>
+            <property name="margin_bottom">6</property>
+            <attributes>
+              <attribute name="weight" value="bold"/>
+            </attributes>
           </object>
+          <packing>
+             <property name="expand">False</property>
+             <property name="fill">True</property>
+             <property name="position">0</property>
+          </packing>
         </child>
         <child>
-          <object class="GtkGrid" id="background_controls_grid">
-            <property name="row-spacing">6</property>
-            <property name="column-spacing">6</property>
-            <child>
-              <object class="GtkRadioButton" id="color">
-                <property name="label">Background color</property>
-              </object>
-              <packing>
-                <property name="left-attach">0</property>
-                <property name="top-attach">0</property>
-              </packing>
-            </child>
-            <child>
-              <object class="GtkRadioButton" id="file">
-                <property name="label">Image</property>
-              </object>
-              <packing>
-                <property name="left-attach">0</property>
-                <property name="top-attach">1</property>
-              </packing>
-            </child>
-
-            <child>
-              <object class="GtkColorButton" id="backgroundColorButton">
-                <property name="use-alpha">True</property>
-                <property name="title">Choose background color</property>
-                <signal name="color-set" handler="on_background_color_button_color_set"/>
-              </object>
-              <packing>
-                <property name="left-attach">1</property>
-                <property name="top-attach">0</property>
-              </packing>
-            </child>
-
-            <child>
-              <object class="GtkFileChooserButton" id="imageChooserButton">
-                <property name="use-preview-label">False</property>
-                <signal name="file-set" handler="on_image_chooser_button_file_set"/>
-                <signal name="update-preview" handler="on_image_chooser_button_update_preview"/>
-              </object>
-              <packing>
-                <property name="left-attach">1</property>
-                <property name="top-attach">1</property>
-              </packing>
-            </child>
-
+          <object class="GtkScrolledWindow">
+             <property name="visible">True</property>
+             <property name="can_focus">True</property>
+             <property name="shadow_type">in</property>
+             <property name="hscrollbar_policy">never</property>
+             <property name="min_content_height">150</property>
+             <child>
+               <object class="GtkGrid" id="background_grid">
+                 <property name="visible">True</property>
+                 <property name="row-spacing">6</property>
+                 <property name="column-spacing">6</property>
+               </object>
+             </child>
           </object>
+          <packing>
+             <property name="expand">True</property>
+             <property name="fill">True</property>
+             <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkFrame">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Add New Background</property>
+            <property name="label_xalign">0</property>
+            <property name="shadow_type">in</property>
+            <property name="margin-top">12</property>
+            <property name="margin-bottom">6</property>
+            <child>
+               <object class="GtkBox">
+                 <property name="visible">True</property>
+                 <property name="margin">12</property>
+                 <child>
+                  <object class="GtkGrid" id="background_controls_grid">
+                    <property name="visible">True</property>
+                    <property name="row-spacing">12</property>
+                    <property name="column-spacing">18</property>
+                    <child>
+                      <object class="GtkLabel" id="color_label">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Color:</property>
+                        <property name="halign">end</property>
+                        <property name="valign">center</property>
+                      </object>
+                      <packing>
+                        <property name="left-attach">0</property>
+                        <property name="top-attach">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="file_label">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Image File:</property>
+                        <property name="halign">end</property>
+                        <property name="valign">center</property>
+                      </object>
+                      <packing>
+                        <property name="left-attach">0</property>
+                        <property name="top-attach">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkColorButton" id="backgroundColorButton">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="use-alpha">True</property>
+                        <property name="title" translatable="yes">Choose background color</property>
+                        <property name="valign">center</property>
+                        <signal name="color-set" handler="on_background_color_button_color_set"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">1</property>
+                        <property name="top-attach">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkFileChooserButton" id="imageChooserButton">
+                         <property name="visible">True</property>
+                         <property name="can_focus">False</property>
+                         <property name="use-preview-label">False</property>
+                         <property name="valign">center</property>
+                         <signal name="file-set" handler="on_image_chooser_button_file_set"/>
+                         <signal name="update-preview" handler="on_image_chooser_button_update_preview"/>
+                      </object>
+                      <packing>
+                        <property name="left-attach">1</property>
+                        <property name="top-attach">1</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                     <property name="expand">True</property>
+                     <property name="fill">True</property>
+                     <property name="position">0</property>
+                  </packing>
+                 </child>
+               </object>
+             </child>
+          </object>
+          <packing>
+             <property name="expand">False</property>
+             <property name="fill">True</property>
+             <property name="position">2</property>
+          </packing>
         </child>
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-6">preference_cancel_button</action-widget>
-      <action-widget response="-5">preference_ok_button</action-widget>
+	    <action-widget response="-6">preference_cancel_button</action-widget>
+	    <action-widget response="-5">preference_ok_button</action-widget>
     </action-widgets>
   </object>
 </interface>
