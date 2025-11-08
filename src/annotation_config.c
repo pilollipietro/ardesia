@@ -37,7 +37,7 @@ annotate_paint_type_to_string (AnnotateData *data)
   switch (ctx_type)
     {
     case ANNOTATE_PEN:
-      if (data->is_opaque)
+      if (data->a == 255)
         {
           return "pen";
         }

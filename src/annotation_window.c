@@ -248,8 +248,11 @@ select_color (void)
           if (annotation_data->color)
             {
               g_debug ("Select color %s\n", annotation_data->color);
-              cairo_set_source_color_from_string (annotation_cairo_context,
-                                                  annotation_data->color);
+	      cairo_set_source_rgba (annotation_cairo_context,
+                                     (gdouble) annotation_data->r / 255.0,
+                                     (gdouble) annotation_data->g / 255.0,
+                                     (gdouble) annotation_data->b / 255.0,
+                                     (gdouble) annotation_data->a / 255.0);
             }
 
           cairo_set_operator (annotation_cairo_context, CAIRO_OPERATOR_SOURCE);
@@ -422,14 +425,18 @@ annotate_modify_color (AnnotateDeviceData *devdata,
   gdouble  contrast = 1.5;
   cairo_t *annotation_cr;
   annotation_cr = annotation_data->annotation_cairo_context;
+  guint    r, g, b, a;
+  r = annotation_data->r;
+  g = annotation_data->g;
+  b = annotation_data->b;
+  a = annotation_data->a;
 
   if ((! annotation_cr) || (! annotation_data->color))
     {
       return;
     }
     if (pressure >= 1) {
-        cairo_set_source_color_from_string (annotation_cr,
-                                            annotation_data->color);
+	cairo_set_source_rgba (annotation_cr, r, g, b, a);
         return;
     }
 
@@ -461,12 +468,6 @@ annotate_modify_color (AnnotateDeviceData *devdata,
     {
       new_alpha = 1.0;
     }
-
-  guint    r, g, b, a;
-  r = annotation_data->r;
-  g = annotation_data->g;
-  b = annotation_data->b;
-  a = annotation_data->a;
 
   g_debug ("pressure %f, new_alpha %f", pressure, new_alpha);
   cairo_set_source_rgba (annotation_cr,
@@ -1721,17 +1722,20 @@ gdouble
 annotate_get_thickness (void)
 {
   gfloat corrective_factor = 1.0;
-  if (is_eraser_toggle_tool_button_active ())
+  if (annotation_data->cur_context->type == ANNOTATE_ERASER)
     {
       corrective_factor = annotation_data->eraser_multiplier;
     }
-  if (is_highlighter_toggle_tool_button_active ())
+  else if (annotation_data->cur_context->type == ANNOTATE_PEN)
     {
-      corrective_factor = annotation_data->highlighter_multiplier;
-    }
-  if (is_pen_toggle_tool_button_active ())
-    {
-      corrective_factor = annotation_data->pen_multiplier;
+      if (annotation_data->a != 255)
+        {
+          corrective_factor = annotation_data->highlighter_multiplier;
+        }
+      else
+        {
+          corrective_factor = annotation_data->pen_multiplier;
+        }
     }
   return annotation_data->thickness * corrective_factor;
 }
