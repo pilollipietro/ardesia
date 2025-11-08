@@ -186,30 +186,45 @@ annotate_paint_context_new (AnnotatePaintType type)
 static gdouble
 annotate_get_arrow_direction (AnnotateDeviceData *devdata)
 {
-  /* The list must be not null and the length might be greater than two. */
-  AnnotatePoint *point      = (AnnotatePoint *) NULL;
-  AnnotatePoint *old_point  = (AnnotatePoint *) NULL;
-  gdouble        delta      = 2.0;
-  gdouble        ret        = 0.0;
-  GSList        *out_ptr    = devdata->coord_list;
-  gdouble        tollerance = annotate_get_thickness () * delta;
+  GSList *list = devdata->coord_list;
+  if (g_slist_length (list) < 2)
+    {
+      return 0.0;
+    }
 
-  /* Build the relevant point list with the standard deviation algorithm. */
-  GSList *relevantpoint_list = build_meaningful_point_list (out_ptr,
-                                                            tollerance);
+  AnnotatePoint *last_point = (AnnotatePoint *) list->data;
 
-  old_point = (AnnotatePoint *) g_slist_nth_data (relevantpoint_list, 1);
-  point     = (AnnotatePoint *) g_slist_nth_data (relevantpoint_list, 0);
+  /* meaningfull point at least half the line's thickness away. */
+  gdouble min_distance = annotate_get_thickness () / 2.0;
+  if (min_distance < 5.0) min_distance = 5.0;
 
-  /* Give the direction using the last two point. */
-  ret = atan2 (point->y - old_point->y, point->x - old_point->x);
+  AnnotatePoint *old_point = NULL;
+  GSList *iter = list->next;
 
-  /* Free the relevant point list. */
-  g_slist_foreach (relevantpoint_list, (GFunc) g_free, (gpointer) NULL);
-  g_slist_free (relevantpoint_list);
-  relevantpoint_list = (GSList *) NULL;
+  while (iter)
+  {
+      old_point = (AnnotatePoint *) iter->data;
 
-  return ret;
+      /* is the point far enough away? */
+      gdouble distance = get_distance (last_point->x,
+                                       last_point->y,
+				       old_point->x,
+				       old_point->y);
+      if (distance > min_distance)
+      {
+          break;
+      }
+
+      iter = g_slist_next(iter);
+  }
+
+  if (old_point == NULL)
+    {
+      old_point = (AnnotatePoint *) g_slist_nth_data (list, 1);
+    }
+
+  /* Give the direction using the last two significant points. */
+  return atan2 (last_point->y - old_point->y, last_point->x - old_point->x);
 }
 
 /**
@@ -401,26 +416,17 @@ annotate_modify_color (AnnotateDeviceData *devdata,
                        AnnotateData *data,
                        gdouble pressure)
 {
-  AnnotatePoint *last_point;
-  gboolean changed = FALSE;
-  if (devdata->coord_list != NULL)
-    {
-      changed = TRUE;
-    }
-  else
-    {
-      last_point = (AnnotatePoint *) g_slist_nth_data (devdata->coord_list, 0);
-      if (last_point == NULL || pressure == last_point->pressure)
-      {
-        changed = TRUE;
-      }
-    }  
-  if (! changed)
-    {
-      return;
-    }
   /* Pressure value is from 0 to 1; this value modify the RGBA gradient. */
   gdouble  old_pressure = pressure;
+  AnnotatePoint *last_point = (AnnotatePoint *) g_slist_nth_data (devdata->coord_list, 0);
+  if (devdata->coord_list != NULL)
+    {
+      old_pressure = last_point->pressure;
+      if (last_point != NULL && pressure == old_pressure)
+        {
+          return;
+        }
+    }
   gdouble  new_alpha;
   gdouble  contrast = 1.5;
   cairo_t *annotation_cr;
@@ -438,15 +444,6 @@ annotate_modify_color (AnnotateDeviceData *devdata,
     if (pressure >= 1) {
 	cairo_set_source_rgba (annotation_cr, r, g, b, a);
         return;
-    }
-
-  if (devdata->coord_list != NULL)
-    {
-      AnnotatePoint *last_point;
-
-      last_point = (AnnotatePoint *) g_slist_nth_data (devdata->coord_list, 0);
-
-      old_pressure = last_point->pressure;
     }
 
   /*
@@ -909,7 +906,7 @@ roundify (AnnotateDeviceData *devdata, gboolean closed_path)
                 {
                   top = point1->y;
                 }
-              else if (point1->x > bottom)
+              else if (point1->y > bottom)
                 {
                   bottom = point1->y;
                 }
