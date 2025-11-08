@@ -430,19 +430,23 @@ annotate_modify_color (AnnotateDeviceData *devdata,
   gdouble  new_alpha;
   gdouble  contrast = 1.5;
   cairo_t *annotation_cr;
-  annotation_cr = annotation_data->annotation_cairo_context;
+  annotation_cr = data->annotation_cairo_context;
   guint    r, g, b, a;
-  r = annotation_data->r;
-  g = annotation_data->g;
-  b = annotation_data->b;
-  a = annotation_data->a;
+  r = data->r;
+  g = data->g;
+  b = data->b;
+  a = data->a;
 
-  if ((! annotation_cr) || (! annotation_data->color))
+  if ((! annotation_cr) || (! data->color))
     {
       return;
     }
     if (pressure >= 1) {
-	cairo_set_source_rgba (annotation_cr, r, g, b, a);
+	cairo_set_source_rgba (annotation_cr,
+			       r/255.0,
+			       g/255.0,
+			       b/255.0,
+			       a/255.0);
         return;
     }
 
@@ -1371,9 +1375,9 @@ annotate_configure_pen_options (AnnotateData *data)
       cairo_set_line_join (annotation_cairo_context,
                            CAIRO_LINE_JOIN_ROUND);
 
-      if (annotation_data->cur_context->type == ANNOTATE_ERASER)
+      if (data->cur_context->type == ANNOTATE_ERASER)
         {
-          annotation_data->cur_context = annotation_data->default_eraser;
+          data->cur_context = data->default_eraser;
 
           cairo_set_operator (annotation_cairo_context,
                               CAIRO_OPERATOR_CLEAR);
@@ -1516,8 +1520,8 @@ annotate_add_savepoint (void)
 void
 initialize_annotation_cairo_context (AnnotateData *data)
 {
-  GtkWidget *annotation_window = get_annotation_window ();
-  if (annotation_data->annotation_cairo_context == NULL)
+  GtkWidget *annotation_window = data->annotation_window;
+  if (data->annotation_cairo_context == NULL)
     {
       g_debug ("initializing annotation cairo context\n");
       /* Initialize a transparent window. */
@@ -1535,14 +1539,14 @@ initialize_annotation_cairo_context (AnnotateData *data)
        *
        */
       cairo_surface_t *surface = cairo_win32_surface_create (hdc);
-
-      annotation_data->annotation_cairo_context = cairo_create (surface);
+      data->annotation_cairo_context = cairo_create (surface);
+      cairo_surface_destroy (surface);
 #else
       int width  = gtk_widget_get_allocated_width (annotation_window);
       int height = gtk_widget_get_allocated_height (annotation_window);
-      if (annotation_data->annotation_cairo_context == NULL)
+      if (data->annotation_cairo_context == NULL)
         {
-          annotation_data->annotation_cairo_context =
+          data->annotation_cairo_context =
               create_new_context (width, height);
         }
       if (background_data->cr == NULL)
@@ -1552,7 +1556,7 @@ initialize_annotation_cairo_context (AnnotateData *data)
 #endif
 
       cairo_t *annotation_cr;
-      annotation_cr = annotation_data->annotation_cairo_context;
+      annotation_cr = data->annotation_cairo_context;
 
       if (cairo_status (annotation_cr) != CAIRO_STATUS_SUCCESS)
         {
@@ -1563,7 +1567,7 @@ initialize_annotation_cairo_context (AnnotateData *data)
       cairo_set_operator (annotation_cr,
                           CAIRO_OPERATOR_OVER);
 
-      if (annotation_data->savepoint_list == NULL)
+      if (data->savepoint_list == NULL)
         {
           g_debug ("It has not savepoint; clear the screen");
           /* Clear the screen.  */
@@ -1602,7 +1606,7 @@ get_annotation_window (void)
 /**
  * annotate_set_color:
  * @color: (transfer none): A string representing the new drawing color
- * (e.g., in hex format "#RRGGBBAA").
+ * (e.g., in hex format "RRGGBBAA").
  *
  * Sets the new global color for drawing operations.
  *
@@ -1828,7 +1832,7 @@ annotate_push_context (cairo_t *cr)
   source_surface = cairo_get_target (cr);
 
   cairo_set_operator (annotation_cairo_context,
-                      CAIRO_OPERATOR_ADD);
+                      CAIRO_OPERATOR_OVER);
  
   /*
    * Creates a pattern from surface at x,y on the context
@@ -1956,7 +1960,6 @@ annotate_select_eraser (void)
 void
 annotate_acquire_grab (void)
 {
-  ungrab_pointer ();
   if (! annotation_data->is_grabbed)
     {
       g_debug ("Acquire grab\n");
@@ -2272,6 +2275,7 @@ annotate_quit (void)
           gtk_widget_destroy (annotation_data->annotation_window);
           annotation_data->annotation_window = (GtkWidget *) NULL;
         }
+      g_free (annotation_data);
     }
 }
 
@@ -2288,21 +2292,17 @@ annotate_release_input_grab (void)
 {
   g_debug ("annotate_release_input_grab\n");
   ungrab_pointer ();
-#ifndef _WIN32
   /*
    * @TODO implement correctly gtk_widget_input_shape_combine_mask
    * in the quartz gdkwindow or use an equivalent native function;
    * the current implementation in macosx this does not do nothing.
    */
+#ifndef _WIN32
   /*
    * This allows the mouse event to be passed below the transparent annotation;
    * at the moment this call works only on Linux
    */
-  gtk_widget_input_shape_combine_region (annotation_data->annotation_window,
-                                         NULL);
-
-  // putting this here stops the bar from picking up signals on re-entry
-
+  
   const cairo_rectangle_int_t ann_rect = { 0, 0, 0, 0 };
   cairo_region_t             *r = cairo_region_create_rectangle (&ann_rect);
   gtk_widget_input_shape_combine_region (annotation_data->annotation_window, r);
@@ -2559,22 +2559,22 @@ annotation_window_button_press (GdkEventButton *ev, AnnotateData *data)
   gdouble y = ev->y;
 
   /* Get the data for this device. */
+  GHashTable *devdatatable = data->devdatatable;
   AnnotateDeviceData *masterdata;
-  masterdata = g_hash_table_lookup (annotation_data->devdatatable,
-                                    master);
+  masterdata = g_hash_table_lookup (devdatatable, master);
 
   gdouble pressure = 1.0;
 
-  if (annotation_data->cur_context == annotation_data->default_filler)
+  if (data->cur_context == data->default_filler)
     {
       return FALSE;
     }
 
-  if (! annotation_data->is_grabbed)
+  if (! data->is_grabbed)
     {
       g_debug ("on_button_press: initialising cairo\n");
       initialize_annotation_cairo_context (data);
-      if (! annotation_data->is_grabbed)
+      if (! data->is_grabbed)
         {
           g_printerr ("on_button_press: initialising cairo failed\n");
           return FALSE;
@@ -2848,20 +2848,6 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
   g_debug ("Device '%s': Button %i Up at (x,y)= (%.2f : %.2f)\n",
            gdk_device_get_name (master), ev->button, ev->x, ev->y);
 
-#ifdef _WIN32
-  if (inside_bar_window (ev->x_root, ev->y_root))
-    /* Point is in the ardesia bar. */
-    {
-      /* The last point was outside the bar then ungrab. */
-      annotate_release_grab ();
-      return FALSE;
-    }
-  if (data->old_paint_type == ANNOTATE_PEN)
-    {
-      annotate_select_pen ();
-    }
-#endif
-
   /*
    * This was required to stop if from permanently holding on the screen
    * over the ardesia bar.
@@ -2936,7 +2922,7 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
           annotate_shape_recognize (masterdata, closed_path);
 
           /* If is selected an arrow type then I draw the arrow. */
-          if (data->arrow)
+          if (! closed_path && data->arrow)
             {
               /* Print arrow at the end of the path. */
               annotate_draw_arrow (masterdata, distance);
@@ -2944,7 +2930,7 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
         }
       if (closed_path)
         {
-          cairo_close_path (annotation_data->annotation_cairo_context);
+          cairo_close_path (data->annotation_cairo_context);
           save_closed_path ();
         }
     }
