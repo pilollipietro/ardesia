@@ -50,6 +50,67 @@
 AnnotateData *annotation_data;
 
 /**
+ * @brief Data structure passed to the savepoint background thread.
+ * Contains the surface copy and filename for the save operation.
+ */
+typedef struct {
+    cairo_surface_t *surface_copy; /**< The surface copy to be saved. */
+    gchar *filename;           /**< The destination filename. */
+} SavepointThreadData;
+
+/**
+ * savepoint_thread_data_free:
+ * @task_data: A pointer to a #SavepointThreadData struct.
+ *
+ * GDestroyNotify callback to free the thread data structure and its
+ * contents (the surface copy and the duplicated filename).
+ * This runs in the main thread *after* the worker thread is complete.
+ */
+static void
+savepoint_thread_data_free (gpointer task_data)
+{
+    SavepointThreadData *data = (SavepointThreadData *)task_data;
+    if (data) {
+        if (data->surface_copy) {
+            cairo_surface_destroy(data->surface_copy);
+        }
+        g_free(data->filename);
+        g_free(data);
+    }
+}
+
+/**
+ * savepoint_worker_thread:
+ * @task: The GTask executing this operation.
+ * @source_object: (unused)
+ * @task_data: A pointer to a #SavepointThreadData struct.
+ * @cancellable: (unused)
+ *
+ * This function runs in a background thread (GTask).
+ * It performs the single, slow I/O operation: writing the surface to a PNG file.
+ */
+static void
+savepoint_worker_thread (GTask *task,
+                         gpointer source_object,
+                         gpointer task_data,
+                         GCancellable *cancellable)
+{
+    SavepointThreadData *data = (SavepointThreadData *)task_data;
+    cairo_status_t status;
+
+    /* This is the slow I/O operation */
+    status = cairo_surface_write_to_png(data->surface_copy, data->filename);
+
+    if (status != CAIRO_STATUS_SUCCESS) {
+        g_warning ("(Thread) Failed to write savepoint PNG %s: %s",
+                   data->filename, cairo_status_to_string (status));
+    } else {
+        g_debug ("(Thread) Savepoint stored in file: %s", data->filename);
+    }
+
+}
+
+/**
  * get_pressure:
  * @ev: The #GdkEvent from which to extract the axis value.
  *
@@ -337,6 +398,24 @@ annotate_modify_color (AnnotateDeviceData *devdata,
                        AnnotateData *data,
                        gdouble pressure)
 {
+  AnnotatePoint *last_point;
+  gboolean changed = FALSE;
+  if (devdata->coord_list != NULL)
+    {
+      changed = TRUE;
+    }
+  else
+    {
+      last_point = (AnnotatePoint *) g_slist_nth_data (devdata->coord_list, 0);
+      if (last_point == NULL || pressure == last_point->pressure)
+      {
+        changed = TRUE;
+      }
+    }  
+  if (! changed)
+    {
+      return;
+    }
   /* Pressure value is from 0 to 1; this value modify the RGBA gradient. */
   guint    r, g, b, a;
   gdouble  old_pressure = pressure;
@@ -1347,29 +1426,31 @@ void
 annotate_add_savepoint (void)
 {
   AnnotateSavepoint *savepoint      = NULL;
-  cairo_surface_t   *saved_surface  = NULL;
-  cairo_t           *cr             = NULL;
   cairo_surface_t   *source_surface = NULL;
-  cairo_status_t     status;
   int                w = 0, h = 0;
   guint              savepoint_index;
 
   g_return_if_fail (annotation_data != NULL);
   g_return_if_fail (annotation_data->annotation_cairo_context != NULL);
 
-  savepoint = g_malloc0 (sizeof (AnnotateSavepoint));
-  if (! savepoint)
-    {
-      g_warning ("Failed to allocate savepoint");
-      return;
-    }
-  get_context_size (annotation_data->annotation_cairo_context, &w, &h);
+  source_surface = cairo_get_target (annotation_data->annotation_cairo_context);
+  if (! source_surface) {
+    g_warning ("Annotation context target is NULL");
+    return;
+  }
 
-  if (w <= 0 || h <= 0)
-    {
-      g_warning ("Invalid annotation context size: %dx%d", w, h);
-      goto cleanup;
-    }
+  get_context_size (annotation_data->annotation_cairo_context, &w, &h);
+  if (w <= 0 || h <= 0) {
+    g_warning ("Invalid annotation context size: %dx%d", w, h);
+    return;
+  }
+
+  /* Create the savepoint metadata struct */
+  savepoint = g_malloc0 (sizeof (AnnotateSavepoint));
+  if (! savepoint) {
+    g_warning ("Failed to allocate savepoint");
+    return;
+  }
 
   savepoint_index = g_slist_length (annotation_data->savepoint_list) + 1;
   savepoint->filename = g_strdup_printf ("%s%s%s_%d_vellum.png",
@@ -1377,72 +1458,45 @@ annotate_add_savepoint (void)
                                          G_DIR_SEPARATOR_S,
                                          PACKAGE_NAME,
                                          savepoint_index);
-  if (!savepoint->filename)
-    {
-      g_warning ("Failed to allocate filename for savepoint");
-      goto cleanup;
-    }
+  if (!savepoint->filename) {
+    g_warning ("Failed to allocate filename for savepoint");
+    g_free (savepoint);
+    return;
+  }
 
-  saved_surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, w, h);
-  if (cairo_surface_status (saved_surface) != CAIRO_STATUS_SUCCESS)
-    {
-      g_warning ("Failed to create cairo surface");
-      goto cleanup;
-    }
+  /* Prepare data for the background thread */
+  SavepointThreadData *thread_data = g_new0(SavepointThreadData, 1);
+  thread_data->filename = g_strdup(savepoint->filename);
 
-  source_surface = cairo_get_target (annotation_data->annotation_cairo_context);
-  if (! source_surface)
-    {
-      g_warning ("Annotation context target is NULL");
-      goto cleanup;
-    }
+  /* Create the surface copy *in the main thread* */
+  thread_data->surface_copy = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, w, h);
+  if (cairo_surface_status(thread_data->surface_copy) != CAIRO_STATUS_SUCCESS) {
+      g_warning ("Failed to create surface copy for thread");
+      savepoint_thread_data_free(thread_data);
+      g_free(savepoint->filename);
+      g_free(savepoint);
+      return;
+  }
+  
+  /* Copy the content of the source surface to the new surface */
+  cairo_t *cr_copy = cairo_create(thread_data->surface_copy);
+  cairo_set_source_surface(cr_copy, source_surface, 0, 0);
+  cairo_paint(cr_copy);
+  cairo_destroy(cr_copy);
 
-  cr = cairo_create (saved_surface);
-  if (cairo_status (cr) != CAIRO_STATUS_SUCCESS)
-    {
-      g_warning ("Failed to create cairo context");
-      goto cleanup;
-    }
-
-  cairo_set_source_surface (cr, source_surface, 0, 0);
-  cairo_paint (cr);
-  if (saved_surface)
-    {
-      cairo_surface_destroy (saved_surface);
-    }
-
-  status = cairo_surface_write_to_png (saved_surface, savepoint->filename);
-  if (status != CAIRO_STATUS_SUCCESS)
-    {
-      g_warning ("Failed to write savepoint PNG: %s",
-                 cairo_status_to_string (status));
-      goto cleanup;
-    }
-
-  /* Success: commit the new state to the application's history */
+  /* Update history immediately */
   annotate_redolist_free ();
-
   annotation_data->savepoint_list =
     g_slist_prepend (annotation_data->savepoint_list, savepoint);
   annotation_data->current_save_index = 0;
 
-  g_debug ("Savepoint stored in file: %s", savepoint->filename);
+  /* Create and run the background task (slow part) */
+  GTask *task = g_task_new(NULL, NULL, NULL, NULL);
+  g_task_set_task_data(task, thread_data, savepoint_thread_data_free);
+  g_task_run_in_thread(task, savepoint_worker_thread);
+  g_object_unref(task);
 
-  /* The savepoint now belongs to the list; prevent it from being freed */
-  savepoint = NULL;
-
-cleanup:
-  if (cr)
-    {
-      cairo_destroy (cr);
-    }
-
-  if (savepoint)
-    {
-      /* An error occurred before the savepoint could be added to the list */
-      g_free (savepoint->filename);
-      g_free (savepoint);
-    }
+  g_debug ("Savepoint created: %s (saving in background)", savepoint->filename);
 }
 
 /**

@@ -132,6 +132,7 @@ typedef struct
   gboolean    is_annotation_visible;
   gboolean    is_window_covering_toolbar;
   gboolean    is_opaque;
+
   /* Gtkbuilder for annotation window. */
   GtkBuilder *annotation_window_gtk_builder;
 
@@ -150,18 +151,19 @@ typedef struct
   cairo_t             *clapperboard_cairo_context;
   gboolean             is_clapperboard_visible;
 
-  // cursor window
+  /* cursor window */
   GtkBuilder *cursor_window_gtk_builder;
   GtkWidget  *cursor_window;
   gboolean    is_cursor_visible;
   gint        cursor_timer;
   gint        cursor_step;
 
-  // background window information
+  /* background window information */
   GtkWidget *background_selection_window;
   GtkWidget *background_selection_container;
   GSList    *background_button_data;
-  // last background item selected, -1 if not
+
+  /* last background item selected, -1 if not */
   gint       background_button_last_selected;
 
   gfloat highlighter_multiplier;
