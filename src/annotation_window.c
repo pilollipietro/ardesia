@@ -1359,7 +1359,7 @@ void
 annotate_configure_pen_options (AnnotateData *data)
 {
   cairo_t *annotation_cairo_context;
-  annotation_cairo_context = annotation_data->annotation_cairo_context;
+  annotation_cairo_context = data->annotation_cairo_context;
 
   if (annotation_cairo_context)
     {
