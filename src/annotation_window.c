@@ -417,7 +417,6 @@ annotate_modify_color (AnnotateDeviceData *devdata,
       return;
     }
   /* Pressure value is from 0 to 1; this value modify the RGBA gradient. */
-  guint    r, g, b, a;
   gdouble  old_pressure = pressure;
   gdouble  new_alpha;
   gdouble  contrast = 1.5;
@@ -433,9 +432,6 @@ annotate_modify_color (AnnotateDeviceData *devdata,
                                             annotation_data->color);
         return;
     }
-
-  assert (strlen (annotation_data->color) == 8);
-  sscanf (annotation_data->color, "%02X%02X%02X%02X", &r, &g, &b, &a);
 
   if (devdata->coord_list != NULL)
     {
@@ -465,6 +461,12 @@ annotate_modify_color (AnnotateDeviceData *devdata,
     {
       new_alpha = 1.0;
     }
+
+  guint    r, g, b, a;
+  r = annotation_data->r;
+  g = annotation_data->g;
+  b = annotation_data->b;
+  a = annotation_data->a;
 
   g_debug ("pressure %f, new_alpha %f", pressure, new_alpha);
   cairo_set_source_rgba (annotation_cr,
@@ -1626,6 +1628,13 @@ annotate_set_color (gchar *color)
       annotation_data->color = NULL;
     }
   annotation_data->color = g_strdup (color);
+  guint    r, g, b, a;
+  assert (strlen (annotation_data->color) == 8);
+  sscanf (annotation_data->color, "%02X%02X%02X%02X", &r, &g, &b, &a);
+  annotation_data->r = r;
+  annotation_data->g = g;
+  annotation_data->b = b;
+  annotation_data->a = a;
 }
 
 /**
@@ -2887,21 +2896,19 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
                                        first_point->x,
                                        first_point->y);
 
-      /* This is the tolerance to force to close the path in a magnetic way. */
-      gint score = 6;
-
-      gdouble tollerance = annotate_get_thickness () * score;
-
       gdouble pressure = last_point->pressure;
       annotate_modify_color (masterdata, data, pressure);
 
-      gboolean closed_path = FALSE;
+      gdouble thickness = annotate_get_thickness ();
+      gdouble gap = distance - thickness;
+      const gdouble snap_tolerance = 20.0;
+      gboolean closed_path = (gap < snap_tolerance);
 
       /*
        * If the distance between two point lesser than tolerance
        * they are the same point for me.
        */
-      if (distance > tollerance)
+      if (! closed_path)
         {
           /* Different point. */
           annotate_draw_line (masterdata, ev->x, ev->y, TRUE);
@@ -2914,7 +2921,6 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
       else
         {
           /* Rounded to be the same point. */
-          closed_path = TRUE; // this seems to be a closed path
           annotate_draw_line (masterdata, first_point->x, first_point->y, TRUE);
 
           annotate_coord_list_prepend (masterdata,

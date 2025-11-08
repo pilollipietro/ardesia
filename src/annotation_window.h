@@ -106,6 +106,7 @@ typedef struct
 
   /* The state. */
   guint state;
+
 } AnnotateDeviceData;
 
 // Background selection
@@ -230,6 +231,11 @@ typedef struct
 
   /* Pen color. */
   gchar *color;
+
+  gdouble r;
+  gdouble g;
+  gdouble b;
+  gdouble a;
 
   GtkWidget            *font_window;
   PangoFontDescription *font;

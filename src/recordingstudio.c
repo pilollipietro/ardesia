@@ -276,10 +276,6 @@ draw_video_cursor (cairo_t *cr, GtkWidget *widget, CursorAnimState *state)
   gint x = state->x;
   gint y = state->y;
 
-  /* Center of the widget */
-  gint w = gtk_widget_get_allocated_width (widget);
-  gint h = gtk_widget_get_allocated_height (widget);
-
   /* Clear previous cursor */
   cairo_set_source_rgba (cr, 0, 0, 0, 0);
   cairo_paint (cr);
@@ -306,17 +302,6 @@ draw_video_cursor (cairo_t *cr, GtkWidget *widget, CursorAnimState *state)
 
   /* Update step for next frame */
   annotation_data->cursor_step = (annotation_data->cursor_step + 1) % 60;
-
-  /* Compute bounding box for the cursor */
-  int cursor_radius = 20; // This should be 35 (5 + 6*5) for safety
-  int draw_x = (w / 2) - cursor_radius;
-  int draw_y = (h / 2) - cursor_radius;
-  int draw_size = 2 * cursor_radius;
-
-  /* Queue redraw only for the bounding box */
-  gtk_widget_queue_draw_area (widget, draw_x, draw_y, draw_size, draw_size);
-
-  /* --- REMOVED: All calculation logic (gdk_pixbuf_get_from_window, etc) --- */
 }
 
 /**
