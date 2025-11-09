@@ -441,7 +441,7 @@ activate_tools (AnnotateData *data)
       activate_tool_button ("buttonEraser");
       break;
     case ANNOTATE_PEN:
-      if (data->is_opaque)
+      if (is_selected_color_opaque ())
         {
           activate_tool_button ("buttonPencil");
         }

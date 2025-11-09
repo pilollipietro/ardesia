@@ -37,13 +37,13 @@ annotate_paint_type_to_string (AnnotateData *data)
   switch (ctx_type)
     {
     case ANNOTATE_PEN:
-      if (data->a <= 128)
+      if (is_selected_color_opaque ())
         {
-          return "highlighter";
+          return "pen";
         }
       else
         {
-          return "pen";
+          return "highlighter";
         }
     case ANNOTATE_ERASER:
       return "eraser";
@@ -267,17 +267,6 @@ annotation_config_load_state (AnnotateData *annotation_data)
     {
       annotate_set_color (color);
       g_free (color);
-
-      /* Determine opacity based on the new color's alpha component */
-      if (strlen (annotation_data->color) >= 8 &&
-          g_ascii_strcasecmp (annotation_data->color + 6, "FF") == 0)
-        {
-          annotation_data->is_opaque = TRUE;
-        }
-      else
-        {
-          annotation_data->is_opaque = FALSE;
-        }
     }
 
   gchar *thickness = g_key_file_get_string (kf,

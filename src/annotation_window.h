@@ -298,6 +298,8 @@ void annotate_select_filler (void);
 
 void annotate_add_savepoint (void);
 
+gboolean is_selected_color_opaque(void);
+
 gboolean annotation_window_button_press (GdkEventButton *ev,
                                          AnnotateData *data);
 

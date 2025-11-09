@@ -1721,6 +1721,12 @@ annotate_set_thickness (gdouble thickness)
   annotation_data->thickness = thickness;
 }
 
+gboolean
+is_selected_color_opaque ()
+{
+  return annotation_data->a > 128;
+}
+
 /**
  * annotate_get_thickness:
  *
@@ -1746,13 +1752,13 @@ annotate_get_thickness (void)
     }
   else if (annotation_data->cur_context->type == ANNOTATE_PEN)
     {
-      if (annotation_data->a <= 128)
+      if (is_selected_color_opaque ())
         {
-          corrective_factor = annotation_data->highlighter_multiplier;
+          corrective_factor = annotation_data->pen_multiplier;
         }
       else
         {
-          corrective_factor = annotation_data->pen_multiplier;
+          corrective_factor = annotation_data->highlighter_multiplier;
         }
     }
   return annotation_data->thickness * corrective_factor;
