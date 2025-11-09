@@ -37,13 +37,13 @@ annotate_paint_type_to_string (AnnotateData *data)
   switch (ctx_type)
     {
     case ANNOTATE_PEN:
-      if (data->a == 255)
+      if (data->a <= 128)
         {
-          return "pen";
+          return "highlighter";
         }
       else
         {
-          return "highlighter";
+          return "pen";
         }
     case ANNOTATE_ERASER:
       return "eraser";

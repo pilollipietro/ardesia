@@ -1746,7 +1746,7 @@ annotate_get_thickness (void)
     }
   else if (annotation_data->cur_context->type == ANNOTATE_PEN)
     {
-      if (annotation_data->a != 255)
+      if (annotation_data->a <= 128)
         {
           corrective_factor = annotation_data->highlighter_multiplier;
         }
