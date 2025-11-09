@@ -42,7 +42,7 @@
 /* Semi opaque (and then semi transparent) alpha;
  * this is used to make the highlighter effect.
  */
-#define SEMI_OPAQUE_ALPHA "88"
+#define SEMI_OPAQUE_ALPHA "80"
 
 /* full opaque alpha */
 #define OPAQUE_ALPHA "FF"

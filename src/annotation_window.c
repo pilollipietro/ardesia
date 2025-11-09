@@ -1654,6 +1654,7 @@ annotate_set_color (gchar *color)
   annotation_data->g = g;
   annotation_data->b = b;
   annotation_data->a = a;
+  g_debug ("Selected color %d %d %d %d", r, g, b, a);
 }
 
 /**
@@ -2455,7 +2456,7 @@ create_annotation_data (void)
   annotation_data = g_malloc0 ((gsize) sizeof (AnnotateData));
 
   annotation_data->color = NULL;
-  gchar *color           = g_strdup ("FFFF0088");
+  gchar *color           = g_strdup ("FFFF0080");
   annotate_set_color (color);
   g_free (color);
 

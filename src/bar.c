@@ -863,16 +863,25 @@ take_pen_tool (void)
 
   if (is_filler_toggle_tool_button_active ())
     {
-      if (strcmp (annotation_data->color + 6, "FF") != 0)
+      gchar *alpha_str = annotation_data->color + 6;
+      gint alpha_value = 0;
+      sscanf (alpha_str, "%02X", &alpha_value);
+      
+      g_printerr ("alpha_value %d", alpha_value);
+      if (alpha_value <= atoi (SEMI_OPAQUE_ALPHA))
         {
-          pencil_obj         = gtk_builder_get_object (bar_gtk_builder,
-                                                       "buttonHighlighter");
+          pencil_obj = gtk_builder_get_object (bar_gtk_builder,
+                                               "buttonHighlighter");
+                                               
           pencil_tool_button = GTK_TOGGLE_TOOL_BUTTON (pencil_obj);
         }
-      GObject            *filler_obj = gtk_builder_get_object (bar_gtk_builder,
-                                                               "buttonFiller");
-      GtkToggleToolButton *filler_tool_button = NULL;
+
+      GObject *filler_obj = gtk_builder_get_object (bar_gtk_builder,
+                                                    "buttonFiller");
+
+      GtkToggleToolButton *filler_tool_button;
       filler_tool_button = GTK_TOGGLE_TOOL_BUTTON (filler_obj);
+
       gtk_toggle_tool_button_set_active (filler_tool_button, FALSE);
       gtk_toggle_tool_button_set_active (pencil_tool_button, TRUE);
     }
@@ -981,6 +990,7 @@ set_color (BarData *bar_data, gchar *selected_color)
       g_warning ("Attempting to set NULL color");
       return;
     }
+
   take_pen_tool ();
   lock (bar_data);
   if (bar_data->color != NULL)
