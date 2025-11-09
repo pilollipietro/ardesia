@@ -82,14 +82,13 @@ fill (AnnotateData *annotation_data,
           y1 -= padding;
           x2 += padding;
           y2 += padding;
-
-	  gtk_widget_queue_draw_area (
-	      GTK_WIDGET (annotation_data->annotation_window),
+ 
+          gtk_widget_queue_draw_area (
+              GTK_WIDGET (annotation_data->annotation_window),
               (int)x1,
-	      (int)y1,
+              (int)y1,
               (int)(x2 - x1),
-              (int)(y2 - y1)
-	  );
+              (int)(y2 - y1));
 
           cairo_fill (cr);
           return;

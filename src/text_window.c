@@ -158,8 +158,8 @@ blink_cursor (gpointer data)
         }
 
       cairo_restore (cr);
-        GtkWidget *annotation_window = get_annotation_window ();
-	
+      GtkWidget *annotation_window = get_annotation_window ();
+
       gint dirty_x      = (gint) text_data->pos->x - 1;
       gint dirty_y      = (gint) top_y - 1;
       gint dirty_width  = (gint) width + 2;

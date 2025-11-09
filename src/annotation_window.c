@@ -31,7 +31,6 @@
 #include "background_window.h"
 #include "bar.h"
 #include "bar_callbacks.h"
-#include "spline.h"
 #include "broken.h"
 #include "cairo_functions.h"
 #include "cursors.h"
@@ -39,6 +38,7 @@
 #include "font_config.h"
 #include "input.h"
 #include "iwb_loader.h"
+#include "spline.h"
 #include "text_window.h"
 #include "utils.h"
 
@@ -53,9 +53,10 @@ AnnotateData *annotation_data;
  * @brief Data structure passed to the savepoint background thread.
  * Contains the surface copy and filename for the save operation.
  */
-typedef struct {
-    cairo_surface_t *surface_copy; /**< The surface copy to be saved. */
-    gchar *filename;           /**< The destination filename. */
+typedef struct
+{
+  cairo_surface_t *surface_copy;
+  gchar           *filename;
 } SavepointThreadData;
 
 /**
@@ -69,13 +70,15 @@ typedef struct {
 static void
 savepoint_thread_data_free (gpointer task_data)
 {
-    SavepointThreadData *data = (SavepointThreadData *)task_data;
-    if (data) {
-        if (data->surface_copy) {
-            cairo_surface_destroy(data->surface_copy);
+  SavepointThreadData *data = (SavepointThreadData *) task_data;
+  if (data)
+    {
+      if (data->surface_copy)
+        {
+          cairo_surface_destroy (data->surface_copy);
         }
-        g_free(data->filename);
-        g_free(data);
+      g_free (data->filename);
+      g_free (data);
     }
 }
 
@@ -87,7 +90,7 @@ savepoint_thread_data_free (gpointer task_data)
  * @cancellable: (unused)
  *
  * This function runs in a background thread (GTask).
- * It performs the single, slow I/O operation: writing the surface to a PNG file.
+ * It performs a single slow I/O operation: saving the surface as a PNG file.
  */
 static void
 savepoint_worker_thread (GTask *task,
@@ -95,19 +98,21 @@ savepoint_worker_thread (GTask *task,
                          gpointer task_data,
                          GCancellable *cancellable)
 {
-    SavepointThreadData *data = (SavepointThreadData *)task_data;
-    cairo_status_t status;
+  SavepointThreadData *data = (SavepointThreadData *) task_data;
+  cairo_status_t       status;
 
-    /* This is the slow I/O operation */
-    status = cairo_surface_write_to_png(data->surface_copy, data->filename);
+  /* This is the slow I/O operation */
+  status = cairo_surface_write_to_png (data->surface_copy, data->filename);
 
-    if (status != CAIRO_STATUS_SUCCESS) {
-        g_warning ("(Thread) Failed to write savepoint PNG %s: %s",
-                   data->filename, cairo_status_to_string (status));
-    } else {
-        g_debug ("(Thread) Savepoint stored in file: %s", data->filename);
+  if (status != CAIRO_STATUS_SUCCESS)
+    {
+      g_warning ("(Thread) Failed to write savepoint PNG %s: %s",
+                 data->filename, cairo_status_to_string (status));
     }
-
+  else
+    {
+      g_debug ("(Thread) Savepoint stored in file: %s", data->filename);
+    }
 }
 
 /**
@@ -196,27 +201,26 @@ annotate_get_arrow_direction (AnnotateDeviceData *devdata)
 
   /* meaningfull point at least half the line's thickness away. */
   gdouble min_distance = annotate_get_thickness () / 2.0;
-  if (min_distance < 5.0) min_distance = 5.0;
+  if (min_distance < 5.0)
+    min_distance = 5.0;
 
   AnnotatePoint *old_point = NULL;
-  GSList *iter = list->next;
+  GSList        *iter      = list->next;
 
   while (iter)
-  {
+    {
       old_point = (AnnotatePoint *) iter->data;
 
       /* is the point far enough away? */
-      gdouble distance = get_distance (last_point->x,
-                                       last_point->y,
-				       old_point->x,
-				       old_point->y);
+      gdouble distance = get_distance (last_point->x, last_point->y,
+                                       old_point->x, old_point->y);
       if (distance > min_distance)
-      {
+        {
           break;
-      }
+        }
 
-      iter = g_slist_next(iter);
-  }
+      iter = g_slist_next (iter);
+    }
 
   if (old_point == NULL)
     {
@@ -263,7 +267,7 @@ select_color (void)
           if (annotation_data->color)
             {
               g_debug ("Select color %s\n", annotation_data->color);
-	      cairo_set_source_rgba (annotation_cairo_context,
+              cairo_set_source_rgba (annotation_cairo_context,
                                      (gdouble) annotation_data->r / 255.0,
                                      (gdouble) annotation_data->g / 255.0,
                                      (gdouble) annotation_data->b / 255.0,
@@ -417,8 +421,9 @@ annotate_modify_color (AnnotateDeviceData *devdata,
                        gdouble pressure)
 {
   /* Pressure value is from 0 to 1; this value modify the RGBA gradient. */
-  gdouble  old_pressure = pressure;
-  AnnotatePoint *last_point = (AnnotatePoint *) g_slist_nth_data (devdata->coord_list, 0);
+  gdouble        old_pressure = pressure;
+  AnnotatePoint *last_point;
+  last_point = (AnnotatePoint *) g_slist_nth_data (devdata->coord_list, 0);
   if (devdata->coord_list != NULL)
     {
       old_pressure = last_point->pressure;
@@ -431,7 +436,7 @@ annotate_modify_color (AnnotateDeviceData *devdata,
   gdouble  contrast = 1.5;
   cairo_t *annotation_cr;
   annotation_cr = data->annotation_cairo_context;
-  guint    r, g, b, a;
+  guint r, g, b, a;
   r = data->r;
   g = data->g;
   b = data->b;
@@ -441,13 +446,14 @@ annotate_modify_color (AnnotateDeviceData *devdata,
     {
       return;
     }
-    if (pressure >= 1) {
-	cairo_set_source_rgba (annotation_cr,
-			       r/255.0,
-			       g/255.0,
-			       b/255.0,
-			       a/255.0);
-        return;
+  if (pressure >= 1)
+    {
+      cairo_set_source_rgba (annotation_cr,
+                             r / 255.0,
+                             g / 255.0,
+                             b / 255.0,
+                             a / 255.0);
+      return;
     }
 
   /*
@@ -542,19 +548,19 @@ annotate_draw_point (AnnotateDeviceData *devdata,
 
   /* Compute dirty area */
   GtkWidget *annotation_window = get_annotation_window ();
-  gdouble thickness = annotation_data->thickness;
-  gdouble padding = thickness * 2.0;
-  gdouble dirty_rect_x = x - padding;
-  gdouble dirty_rect_y = y - padding;
+  gdouble    thickness         = annotation_data->thickness;
+  gdouble    padding           = thickness * 2.0;
+  gdouble    dirty_rect_x      = x - padding;
+  gdouble    dirty_rect_y      = y - padding;
 
-  gdouble dirty_rect_width = thickness + padding;
+  gdouble dirty_rect_width  = thickness + padding;
   gdouble dirty_rect_height = thickness + padding;
 
   gtk_widget_queue_draw_area (annotation_window,
                               (gint)dirty_rect_x,
-	                      (gint)dirty_rect_y,
-	                      (gint)dirty_rect_width,
-	                      (gint)dirty_rect_height);
+                              (gint)dirty_rect_y,
+                              (gint)dirty_rect_width,
+                              (gint)dirty_rect_height);
 
 }
 
@@ -922,7 +928,7 @@ roundify (AnnotateDeviceData *devdata, gboolean closed_path)
 
           g_slist_foreach (rect_list, (GFunc) g_free, NULL);
           g_slist_free (rect_list);
-	  devdata->coord_list = meaningful_point_list;
+          devdata->coord_list = meaningful_point_list;
         }
     }
 
@@ -936,7 +942,6 @@ roundify (AnnotateDeviceData *devdata, gboolean closed_path)
       g_slist_foreach (meaningful_point_list, (GFunc) g_free, (gpointer) NULL);
       g_slist_free (meaningful_point_list);
     }
-
 }
 
 /**
@@ -1060,7 +1065,7 @@ create_annotation_window (Workspace *workspace, CommandLine *commandline)
 static void
 make_annotation_window_transparent (void)
 {
-  if (annotation_data->is_opaque == FALSE)
+  if (! annotation_data->is_opaque)
     {
       GtkWidget *annotation_window = get_annotation_window ();
       /* This trys to set an alpha channel. */
@@ -1317,7 +1322,7 @@ draw_arrow_in_point (AnnotatePoint *point, gdouble width, gdouble direction)
   cairo_restore (annotation_cairo_context);
 
   g_debug ("with vertex at (x,y)= (%f : %f)\n", arrow_head_0_x, arrow_head_0_y);
-  
+
   /* ---- Compute bounding box ---- */
   gdouble min_x = MIN (MIN (arrow_head_0_x, arrow_head_1_x),
                        MIN (arrow_head_2_x, arrow_head_3_x));
@@ -1441,67 +1446,77 @@ annotate_add_savepoint (void)
   g_return_if_fail (annotation_data->annotation_cairo_context != NULL);
 
   source_surface = cairo_get_target (annotation_data->annotation_cairo_context);
-  if (! source_surface) {
-    g_warning ("Annotation context target is NULL");
-    return;
-  }
+  if (! source_surface)
+    {
+      g_warning ("Annotation context target is NULL");
+      return;
+    }
 
   get_context_size (annotation_data->annotation_cairo_context, &w, &h);
-  if (w <= 0 || h <= 0) {
-    g_warning ("Invalid annotation context size: %dx%d", w, h);
-    return;
-  }
+  if (w <= 0 || h <= 0)
+    {
+      g_warning ("Invalid annotation context size: %dx%d", w, h);
+      return;
+    }
 
   /* Create the savepoint metadata struct */
   savepoint = g_malloc0 (sizeof (AnnotateSavepoint));
-  if (! savepoint) {
-    g_warning ("Failed to allocate savepoint");
-    return;
-  }
+  if (! savepoint)
+    {
+      g_warning ("Failed to allocate savepoint");
+      return;
+    }
 
-  savepoint_index = g_slist_length (annotation_data->savepoint_list) + 1;
+  savepoint_index     = g_slist_length (annotation_data->savepoint_list) + 1;
   savepoint->filename = g_strdup_printf ("%s%s%s_%d_vellum.png",
                                          annotation_data->savepoint_dir,
                                          G_DIR_SEPARATOR_S,
                                          PACKAGE_NAME,
                                          savepoint_index);
-  if (!savepoint->filename) {
-    g_warning ("Failed to allocate filename for savepoint");
-    g_free (savepoint);
-    return;
-  }
+  if (! savepoint->filename)
+    {
+      g_warning ("Failed to allocate filename for savepoint");
+      g_free (savepoint);
+      return;
+    }
 
   /* Prepare data for the background thread */
-  SavepointThreadData *thread_data = g_new0(SavepointThreadData, 1);
-  thread_data->filename = g_strdup(savepoint->filename);
+  SavepointThreadData *thread_data = g_new0 (SavepointThreadData, 1);
+  thread_data->filename            = g_strdup (savepoint->filename);
 
   /* Create the surface copy *in the main thread* */
-  thread_data->surface_copy = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, w, h);
-  if (cairo_surface_status(thread_data->surface_copy) != CAIRO_STATUS_SUCCESS) {
+  thread_data->surface_copy = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+                                                          w,
+                                                          h);
+
+  if (cairo_surface_status (thread_data->surface_copy) != CAIRO_STATUS_SUCCESS)
+    {
       g_warning ("Failed to create surface copy for thread");
-      savepoint_thread_data_free(thread_data);
-      g_free(savepoint->filename);
-      g_free(savepoint);
+      savepoint_thread_data_free (thread_data);
+      g_free (savepoint->filename);
+      g_free (savepoint);
       return;
-  }
-  
+    }
+
   /* Copy the content of the source surface to the new surface */
-  cairo_t *cr_copy = cairo_create(thread_data->surface_copy);
-  cairo_set_source_surface(cr_copy, source_surface, 0, 0);
-  cairo_paint(cr_copy);
-  cairo_destroy(cr_copy);
+  cairo_t *cr_copy = cairo_create (thread_data->surface_copy);
+  cairo_set_source_surface (cr_copy, source_surface, 0, 0);
+  cairo_paint (cr_copy);
+  cairo_destroy (cr_copy);
 
   /* Update history immediately */
   annotate_redolist_free ();
+
   annotation_data->savepoint_list =
-    g_slist_prepend (annotation_data->savepoint_list, savepoint);
+      g_slist_prepend (annotation_data->savepoint_list, savepoint);
+
   annotation_data->current_save_index = 0;
 
   /* Create and run the background task (slow part) */
-  GTask *task = g_task_new(NULL, NULL, NULL, NULL);
-  g_task_set_task_data(task, thread_data, savepoint_thread_data_free);
-  g_task_run_in_thread(task, savepoint_worker_thread);
-  g_object_unref(task);
+  GTask *task = g_task_new (NULL, NULL, NULL, NULL);
+  g_task_set_task_data (task, thread_data, savepoint_thread_data_free);
+  g_task_run_in_thread (task, savepoint_worker_thread);
+  g_object_unref (task);
 
   g_debug ("Savepoint created: %s (saving in background)", savepoint->filename);
 }
@@ -1549,8 +1564,8 @@ initialize_annotation_cairo_context (AnnotateData *data)
       int height = gtk_widget_get_allocated_height (annotation_window);
       if (data->annotation_cairo_context == NULL)
         {
-          data->annotation_cairo_context =
-              create_new_context (width, height);
+          data->annotation_cairo_context = create_new_context (width,
+                                                               height);
         }
       if (background_data->cr == NULL)
         {
@@ -1567,8 +1582,7 @@ initialize_annotation_cairo_context (AnnotateData *data)
           annotate_quit ();
           exit (EXIT_FAILURE);
         }
-      cairo_set_operator (annotation_cr,
-                          CAIRO_OPERATOR_OVER);
+      cairo_set_operator (annotation_cr, CAIRO_OPERATOR_OVER);
 
       if (data->savepoint_list == NULL)
         {
@@ -1633,7 +1647,7 @@ annotate_set_color (gchar *color)
       annotation_data->color = NULL;
     }
   annotation_data->color = g_strdup (color);
-  guint    r, g, b, a;
+  guint r, g, b, a;
   assert (strlen (annotation_data->color) == 8);
   sscanf (annotation_data->color, "%02X%02X%02X%02X", &r, &g, &b, &a);
   annotation_data->r = r;
@@ -2086,6 +2100,7 @@ annotate_select_tool (AnnotateData *data, GdkDevice *masterdevice,
 {
   AnnotateDeviceData *masterdata = g_hash_table_lookup (data->devdatatable,
                                                         masterdevice);
+
   AnnotateDeviceData *slavedata = g_hash_table_lookup (data->devdatatable,
                                                        slavedevice);
 
@@ -2300,7 +2315,7 @@ annotate_release_input_grab (void)
    * This allows the mouse event to be passed below the transparent annotation;
    * at the moment this call works only on Linux
    */
-  
+
   const cairo_rectangle_int_t ann_rect = { 0, 0, 0, 0 };
   cairo_region_t             *r = cairo_region_create_rectangle (&ann_rect);
   gtk_widget_input_shape_combine_region (annotation_data->annotation_window, r);
@@ -2553,11 +2568,11 @@ annotation_window_button_press (GdkEventButton *ev, AnnotateData *data)
       return FALSE;
     }
   GdkDevice *master = gdk_event_get_device ((GdkEvent *) ev);
-  gdouble x = ev->x;
-  gdouble y = ev->y;
+  gdouble    x      = ev->x;
+  gdouble    y      = ev->y;
 
   /* Get the data for this device. */
-  GHashTable *devdatatable = data->devdatatable;
+  GHashTable         *devdatatable = data->devdatatable;
   AnnotateDeviceData *masterdata;
   masterdata = g_hash_table_lookup (devdatatable, master);
 
@@ -2690,7 +2705,7 @@ annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
       annotate_select_tool (data, master, slave, ev->state);
     }
 
-  gdouble pressure       = 1.0;
+  gdouble pressure = 1.0;
 
   if (! data->is_grabbed)
     {

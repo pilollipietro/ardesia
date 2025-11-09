@@ -115,9 +115,9 @@ call_recorder (gchar *filename, gchar *option)
   // if its does not then we failed to start VLC properly
   gboolean pid_exists = file_exists (pidfilename);
   int      wait       = 0;
-  if (pid_exists == FALSE)
+  if (! pid_exists)
     {
-      while (wait < 3 && pid_exists == FALSE)
+      while (wait < 3 && ! pid_exists)
         {
 #ifdef _WIN32
           sleep (1000);
@@ -130,7 +130,7 @@ call_recorder (gchar *filename, gchar *option)
     }
 
   g_free (pidfilename);
-  if (pid_exists == FALSE)
+  if (! pid_exists)
     {
       pid = -1;
     }
@@ -436,7 +436,7 @@ start_save_video_dialog (GtkButton *toolbutton, GtkWindow *parent)
   g_free (filename);
   filename = NULL;
 
-  if (status == FALSE)
+  if (!status)
     {
       visualize_missing_recorder_program_dialog (
           parent, "VLC failed to start properly, check installation and logs.");

@@ -62,9 +62,9 @@ destroy_monitor_struct (gpointer data)
 {
   Monitor *m = (Monitor *) data;
   if (m == NULL)
-  {
-    return;
-  }
+    {
+      return;
+    }
   g_free (m->rect);
   g_free (m);
   m = NULL;

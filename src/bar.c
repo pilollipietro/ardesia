@@ -154,22 +154,6 @@ activate_tool_button (gchar *tool_button_name)
 }
 
 /**
- * get_statusbar:
- *
- * Retrieves the GtkStatusbar widget from the toolbar's GtkBuilder UI.
- *
- * Returns: (transfer none) (nullable): A pointer to the #GtkStatusbar,
- * or %NULL if not found.
- */
-GtkStatusbar *
-get_statusbar (void)
-{
-  GObject *g_object = gtk_builder_get_object (bar_gtk_builder,
-                                              gettext ("statusbar"));
-  return GTK_STATUSBAR (g_object);
-}
-
-/**
  * init_bar_data:
  *
  * Allocates and initializes a new #BarData structure with default values.
@@ -544,7 +528,7 @@ get_xdg_config_file (const char *name)
 
   system_dirs = g_get_system_config_dirs ();
   file        = g_build_filename (user_dir, name, NULL);
-  if (g_file_test (file, G_FILE_TEST_EXISTS) == TRUE)
+  if (g_file_test (file, G_FILE_TEST_EXISTS))
     {
       return file;
     }
@@ -554,7 +538,7 @@ get_xdg_config_file (const char *name)
   for (dir = system_dirs; *dir; ++dir)
     {
       file = g_build_filename (*dir, name, NULL);
-      if (g_file_test (file, G_FILE_TEST_EXISTS) == TRUE)
+      if (g_file_test (file, G_FILE_TEST_EXISTS))
         {
           return file;
         }
@@ -684,22 +668,6 @@ create_bar_window (CommandLine *commandline,
   gtk_window_move (GTK_WINDOW (bar_window), rect->x + x, rect->y + y);
 
   return bar_window;
-}
-
-/**
- * set_statusbar_label:
- * @message: The message to display in a status bar label.
- *
- * A legacy function to set the text of a label widget named
- * "labelCurrentSelection".
- */
-void
-set_statusbar_label (gchar *message)
-{
-  GObject *g_object = gtk_builder_get_object (
-      bar_gtk_builder, gettext ("labelCurrentSelection"));
-  GtkLabel *label = GTK_LABEL (g_object);
-  gtk_label_set_label (label, gettext (message));
 }
 
 /**

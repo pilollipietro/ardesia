@@ -39,12 +39,13 @@ typedef struct
   cairo_surface_t *cursor_surface;
 } RecordingStudioData;
 
-typedef struct {
-    gint x; // Ultima posizione X (relativa alla finestra)
-    gint y; // Ultima posizione Y (relativa alla finestra)
-    gdouble r; // Colore calcolato
-    gdouble g;
-    gdouble b;
+typedef struct
+{
+  gint    x; // Ultima posizione X (relativa alla finestra)
+  gint    y; // Ultima posizione Y (relativa alla finestra)
+  gdouble r; // Colore calcolato
+  gdouble g;
+  gdouble b;
 } CursorAnimState;
 
 #endif // RECORDINGSTUDIO_H

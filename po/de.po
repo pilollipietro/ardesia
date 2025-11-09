@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Ardesia 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-27 23:23+0100\n"
+"POT-Creation-Date: 2025-11-09 15:36+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Pilolli Pietro <pilolli.pietro@gmail.com>\n"
 "Language-Team: Ardesia Team <pilolli.pietro@gmail.com>\n"
@@ -16,6 +16,10 @@ msgstr ""
 #: ../desktop/crash_dialog.glade.h:1
 msgid "An error is occurred. Do you want send the crash report?"
 msgstr "Ein Fehler ist aufgetreten. Möchten Sie den Fehlerbericht senden?"
+
+#: ../desktop/font_selector.glade.h:1
+msgid "Choose Font"
+msgstr "Schriftart auswählen"
 
 #: ../desktop/info_dialog.glade.h:1
 msgid ""
@@ -107,13 +111,33 @@ msgstr "Hintergrundfarbe wählen"
 msgid "Choose a project name"
 msgstr "Wählen Sie einen Projektnamen"
 
+#: ../desktop/recordingstudio_window.glade.h:1
+msgid "Recording Studio"
+msgstr "Aufnahmestudio"
+
+#: ../desktop/recordingstudio_window.glade.h:2
+msgid "Record\n"
+msgstr "Aufnehmen\n"
+
+#: ../desktop/recordingstudio_window.glade.h:4
+msgid "Stop"
+msgstr "Stopp"
+
+#: ../desktop/recordingstudio_window.glade.h:5
+msgid "_New"
+msgstr "_Neu"
+
+#: ../desktop/recordingstudio_window.glade.h:6
+msgid "_Clapperboard"
+msgstr "_Filmklappe"
+
+#: ../desktop/recordingstudio_window.glade.h:7 ../src/recordingstudio.c:459
+msgid "Enable Cursor Effect"
+msgstr "Cursoreffekt aktivieren"
+
 #: ../desktop/share_confirmation_dialog.glade.h:1
 msgid "Do you want to share your work by email?"
 msgstr "Möchten Sie Ihre Arbeit per E-Mail teilen?"
-
-#: ../desktop/font_selector.glade.h:1
-msgid "Choose Font"
-msgstr "Schriftart auswählen"
 
 #: ../desktop/vertical_bar.glade.h:1 ../src/bar_callbacks.c:402
 msgid "Hide Annotations"
@@ -251,30 +275,6 @@ msgstr "Über"
 msgid "Quit"
 msgstr "Beenden"
 
-#: ../desktop/recordingstudio_window.glade.h:1
-msgid "Recording Studio"
-msgstr "Aufnahmestudio"
-
-#: ../desktop/recordingstudio_window.glade.h:2
-msgid "Record\n"
-msgstr "Aufnehmen\n"
-
-#: ../desktop/recordingstudio_window.glade.h:4
-msgid "Stop"
-msgstr "Stopp"
-
-#: ../desktop/recordingstudio_window.glade.h:5
-msgid "_New"
-msgstr "_Neu"
-
-#: ../desktop/recordingstudio_window.glade.h:6
-msgid "_Clapperboard"
-msgstr "_Filmklappe"
-
-#: ../desktop/recordingstudio_window.glade.h:7
-msgid "Show Cursor"
-msgstr "Zeiger anzeigen"
-
 #: ../src/ardesia.c:143
 msgid "In order to run Ardesia you need to enable a composite manager"
 msgstr "Um Ardesia auszuführen, müssen Sie einen Composite-Manager aktivieren"
@@ -297,21 +297,44 @@ msgstr "ausblenden"
 msgid "Changing color"
 msgstr "Farbe wird geändert"
 
+#: ../src/pdf_saver.c:53
+msgid "Export as pdf"
+msgstr "Als PDF exportieren"
+
+#: ../src/pdf_saver.c:65 ../src/recorder.c:345
+msgid "Choose a file"
+msgstr "Datei auswählen"
+
 #: ../src/preference_dialog.c:51
 msgid "Fail to open the file: Permission denied"
 msgstr "Datei konnte nicht geöffnet werden: Zugriff verweigert"
+
+#: ../src/preference_dialog_callbacks.c:271
+msgid "Remove"
+msgstr "Entfernen"
 
 #: ../src/recorder.c:333
 msgid "Save video as ogv"
 msgstr "Video als OGV speichern"
 
-#: ../src/recorder.c:345
-msgid "Choose a file"
-msgstr "Datei auswählen"
+#: ../src/recordingstudio.c:91
+msgid ""
+"In order to record with Ardesia you must install the vlc program and add it "
+"to the PATH environment variable"
+msgstr ""
+"Um mit Ardesia aufzunehmen, müssen Sie das Programm VLC installieren und es "
+"zur Umgebungsvariable PATH hinzufügen"
+
+#: ../src/recordingstudio.c:475
+msgid "Disable Cursor Effect"
+msgstr "Cursoreffekt deaktivieren"
 
 #: ../src/saver.c:78
 msgid "Couldn't open file for writing: Permission denied"
 msgstr "Datei konnte nicht zum Schreiben geöffnet werden: Zugriff verweigert"
+
+#~ msgid "Show Cursor"
+#~ msgstr "Zeiger anzeigen"
 
 #~ msgid "Choose the background"
 #~ msgstr "Hintergrund auswählen"
@@ -325,24 +348,11 @@ msgstr "Datei konnte nicht zum Schreiben geöffnet werden: Zugriff verweigert"
 #~ msgid "none"
 #~ msgstr "keiner"
 
-#~ msgid "Remove"
-#~ msgstr "Entfernen"
-
 #~ msgid "Preferences"
 #~ msgstr "Einstellungen"
 
 #~ msgid "info"
 #~ msgstr "Info"
 
-#~ msgid ""
-#~ "In order to record with Ardesia you must install the vlc program and add "
-#~ "it to the PATH environment variable"
-#~ msgstr ""
-#~ "Um mit Ardesia aufzunehmen, müssen Sie das Programm VLC installieren und "
-#~ "es zur Umgebungsvariable PATH hinzufügen"
-
 #~ msgid "File Exists. Overwrite"
 #~ msgstr "Datei existiert bereits. Überschreiben?"
-
-#~ msgid "Export as pdf"
-#~ msgstr "Als PDF exportieren"

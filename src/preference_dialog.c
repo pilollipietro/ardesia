@@ -450,9 +450,9 @@ load_backgrounds_from_config (void)
               continue;
             }
           gboolean is_active = FALSE;
-	  if (current_bg_label &&
+          if (current_bg_label &&
               g_strcmp0 (color_keys[i], current_bg_label) == 0)
-	    {
+            {
               is_active = TRUE;
             }
 
@@ -489,9 +489,9 @@ load_backgrounds_from_config (void)
         {
           gchar   *path      = background_config_get_image (image_keys[i]);
           gboolean is_active = FALSE;
-	  if (current_bg_label &&
+          if (current_bg_label &&
               g_strcmp0 (image_keys[i], current_bg_label) == 0)
-	    {
+            {
               is_active = TRUE;
             }
 
@@ -552,8 +552,8 @@ create_bar_preference_window (GtkWindow *parent)
                           (GDestroyNotify) background_restored_free);
 
   g_object_set_data (G_OBJECT (dialog),
-	                 "background-committed",
-	                 GINT_TO_POINTER (0));
+                     "background-committed",
+                     GINT_TO_POINTER (0));
 
   /* Add PNG filter to image chooser */
   GtkFileChooser *chooser;

@@ -128,11 +128,11 @@ typedef struct
 /* Annotation data used by the callbacks. */
 typedef struct
 {
-  gboolean    is_background_visible;
-  gboolean    is_text_editor_visible;
-  gboolean    is_annotation_visible;
-  gboolean    is_window_covering_toolbar;
-  gboolean    is_opaque;
+  gboolean is_background_visible;
+  gboolean is_text_editor_visible;
+  gboolean is_annotation_visible;
+  gboolean is_window_covering_toolbar;
+  gboolean is_opaque;
 
   /* Gtkbuilder for annotation window. */
   GtkBuilder *annotation_window_gtk_builder;
@@ -165,7 +165,7 @@ typedef struct
   GSList    *background_button_data;
 
   /* last background item selected, -1 if not */
-  gint       background_button_last_selected;
+  gint background_button_last_selected;
 
   gfloat highlighter_multiplier;
   gfloat pen_multiplier;

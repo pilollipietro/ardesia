@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Ardesia 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-27 23:23+0100\n"
+"POT-Creation-Date: 2025-11-09 15:36+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Pilolli Pietro <pilolli.pietro@gmail.com>\n"
 "Language-Team: Ardesia Team <pilolli.pietro@gmail.com>\n"
@@ -16,6 +16,10 @@ msgstr ""
 #: ../desktop/crash_dialog.glade.h:1
 msgid "An error is occurred. Do you want send the crash report?"
 msgstr "Ha ocurrido un error. ¿Desea enviar el informe de error?"
+
+#: ../desktop/font_selector.glade.h:1
+msgid "Choose Font"
+msgstr "Elegir Fuente"
 
 #: ../desktop/info_dialog.glade.h:1
 msgid ""
@@ -87,9 +91,8 @@ msgid "Existing Backgrounds:"
 msgstr "Fondos Existentes:"
 
 #: ../desktop/preference_dialog.glade.h:3
-#, fuzzy
 msgid "Add New Background"
-msgstr "Añadir fondo"
+msgstr "Añadir nuevo fondo"
 
 #: ../desktop/preference_dialog.glade.h:4
 msgid "Color:"
@@ -107,13 +110,33 @@ msgstr "Seleccionar color de fondo"
 msgid "Choose a project name"
 msgstr "Elegir un nombre de proyecto"
 
+#: ../desktop/recordingstudio_window.glade.h:1
+msgid "Recording Studio"
+msgstr "Estudio de Grabación"
+
+#: ../desktop/recordingstudio_window.glade.h:2
+msgid "Record\n"
+msgstr "Grabar\n"
+
+#: ../desktop/recordingstudio_window.glade.h:4
+msgid "Stop"
+msgstr "Detener"
+
+#: ../desktop/recordingstudio_window.glade.h:5
+msgid "_New"
+msgstr "_Nuevo"
+
+#: ../desktop/recordingstudio_window.glade.h:6
+msgid "_Clapperboard"
+msgstr "_Claqueta"
+
+#: ../desktop/recordingstudio_window.glade.h:7 ../src/recordingstudio.c:459
+msgid "Enable Cursor Effect"
+msgstr "Activar efecto de cursor"
+
 #: ../desktop/share_confirmation_dialog.glade.h:1
 msgid "Do you want to share your work by email?"
-msgstr "¿Quiere compartir su trabajo por correo electrónico?"
-
-#: ../desktop/font_selector.glade.h:1
-msgid "Choose Font"
-msgstr "Elegir Fuente"
+msgstr "¿Quieres compartir tu trabajo por correo electrónico?"
 
 #: ../desktop/vertical_bar.glade.h:1 ../src/bar_callbacks.c:402
 msgid "Hide Annotations"
@@ -251,30 +274,6 @@ msgstr "Acerca de"
 msgid "Quit"
 msgstr "Salir"
 
-#: ../desktop/recordingstudio_window.glade.h:1
-msgid "Recording Studio"
-msgstr "Estudio de Grabación"
-
-#: ../desktop/recordingstudio_window.glade.h:2
-msgid "Record\n"
-msgstr "Grabar\n"
-
-#: ../desktop/recordingstudio_window.glade.h:4
-msgid "Stop"
-msgstr "Detener"
-
-#: ../desktop/recordingstudio_window.glade.h:5
-msgid "_New"
-msgstr "_Nuevo"
-
-#: ../desktop/recordingstudio_window.glade.h:6
-msgid "_Clapperboard"
-msgstr "_Claqueta"
-
-#: ../desktop/recordingstudio_window.glade.h:7
-msgid "Show Cursor"
-msgstr "Mostrar Cursor"
-
 #: ../src/ardesia.c:143
 msgid "In order to run Ardesia you need to enable a composite manager"
 msgstr "Para ejecutar Ardesia necesita habilitar un gestor de composición"
@@ -297,21 +296,44 @@ msgstr "ocultar"
 msgid "Changing color"
 msgstr "Cambiando color"
 
+#: ../src/pdf_saver.c:53
+msgid "Export as pdf"
+msgstr "Exportar como PDF"
+
+#: ../src/pdf_saver.c:65 ../src/recorder.c:345
+msgid "Choose a file"
+msgstr "Elegir un archivo"
+
 #: ../src/preference_dialog.c:51
 msgid "Fail to open the file: Permission denied"
 msgstr "Fallo al abrir el archivo: Permiso denegado"
+
+#: ../src/preference_dialog_callbacks.c:271
+msgid "Remove"
+msgstr "Eliminar"
 
 #: ../src/recorder.c:333
 msgid "Save video as ogv"
 msgstr "Guardar vídeo como OGV"
 
-#: ../src/recorder.c:345
-msgid "Choose a file"
-msgstr "Elegir un archivo"
+#: ../src/recordingstudio.c:91
+msgid ""
+"In order to record with Ardesia you must install the vlc program and add it "
+"to the PATH environment variable"
+msgstr ""
+"Para grabar con Ardesia debe instalar el programa VLC y añadirlo a la "
+"variable de entorno PATH"
+
+#: ../src/recordingstudio.c:475
+msgid "Disable Cursor Effect"
+msgstr "Desactivar efecto de cursor"
 
 #: ../src/saver.c:78
 msgid "Couldn't open file for writing: Permission denied"
 msgstr "No se pudo abrir el archivo para escritura: Permiso denegado"
+
+#~ msgid "Show Cursor"
+#~ msgstr "Mostrar Cursor"
 
 #~ msgid "Choose the background"
 #~ msgstr "Elegir el fondo"
@@ -325,24 +347,11 @@ msgstr "No se pudo abrir el archivo para escritura: Permiso denegado"
 #~ msgid "none"
 #~ msgstr "ninguno"
 
-#~ msgid "Remove"
-#~ msgstr "Eliminar"
-
 #~ msgid "Preferences"
 #~ msgstr "Preferencias"
 
 #~ msgid "info"
 #~ msgstr "información"
 
-#~ msgid ""
-#~ "In order to record with Ardesia you must install the vlc program and add "
-#~ "it to the PATH environment variable"
-#~ msgstr ""
-#~ "Para grabar con Ardesia debe instalar el programa VLC y añadirlo a la "
-#~ "variable de entorno PATH"
-
 #~ msgid "File Exists. Overwrite"
 #~ msgstr "El archivo ya existe. ¿Sobrescribir?"
-
-#~ msgid "Export as pdf"
-#~ msgstr "Exportar como PDF"

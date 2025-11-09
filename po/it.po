@@ -1,21 +1,24 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Ardesia 1.0\n"
+"Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-27 23:23+0100\n"
+"POT-Creation-Date: 2025-11-09 15:36+0100\n"
 "PO-Revision-Date: \n"
-"Last-Translator: Pilolli Pietro <pilolli.pietro@gmail.com>\n"
-"Language-Team: Ardesia Team <pilolli.pietro@gmail.com>\n"
-"Language: it_IT\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Poedit-SourceCharset: utf-8\n"
 "X-Generator: Poedit 3.4.2\n"
 
 #: ../desktop/crash_dialog.glade.h:1
 msgid "An error is occurred. Do you want send the crash report?"
-msgstr "Un errore si è verificato. Vuoi inviare la segnalazione del crash?"
+msgstr "Si è verificato un errore. Vuoi inviare il report del crash?"
+
+#: ../desktop/font_selector.glade.h:1
+msgid "Choose Font"
+msgstr "Scegli un font"
 
 #: ../desktop/info_dialog.glade.h:1
 msgid ""
@@ -103,13 +106,33 @@ msgstr "Scegli il colore dello sfondo"
 msgid "Choose a project name"
 msgstr "Scegli il nome del progetto"
 
+#: ../desktop/recordingstudio_window.glade.h:1
+msgid "Recording Studio"
+msgstr "Studio di registrazione"
+
+#: ../desktop/recordingstudio_window.glade.h:2
+msgid "Record\n"
+msgstr "Registra\n"
+
+#: ../desktop/recordingstudio_window.glade.h:4
+msgid "Stop"
+msgstr "Ferma"
+
+#: ../desktop/recordingstudio_window.glade.h:5
+msgid "_New"
+msgstr "_Nuovo"
+
+#: ../desktop/recordingstudio_window.glade.h:6
+msgid "_Clapperboard"
+msgstr "_Ciak"
+
+#: ../desktop/recordingstudio_window.glade.h:7 ../src/recordingstudio.c:459
+msgid "Enable Cursor Effect"
+msgstr "Abilita effetto cursore"
+
 #: ../desktop/share_confirmation_dialog.glade.h:1
 msgid "Do you want to share your work by email?"
 msgstr "Vuoi condividere il tuo lavoro attraverso la posta elettronica?"
-
-#: ../desktop/font_selector.glade.h:1
-msgid "Choose Font"
-msgstr "Scegli un font"
 
 #: ../desktop/vertical_bar.glade.h:1 ../src/bar_callbacks.c:402
 msgid "Hide Annotations"
@@ -247,30 +270,6 @@ msgstr "Informazioni"
 msgid "Quit"
 msgstr "Esci"
 
-#: ../desktop/recordingstudio_window.glade.h:1
-msgid "Recording Studio"
-msgstr "Studio di registrazione"
-
-#: ../desktop/recordingstudio_window.glade.h:2
-msgid "Record\n"
-msgstr "Registra\n"
-
-#: ../desktop/recordingstudio_window.glade.h:4
-msgid "Stop"
-msgstr "Ferma"
-
-#: ../desktop/recordingstudio_window.glade.h:5
-msgid "_New"
-msgstr "_Nuovo"
-
-#: ../desktop/recordingstudio_window.glade.h:6
-msgid "_Clapperboard"
-msgstr "_Ciak"
-
-#: ../desktop/recordingstudio_window.glade.h:7
-msgid "Show Cursor"
-msgstr "Mostra cursore"
-
 #: ../src/ardesia.c:143
 msgid "In order to run Ardesia you need to enable a composite manager"
 msgstr "Per far girare Ardesia è necessario abilitare un composite manager"
@@ -293,52 +292,38 @@ msgstr "nascondi"
 msgid "Changing color"
 msgstr "Cambia colore"
 
+#: ../src/pdf_saver.c:53
+msgid "Export as pdf"
+msgstr "Esporta come pdf"
+
+#: ../src/pdf_saver.c:65 ../src/recorder.c:345
+msgid "Choose a file"
+msgstr "Scegli un file"
+
 #: ../src/preference_dialog.c:51
 msgid "Fail to open the file: Permission denied"
 msgstr "Impossibile aprire il file: Permesso negato"
+
+#: ../src/preference_dialog_callbacks.c:271
+msgid "Remove"
+msgstr "Rimuovi"
 
 #: ../src/recorder.c:333
 msgid "Save video as ogv"
 msgstr "Salva il video nel formato ogv"
 
-#: ../src/recorder.c:345
-msgid "Choose a file"
-msgstr "Scegli un file"
+#: ../src/recordingstudio.c:91
+msgid ""
+"In order to record with Ardesia you must install the vlc program and add it "
+"to the PATH environment variable"
+msgstr ""
+"Per registrare con Ardesia devi installare il programma vlc e aggiungerlo "
+"alla variabile d'ambiente PATH"
+
+#: ../src/recordingstudio.c:475
+msgid "Disable Cursor Effect"
+msgstr "Abilita effetto cursore"
 
 #: ../src/saver.c:78
 msgid "Couldn't open file for writing: Permission denied"
 msgstr "Impossibile aprire il file: Permesso negato"
-
-#~ msgid "Choose the background"
-#~ msgstr "Scegli lo sfondo"
-
-#~ msgid "image"
-#~ msgstr "immagine"
-
-#~ msgid "background color"
-#~ msgstr "colore dello sfondo"
-
-#~ msgid "none"
-#~ msgstr "nessuno"
-
-#~ msgid "Remove"
-#~ msgstr "Rimuovi"
-
-#~ msgid "Preferences"
-#~ msgstr "Preferenze"
-
-#~ msgid "info"
-#~ msgstr "informazioni"
-
-#~ msgid ""
-#~ "In order to record with Ardesia you must install the vlc program and add "
-#~ "it to the PATH environment variable"
-#~ msgstr ""
-#~ "Per registrare con Ardesia devi installare il programma vlc e aggiungerlo "
-#~ "alla variabile d'ambiente PATH"
-
-#~ msgid "File Exists. Overwrite"
-#~ msgstr "Il file esiste. Sovrascrivilo"
-
-#~ msgid "Export as pdf"
-#~ msgstr "Esporta come pdf"

@@ -6,17 +6,24 @@
 desktop/annotation_window.glade
 desktop/background_window.glade
 desktop/crash_dialog.glade
+desktop/cursor_window.glade
+desktop/font_selector.glade
 desktop/info_dialog.glade
 desktop/preference_dialog.glade
 desktop/project_dialog.glade
-desktop/share_confirmation_dialog.glade
-desktop/font_selector.glade
-desktop/vertical_bar.glade
 desktop/recordingstudio_window.glade
+desktop/share_confirmation_dialog.glade
+desktop/text_window.glade
+desktop/vertical_bar.glade
 
 src/ardesia.c
+src/bar.c
 src/bar_callbacks.c
 src/color_selector.c
+src/pdf_saver.c
 src/preference_dialog.c
+src/preference_dialog_callbacks.c
 src/recorder.c
+src/recordingstudio.c
 src/saver.c
+

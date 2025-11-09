@@ -36,7 +36,6 @@
 #include "recordingstudio.h"
 #include "utils.h"
 
-
 G_MODULE_EXPORT void
 on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
 {
@@ -64,9 +63,8 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
           pause_recorder ();
 
           /* Put the record icon. */
-          GtkWidget *imageWidget = GTK_WIDGET (
-            gtk_builder_get_object (recordingstudio_window_gtk_builder,
-                                    "media-record"));
+          GtkWidget *imageWidget = GTK_WIDGET (gtk_builder_get_object (
+              recordingstudio_window_gtk_builder, "media-record"));
 
           gtk_button_set_image ((GtkButton *) toolbutton, imageWidget);
           gtk_button_set_label ((GtkButton *) toolbutton, "Record");
@@ -107,9 +105,8 @@ on_record_click (GtkToggleButton *toolbutton, gpointer func_data)
 
       if (status)
         {
-          GtkWidget *imageWidget = GTK_WIDGET (
-              gtk_builder_get_object (recordingstudio_window_gtk_builder,
-                                      "media-playback-stop"));
+          GtkWidget *imageWidget = GTK_WIDGET (gtk_builder_get_object (
+              recordingstudio_window_gtk_builder, "media-playback-stop"));
 
           gtk_button_set_image ((GtkButton *) toolbutton, imageWidget);
           gtk_button_set_label ((GtkButton *) toolbutton, "Pause");
@@ -129,33 +126,36 @@ G_MODULE_EXPORT void
 on_stop_recording_click (GtkButton *toolbutton, gpointer func_data)
 {
   g_debug ("on_stop_recording_click\n");
-  gboolean grab_value      = bar_data->grab;
+  gboolean grab_value = bar_data->grab;
   annotate_release_grab ();
   bar_data->grab = FALSE;
   stop_recorder ();
   GtkBuilder *builder    = annotation_data->recordingstudio_window_gtk_builder;
   GObject    *record_obj = gtk_builder_get_object (builder, "record");
   GtkToggleButton *recordButton = GTK_TOGGLE_BUTTON (record_obj);
-  
+
   /*
    * Block the "clicked" signal (on_record_click) before
    * changing the state programmatically, to avoid the spurious event.
    */
-  g_signal_handlers_block_by_func(record_obj, G_CALLBACK(on_record_click), func_data);
-  
+  g_signal_handlers_block_by_func (record_obj,
+                                   G_CALLBACK (on_record_click),
+                                   func_data);
+
   gtk_toggle_button_set_active (recordButton, FALSE); // This is now safe
-  
+
   /* Re-enable the signal handler */
-  g_signal_handlers_unblock_by_func(record_obj, G_CALLBACK(on_record_click), func_data);
-  
+  g_signal_handlers_unblock_by_func (record_obj,
+                                     G_CALLBACK (on_record_click),
+                                     func_data);
+
   GObject *media_record_obj = gtk_builder_get_object (builder, "media-record");
   GtkWidget *imageWidget    = GTK_WIDGET (media_record_obj);
   gtk_button_set_image ((GtkButton *) recordButton, imageWidget);
   gtk_button_set_label ((GtkButton *) recordButton, "Record");
-  bar_data->grab           = grab_value;
+  bar_data->grab = grab_value;
   start_tool (bar_data);
 }
-
 
 void
 get_desktop_mouse_location (int *x, int *y)
@@ -171,7 +171,7 @@ get_desktop_mouse_location (int *x, int *y)
 gboolean
 move_cursor_window (gpointer data)
 {
-  if (annotation_data->is_cursor_visible == FALSE)
+  if (!annotation_data->is_cursor_visible)
     {
       annotation_data->cursor_timer = 0;
       return G_SOURCE_REMOVE; // Stop timer
@@ -179,7 +179,7 @@ move_cursor_window (gpointer data)
 
   /* 1. Cast the gpointer to our state struct (La tua intuizione giusta) */
   CursorAnimState *state = (CursorAnimState *) data;
-  
+
   /* 2. Get mouse position and move window (Tuo codice originale) */
   gint        x_screen, y_screen;
   GdkScreen  *screen  = gdk_screen_get_default ();
@@ -189,53 +189,56 @@ move_cursor_window (gpointer data)
   GdkDevice  *device  = gdk_seat_get_pointer (seat);
 
   gdk_window_get_device_position (desktop, device, &x_screen, &y_screen, NULL);
-      
+
   GtkWidget *cursor_window = annotation_data->cursor_window;
   gtk_window_move (GTK_WINDOW (cursor_window), x_screen - 32, y_screen - 32);
 
   /*
    * 3. Heavy work: Calculate contrast and update the state
    */
-  int size = 16;
-  GdkPixbuf *pb = gdk_pixbuf_get_from_window (desktop,
-                                              x_screen - size/2,
-                                              y_screen - size/2,
-                                              size,
-                                              size);
+  int        size = 16;
+  GdkPixbuf *pb   = gdk_pixbuf_get_from_window (desktop, x_screen - size / 2,
+                                                y_screen - size / 2,
+                                                size,
+                                                size);
   if (pb)
     {
-      int width = gdk_pixbuf_get_width (pb);
-      int height = gdk_pixbuf_get_height (pb);
-      int rowstride = gdk_pixbuf_get_rowstride (pb);
-      int n_channels = gdk_pixbuf_get_n_channels (pb);
-      unsigned char *pixels = gdk_pixbuf_get_pixels (pb);
-      int sum = 0;
+      int            width      = gdk_pixbuf_get_width (pb);
+      int            height     = gdk_pixbuf_get_height (pb);
+      int            rowstride  = gdk_pixbuf_get_rowstride (pb);
+      int            n_channels = gdk_pixbuf_get_n_channels (pb);
+      unsigned char *pixels     = gdk_pixbuf_get_pixels (pb);
+      int            sum        = 0;
 
       for (int j = 0; j < height; j++)
         {
-          unsigned char *p = pixels + j*rowstride;
+          unsigned char *p = pixels + j * rowstride;
           for (int i = 0; i < width; i++)
-	    {
+            {
               sum += p[0] + p[1] + p[2]; /* ignore alpha */
               p += n_channels;
             }
         }
-          
+
       if (width > 0 && height > 0)
         {
           int avg_pixel = sum / (width * height * 3);
           if (avg_pixel < 128)
-	    { 
-              /* dark background → light cursor */
-              state->r = 0.0; state->g = 1.0; state->b = 0.0; // Green
+            {
+              /* dark background → light cursor, green */
+              state->r = 0.0;
+              state->g = 1.0;
+              state->b = 0.0;
             }
-	  else
-	    {
-              /* light background → dark cursor */
-              state->r = 1.0; state->g = 1.0; state->b = 0.0; // Yellow
+          else
+            {
+              /* light background → dark cursor, yellow */
+              state->r = 1.0;
+              state->g = 1.0;
+              state->b = 0.0; // Yellow
             }
-      }
-        g_object_unref (pb);
+        }
+      g_object_unref (pb);
     }
 
   /* 4. Update position in state (centro della finestra 64x64) */
@@ -245,7 +248,7 @@ move_cursor_window (gpointer data)
   /* 5. Force the cursor window to redraw (questo chiama on_draw_event) */
   if (annotation_data->is_cursor_visible)
     {
-      gtk_widget_queue_draw(cursor_window);
+      gtk_widget_queue_draw (cursor_window);
     }
 
   return G_SOURCE_CONTINUE; // Continue timer
@@ -271,19 +274,19 @@ draw_video_cursor (cairo_t *cr, GtkWidget *widget, CursorAnimState *state)
   gdouble r = state->r;
   gdouble g = state->g;
   gdouble b = state->b;
-  gint x = state->x;
-  gint y = state->y;
+  gint    x = state->x;
+  gint    y = state->y;
 
   /* Clear previous cursor */
   cairo_set_source_rgba (cr, 0, 0, 0, 0);
   cairo_paint (cr);
 
   /* Draw main cursor circle */
-  cairo_save(cr);
+  cairo_save (cr);
   cairo_set_line_width (cr, 1);
   cairo_set_source_rgb (cr, r, g, b);
   cairo_translate (cr, x, y); // Use state position
-  cairo_arc (cr, 0, 0, 5, 0, 2*M_PI);
+  cairo_arc (cr, 0, 0, 5, 0, 2 * M_PI);
   cairo_stroke_preserve (cr);
   cairo_fill (cr);
 
@@ -293,10 +296,10 @@ draw_video_cursor (cairo_t *cr, GtkWidget *widget, CursorAnimState *state)
     {
       cairo_set_line_width (cr, 2);
       cairo_set_source_rgb (cr, r, g, b);
-      cairo_arc (cr, 0, 0, 5 + i*5, 0, 2*M_PI);
+      cairo_arc (cr, 0, 0, 5 + i * 5, 0, 2 * M_PI);
       cairo_stroke (cr);
     }
-  cairo_restore(cr);
+  cairo_restore (cr);
 
   /* Update step for next frame */
   annotation_data->cursor_step = (annotation_data->cursor_step + 1) % 60;
@@ -315,7 +318,7 @@ on_draw_event (GtkWidget *widget, cairo_t *cr, gpointer user_data)
   /* --- MODIFIED: Cast user_data to state and pass it on --- */
   CursorAnimState *state = (CursorAnimState *) user_data;
   draw_video_cursor (cr, widget, state);
-  
+
   return FALSE;
 }
 
@@ -345,22 +348,23 @@ create_cursor_window (void)
   g_debug ("Creating cursor\n");
   gint       size   = 64;
   GtkWidget *window = gtk_window_new (GTK_WINDOW_POPUP);
-  
-  CursorAnimState *state = g_new0(CursorAnimState, 1);
-  GtkWindow *gtk_win = GTK_WINDOW (window);\
-  state->r = 1.0; state->g = 1.0; state->b = 0.0; // Default Giallo
-  state->x = size / 2;
-  state->y = size / 2;
-  
+
+  CursorAnimState *state   = g_new0 (CursorAnimState, 1);
+  GtkWindow       *gtk_win = GTK_WINDOW (window);
+  state->r                 = 1.0;
+  state->g                 = 1.0;
+  state->b                 = 0.0; // Default Giallo
+  state->x                 = size / 2;
+  state->y                 = size / 2;
+
   /* Remove titlebar, resize controls etc */
   gtk_window_set_decorated (gtk_win, FALSE);
 
   GtkBuilder *builder = annotation_data->recordingstudio_window_gtk_builder;
-  GtkWidget *recorder_window = GTK_WIDGET(
-      gtk_builder_get_object(builder, "recordingstudio_window")
-  );
+  GtkWidget  *recorder_window = GTK_WIDGET (
+      gtk_builder_get_object (builder, "recordingstudio_window"));
 
-  gtk_window_set_transient_for(gtk_win, GTK_WINDOW(recorder_window));
+  gtk_window_set_transient_for (gtk_win, GTK_WINDOW (recorder_window));
 
   /* Remove close box */
   gtk_window_set_deletable (gtk_win, FALSE);
@@ -388,8 +392,11 @@ create_cursor_window (void)
                     G_CALLBACK (on_draw_event),
                     state);
 
-  g_object_set_data_full(G_OBJECT(window), "cursor-anim-state", state, g_free);
-  
+  g_object_set_data_full (G_OBJECT (window),
+                          "cursor-anim-state",
+                          state,
+                          g_free);
+
   setup_transparency (window);
   return window;
 }
@@ -398,69 +405,76 @@ G_MODULE_EXPORT void
 on_cursor_click (GtkToggleButton *toolbutton, gpointer func_data)
 {
   g_debug ("on_cursor_click\n");
-  GdkWindow *main_win = gtk_widget_get_window (annotation_data->annotation_window);
-  if (!main_win) return;
+  GdkWindow *main_win;
+  main_win = gtk_widget_get_window (annotation_data->annotation_window);
+  if (! main_win)
+    return;
 
   /*
    * vlc --screen-mouse-pointer does not work on linux so
    * instead what we want to do is show an image just under where
    * the mouse pointer is going to be
    */
-   if (annotation_data->cursor_window == NULL)
-     {
-       /* Build cursor window. */
-       g_debug ("Building cursor window\n");
-       annotation_data->cursor_window = create_cursor_window ();
+  if (annotation_data->cursor_window == NULL)
+    {
+      /* Build cursor window. */
+      g_debug ("Building cursor window\n");
+      annotation_data->cursor_window = create_cursor_window ();
 
-       /* Empty region for click through */
-       const cairo_rectangle_int_t empty_rect = { 0, 0, 0, 0 };
-       cairo_region_t *empty_region = cairo_region_create_rectangle (&empty_rect);
-       g_object_set_data_full(G_OBJECT (annotation_data->cursor_window),
-                                        "empty-input-region",
-				        empty_region,
-				        (GDestroyNotify)cairo_region_destroy);
+      /* Empty region for click through */
+      const cairo_rectangle_int_t empty_rect = { 0, 0, 0, 0 };
+      cairo_region_t *empty_region;
+      empty_region = cairo_region_create_rectangle (&empty_rect);
+      g_object_set_data_full (G_OBJECT (annotation_data->cursor_window),
+                              "empty-input-region",
+                              empty_region,
+                              (GDestroyNotify) cairo_region_destroy);
 
-       gtk_widget_show_all (annotation_data->cursor_window);
+      gtk_widget_show_all (annotation_data->cursor_window);
 
-       cairo_region_t *region = g_object_get_data(
-           G_OBJECT(annotation_data->cursor_window),
-	   "empty-input-region");
+      cairo_region_t *region;
+      region = g_object_get_data (G_OBJECT (annotation_data->cursor_window),
+                                  "empty-input-region");
 
-       /* Apply the click-through shape AFTER displaying it */
-       gtk_widget_input_shape_combine_region (annotation_data->cursor_window, region);
-
-     }
-  gboolean is_active = gtk_toggle_button_get_active(toolbutton);
+      /* Apply the click-through shape AFTER displaying it */
+      gtk_widget_input_shape_combine_region (annotation_data->cursor_window,
+                                             region);
+    }
+  gboolean is_active = gtk_toggle_button_get_active (toolbutton);
 
   if (is_active)
     {
-      g_debug("Cursor set to ACTIVE\n");
+      g_debug ("Cursor set to ACTIVE\n");
       gtk_widget_set_opacity (annotation_data->cursor_window, 1.0);
       annotation_data->is_cursor_visible = TRUE;
 
       if (annotation_data->cursor_timer == 0)
         {
-          CursorAnimState *state = g_object_get_data(
+          CursorAnimState *state = g_object_get_data (
               G_OBJECT (annotation_data->cursor_window), "cursor-anim-state");
 
           if (state)
             {
-              move_cursor_window (state); // Chiamata iniziale
-              annotation_data->cursor_timer = g_timeout_add (16, // 16ms ~= 60 FPS
+              move_cursor_window (state);
+              /* 16ms ~= 60 FPS */
+              gint timer_frequency = 16;
+
+              annotation_data->cursor_timer = g_timeout_add (timer_frequency,
                                                              move_cursor_window,
                                                              state);
             }
           else
             {
-              g_warning("Could not retrieve 'cursor-anim-state' from cursor window!");
+              g_warning ("Could not retrieve 'cursor-anim-state' from cursor "
+                         "window!");
             }
         }
       gtk_button_set_label (GTK_BUTTON (toolbutton),
-                            gettext("Enable Cursor Effect"));
+                            gettext ("Enable Cursor Effect"));
     }
   else
     {
-      g_debug("Cursor set to INACTIVE (hiding with opacity)\n");
+      g_debug ("Cursor set to INACTIVE (hiding with opacity)\n");
 
       if (annotation_data->cursor_timer > 0)
         {

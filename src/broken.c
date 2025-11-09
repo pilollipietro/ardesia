@@ -148,7 +148,7 @@ douglas_peucker_recursive (GSList *points, gdouble epsilon)
       while (iter)
         {
           second_half = g_slist_prepend (second_half, iter->data);
-          iter = g_slist_next (iter);
+          iter        = g_slist_next (iter);
         }
       second_half = g_slist_reverse (second_half);
 
@@ -157,9 +157,9 @@ douglas_peucker_recursive (GSList *points, gdouble epsilon)
 
       g_slist_free (first_half);
       g_slist_free (second_half);
-      
+
       GSList *last_of_res1 = g_slist_last (res1);
-      res1 = g_slist_remove_link (res1, last_of_res1);
+      res1                 = g_slist_remove_link (res1, last_of_res1);
       g_free (last_of_res1->data);
       g_slist_free (last_of_res1);
 
@@ -172,7 +172,7 @@ douglas_peucker_recursive (GSList *points, gdouble epsilon)
       result = g_slist_append (result, 
                                g_memdup2 (last, sizeof (AnnotatePoint)));
     }
-  
+
   return result;
 }
 
@@ -689,7 +689,7 @@ build_meaningful_point_list (GSList *list_inp,
       for (GSList *iter = simplified_list; iter; iter = g_slist_next (iter))
         {
           AnnotatePoint *p = iter->data;
-          p->pressure = medium_pressure;
+          p->pressure      = medium_pressure;
         }
     }
 
