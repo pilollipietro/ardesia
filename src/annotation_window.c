@@ -804,7 +804,6 @@ annotate_restore_surface (void)
             {
               cairo_set_source_surface (annotation_cr, image_surface, 0, 0);
               cairo_paint (annotation_cr);
-              cairo_stroke (annotation_cr);
               cairo_surface_destroy (image_surface);
             }
         }
@@ -872,9 +871,12 @@ roundify (AnnotateDeviceData *devdata, gboolean closed_path)
   meaningful_point_list = build_meaningful_point_list (devdata->coord_list,
                                                        tollerance);
 
+  annotate_coord_dev_list_free (devdata);
+
   if (g_slist_length (meaningful_point_list) < 4)
     {
       annotate_draw_point_list (devdata, meaningful_point_list);
+      devdata->coord_list = meaningful_point_list;
     }
   else if ((closed_path) &&
            (is_similar_to_an_ellipse (meaningful_point_list, tollerance)))
@@ -920,6 +922,7 @@ roundify (AnnotateDeviceData *devdata, gboolean closed_path)
 
           g_slist_foreach (rect_list, (GFunc) g_free, NULL);
           g_slist_free (rect_list);
+	  devdata->coord_list = meaningful_point_list;
         }
     }
 
@@ -930,10 +933,10 @@ roundify (AnnotateDeviceData *devdata, gboolean closed_path)
 
       annotate_coord_dev_list_free (devdata);
       devdata->coord_list = splined_list;
+      g_slist_foreach (meaningful_point_list, (GFunc) g_free, (gpointer) NULL);
+      g_slist_free (meaningful_point_list);
     }
 
-  g_slist_foreach (meaningful_point_list, (GFunc) g_free, (gpointer) NULL);
-  g_slist_free (meaningful_point_list);
 }
 
 /**
@@ -1847,9 +1850,6 @@ annotate_push_context (cairo_t *cr)
   /* paints the current source everywhere in clip region. */
   cairo_paint (annotation_cairo_context);
 
-  /* strokes the current path according to current line settings. */
-  cairo_stroke (annotation_cairo_context);
-
   cairo_restore (annotation_cairo_context);
 
   annotate_add_savepoint ();
@@ -2200,13 +2200,10 @@ annotate_quit (void)
           pango_font_description_free (annotation_data->font);
           annotation_data->font = NULL;
         }
-
-      /* Destroy cairo object. */
-      cairo_destroy (annotation_data->annotation_cairo_context);
-
-      if (annotation_data->clapperboard_cairo_context)
+      if (annotation_data->annotation_window)
         {
-          cairo_destroy (annotation_data->clapperboard_cairo_context);
+          gtk_widget_destroy (annotation_data->annotation_window);
+          annotation_data->annotation_window = (GtkWidget *) NULL;
         }
 
       if (annotation_data->recordingstudio_options)
@@ -2259,6 +2256,13 @@ annotate_quit (void)
           gtk_widget_destroy (annotation_data->background_selection_window);
           annotation_data->background_selection_window = NULL;
         }
+      /* Destroy cairo object. */
+      cairo_destroy (annotation_data->annotation_cairo_context);
+
+      if (annotation_data->clapperboard_cairo_context)
+        {
+          cairo_destroy (annotation_data->clapperboard_cairo_context);
+        }
       if (annotation_data->font_window)
         {
           gtk_widget_destroy (annotation_data->font_window);
@@ -2268,12 +2272,6 @@ annotate_quit (void)
         {
           g_free (annotation_data->monitor);
           annotation_data->monitor = NULL;
-        }
-      /* Free all. */
-      if (annotation_data->annotation_window)
-        {
-          gtk_widget_destroy (annotation_data->annotation_window);
-          annotation_data->annotation_window = (GtkWidget *) NULL;
         }
       g_free (annotation_data);
     }
