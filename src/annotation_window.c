@@ -197,38 +197,56 @@ annotate_get_arrow_direction (AnnotateDeviceData *devdata)
       return 0.0;
     }
 
-  AnnotatePoint *last_point = (AnnotatePoint *) list->data;
+  /*
+   * Use the static (max) thickness as the tolerance
+   * for the shape recognition algorithm.
+   */
+  gdouble tollerance = annotate_get_thickness ();
 
-  /* meaningfull point at least half the line's thickness away. */
-  gdouble min_distance = annotate_get_thickness () / 2.0;
-  if (min_distance < 5.0)
-    min_distance = 5.0;
+  /*
+   * Call the "smart" algorithm to filter out
+   * noise and "riccioli". This is the same logic
+   * used by roundify() and rectify().
+   */
+  GSList *meaningful_point_list = NULL;
+  meaningful_point_list = build_meaningful_point_list (devdata->coord_list,
+                                                       tollerance);
 
-  AnnotatePoint *old_point = NULL;
-  GSList        *iter      = list->next;
-
-  while (iter)
+  /* 3. Check the *new* (clean) list */
+  guint length = g_slist_length (meaningful_point_list);
+  if (length < 2)
     {
-      old_point = (AnnotatePoint *) iter->data;
-
-      /* is the point far enough away? */
-      gdouble distance = get_distance (last_point->x, last_point->y,
-                                       old_point->x, old_point->y);
-      if (distance > min_distance)
+      /* The stroke was too small or noisy, fallback */
+      if (meaningful_point_list)
         {
-          break;
+          g_slist_foreach (meaningful_point_list, (GFunc) g_free, NULL);
+          g_slist_free (meaningful_point_list);
         }
-
-      iter = g_slist_next (iter);
+      /* Fallback to the original *very last* point (best guess) */
+      AnnotatePoint *last_point = (AnnotatePoint *) list->data;
+      AnnotatePoint *old_point = (AnnotatePoint *) g_slist_nth_data (list, 1);
+      return atan2 (last_point->y - old_point->y,
+                    last_point->x - old_point->x);
     }
 
-  if (old_point == NULL)
-    {
-      old_point = (AnnotatePoint *) g_slist_nth_data (list, 1);
-    }
+  /*
+   * Calculate direction using the last two
+   * "meaningful" points. This gives the stable
+   * direction of the stroke, ignoring the final hook.
+   */
+  AnnotatePoint *last_point = (AnnotatePoint *) g_slist_nth_data (
+      meaningful_point_list, 0);
+  AnnotatePoint *old_point = (AnnotatePoint *) g_slist_nth_data (
+      meaningful_point_list, 1);
+  
+  gdouble direction = atan2 (last_point->y - old_point->y,
+                             last_point->x - old_point->x);
 
-  /* Give the direction using the last two significant points. */
-  return atan2 (last_point->y - old_point->y, last_point->x - old_point->x);
+  /* Clean up the temporary list */
+  g_slist_foreach (meaningful_point_list, (GFunc) g_free, NULL);
+  g_slist_free (meaningful_point_list);
+
+  return direction;
 }
 
 /**
@@ -401,87 +419,100 @@ annotate_acquire_input_grab (void)
 }
 
 /**
- * annotate_modify_color:
- * @devdata:  Device-specific data, including the previous point's pressure.
- * @data:     The main #AnnotateData application context.
- * @pressure: The current pressure value from the input device (0.0 to 1.0).
+ * Calculates the final thickness and alpha based on pressure
+ * and the hybrid (Pen/Highlighter) logic.
  *
- * Sets the source color for the Cairo context, adjusting the alpha channel
- * based on stylus pressure.
+ * This is a "pure" calculation function.
+ * It does not set the Cairo state.
  *
- * This function creates a dynamic, pressure-sensitive stroke effect. It
- * smooths the pressure value by averaging it with the previous point's
- * pressure, applies a curve (square root) to make strokes more responsive
- * at low pressures, and combines it with a contrast factor. The final
- * calculated alpha is applied to the current base color.
+ * @data:       The main AnnotateData struct.
+ * @devdata:    The device data (for smoothing).
+ * @pressure:   The current pressure (0.0 - 1.0).
+ * @out_width:  (out): The calculated final thickness.
+ * @out_alpha:  (out): The calculated final alpha.
  */
-void
-annotate_modify_color (AnnotateDeviceData *devdata,
-                       AnnotateData *data,
-                       gdouble pressure)
+static void
+annotate_calculate_dynamic_style (AnnotateData *data,
+                                  AnnotateDeviceData *devdata,
+                                  gdouble pressure,
+                                  gdouble *out_width,
+                                  gdouble *out_alpha)
 {
-  /* Pressure value is from 0 to 1; this value modify the RGBA gradient. */
-  gdouble        old_pressure = pressure;
-  AnnotatePoint *last_point;
-  last_point = (AnnotatePoint *) g_slist_nth_data (devdata->coord_list, 0);
+  /* --- 1. Pressure Calculation (Original Logic) --- */
+  gdouble old_pressure = pressure;
   if (devdata->coord_list != NULL)
     {
-      old_pressure = last_point->pressure;
-      if (last_point != NULL && pressure == old_pressure)
+      AnnotatePoint *last_point = (AnnotatePoint *)
+                                  g_slist_nth_data (devdata->coord_list, 0);
+      if (last_point)
         {
-          return;
+          old_pressure = last_point->pressure;
         }
     }
-  gdouble  new_alpha;
-  gdouble  contrast = 1.5;
-  cairo_t *annotation_cr;
-  annotation_cr = data->annotation_cairo_context;
-  guint r, g, b, a;
-  r = data->r;
-  g = data->g;
-  b = data->b;
-  a = data->a;
+  
+  gdouble smoothed_pressure = (3.0 * pressure + 1.0 * old_pressure) / 4.0;
+  gdouble curved_pressure = sqrt (smoothed_pressure);
 
-  if ((! annotation_cr) || (! data->color))
+  /* --- 2. Weight Calculation ("No-If" Logic) --- */
+  /* (127.0 is 255.0 - 128.0) */
+  gdouble pen_weight = (gdouble)(data->a - 128) / 127.0;
+  if (pen_weight < 0.0) { pen_weight = 0.0; }
+  if (pen_weight > 1.0) { pen_weight = 1.0; }
+  gdouble highlighter_weight = 1.0 - pen_weight;
+
+  /* --- 3. Final Value Calculation --- */
+  gdouble base_a = (gdouble) data->a / 255.0;
+  
+  /* A. Thickness Calculation */
+  gdouble max_width = data->thickness;
+  gdouble min_width = fmax (max_width * 0.2, 1.0); /* 20% or 1.0 */
+  gdouble target_width_pen = min_width +
+                             ( (max_width - min_width) * curved_pressure);
+  gdouble target_width_highlighter = max_width; /* Fixed width */
+
+  *out_width = (target_width_highlighter * highlighter_weight) +
+               (target_width_pen * pen_weight);
+
+  /* B. Opacity Calculation */
+  gdouble min_opacity_highlighter = base_a * 0.1; /* 10% base */
+  gdouble target_alpha_highlighter = min_opacity_highlighter +
+       ( (base_a - min_opacity_highlighter) * curved_pressure);
+  gdouble target_alpha_pen = base_a; /* Fixed alpha */
+
+  *out_alpha = (target_alpha_highlighter * highlighter_weight) +
+               (target_alpha_pen * pen_weight);
+}
+
+/**
+ * Sets the cairo style based on pressure by calling the
+ * dynamic style calculator and applying the results.
+ * (This function replaces the old logic).
+ */
+void
+annotate_set_style_from_pressure (AnnotateDeviceData *devdata,
+                                  AnnotateData *data,
+                                  gdouble pressure)
+{
+  cairo_t *cr = data->annotation_cairo_context;
+  if (!cr)
     {
       return;
     }
-  if (pressure >= 1)
-    {
-      cairo_set_source_rgba (annotation_cr,
-                             r / 255.0,
-                             g / 255.0,
-                             b / 255.0,
-                             a / 255.0);
-      return;
-    }
+    
+  gdouble final_thickness;
+  gdouble final_alpha;
 
-  /*
-   * Use a squareroot function to give an exponential curve.
-   * This amplifies low pressure values,
-   * making the stroke more visible at the start and end.
-   */
-  gdouble smoothed_pressure = (3 * pressure + old_pressure) / 4;
-  gdouble curved_pressure   = sqrt (smoothed_pressure);
-
-  /*
-   * Calculate the final alpha value by combining the curved pressure
-   * and contrast factor.
-   */
-  new_alpha = curved_pressure * contrast;
-
-  /* Ensure the alpha value does not exceed the maximum of 1.0 */
-  if (new_alpha > 1.0)
-    {
-      new_alpha = 1.0;
-    }
-
-  g_debug ("pressure %f, new_alpha %f", pressure, new_alpha);
-  cairo_set_source_rgba (annotation_cr,
-                         (gdouble) r / 255.0,
-                         (gdouble) g / 255.0,
-                         (gdouble) b / 255.0,
-                         new_alpha * (gdouble) a / 255.0);
+  /* 1. Calculate both values */
+  annotate_calculate_dynamic_style (data, devdata, pressure,
+                                    &final_thickness, &final_alpha);
+  
+  /* 2. Apply both values */
+  cairo_set_line_width (cr, final_thickness);
+  cairo_set_source_rgba (cr,
+                         (gdouble) data->r / 255.0,
+                         (gdouble) data->g / 255.0,
+                         (gdouble) data->b / 255.0,
+                         final_alpha);
 }
 
 /**
@@ -496,7 +527,7 @@ annotate_modify_color (AnnotateDeviceData *devdata,
  * Draws a pressure-sensitive ellipse on the annotation context.
  *
  * The function first sets the drawing color and alpha based on pressure by
- * calling annotate_modify_color(). It then constructs the ellipse path
+ * calling annotate_set_style_from_pressure(). It then constructs the ellipse path
  * within the specified bounding box using Cairo transformations and an arc.
  */
 static void
@@ -507,8 +538,21 @@ annotate_draw_ellipse (AnnotateDeviceData *devdata, gdouble x, gdouble y,
   annotation_cairo_context = annotation_data->annotation_cairo_context;
 
   g_debug ("Draw ellipse: 2a=%f 2b=%f\n", width, height);
+  
+  gdouble final_thickness;
+  gdouble final_alpha;
 
-  annotate_modify_color (devdata, annotation_data, pressure);
+  /* Calculate the style */
+  annotate_calculate_dynamic_style (annotation_data, devdata, pressure,
+                                    &final_thickness, &final_alpha);
+  
+  /* Set the style on Cairo */
+  cairo_set_line_width (annotation_cairo_context, final_thickness);
+  cairo_set_source_rgba (annotation_cairo_context,
+                         (gdouble) annotation_data->r / 255.0,
+                         (gdouble) annotation_data->g / 255.0,
+                         (gdouble) annotation_data->b / 255.0,
+                         final_alpha);
 
   cairo_save (annotation_cairo_context);
 
@@ -539,16 +583,33 @@ annotate_draw_point (AnnotateDeviceData *devdata,
                      gdouble y,
                      gdouble pressure)
 {
+  gdouble final_thickness;
+  gdouble final_alpha;
+
   cairo_save (annotation_data->annotation_cairo_context);
-  /* Modify a little bit the color depending on pressure. */
-  annotate_modify_color (devdata, annotation_data, pressure);
+
+  /* 1. Calculate the style values first */
+  annotate_calculate_dynamic_style (annotation_data, devdata, pressure,
+                                    &final_thickness, &final_alpha);
+  
+  /* 2. Now set the style on Cairo */
+  cairo_set_line_width (annotation_data->annotation_cairo_context,
+                        final_thickness);
+  cairo_set_source_rgba (annotation_data->annotation_cairo_context,
+                         (gdouble) annotation_data->r / 255.0,
+                         (gdouble) annotation_data->g / 255.0,
+                         (gdouble) annotation_data->b / 255.0,
+                         final_alpha);
+  
+  /* 3. Draw the point */
   cairo_move_to (annotation_data->annotation_cairo_context, x, y);
   cairo_line_to (annotation_data->annotation_cairo_context, x, y);
   cairo_restore (annotation_data->annotation_cairo_context);
 
   /* Compute dirty area */
   GtkWidget *annotation_window = get_annotation_window ();
-  gdouble    thickness         = annotation_data->thickness;
+  /* Use the calculated dynamic thickness for the dirty rect */
+  gdouble    thickness         = final_thickness;
   gdouble    padding           = thickness * 2.0;
   gdouble    dirty_rect_x      = x - padding;
   gdouble    dirty_rect_y      = y - padding;
@@ -561,7 +622,6 @@ annotate_draw_point (AnnotateDeviceData *devdata,
                               (gint)dirty_rect_y,
                               (gint)dirty_rect_width,
                               (gint)dirty_rect_height);
-
 }
 
 /**
@@ -667,8 +727,25 @@ annotate_draw_point_list (AnnotateDeviceData *devdata, GSList *list)
                                    point->pressure);
               break;
             }
-          annotate_modify_color (devdata, annotation_data, point->pressure);
-          /* Draw line between the two points. */
+          
+          gdouble final_thickness;
+          gdouble final_alpha;
+
+          /* Calculate the style for this point */
+          annotate_calculate_dynamic_style (annotation_data, devdata,
+                                            point->pressure,
+                                            &final_thickness, &final_alpha);
+                                            
+          /* Set the style on Cairo */
+          cairo_set_line_width (annotation_data->annotation_cairo_context,
+                                final_thickness);
+          cairo_set_source_rgba (annotation_data->annotation_cairo_context,
+                                 (gdouble) annotation_data->r / 255.0,
+                                 (gdouble) annotation_data->g / 255.0,
+                                 (gdouble) annotation_data->b / 255.0,
+                                 final_alpha);
+
+          /* Draw the line segment */
           annotate_draw_line (devdata, point->x, point->y, FALSE);
         }
     }
@@ -738,9 +815,29 @@ annotate_draw_curve (AnnotateDeviceData *devdata, GSList *list)
                                           FALSE);
                       return;
                     }
-                  annotate_modify_color (devdata,
-                                         annotation_data,
-                                         second_point->pressure);
+                  
+                  gdouble final_thickness;
+                  gdouble final_alpha;
+
+                  /*
+                   * Calculate style based on the *second* point's
+                   * pressure, as it's the anchor for the first curve.
+                   */
+                  annotate_calculate_dynamic_style (annotation_data, devdata,
+                                                    second_point->pressure,
+                                                    &final_thickness,
+                                                    &final_alpha);
+                  
+                  /* Set the style on Cairo */
+                  cairo_set_line_width (
+                      annotation_data->annotation_cairo_context,
+                      final_thickness);
+                  cairo_set_source_rgba (
+                      annotation_data->annotation_cairo_context,
+                      (gdouble) annotation_data->r / 255.0,
+                      (gdouble) annotation_data->g / 255.0,
+                      (gdouble) annotation_data->b / 255.0,
+                      final_alpha);
 
                   cairo_curve_to (annotation_data->annotation_cairo_context,
                                   first_point->x,
@@ -1993,6 +2090,7 @@ annotate_acquire_grab (void)
  * annotate_draw_arrow:
  * @devdata:  Device data containing the stroke's coordinate list.
  * @distance: The length of the last segment of the stroke.
+ * @thickness:  The final, calculated thickness of the stroke's end.
  *
  * Draws an arrowhead at the end of the current stroke if conditions are met.
  *
@@ -2567,6 +2665,19 @@ annotate_init (Monitor *monitor)
  *
  * Returns: %TRUE if the event was handled, %FALSE otherwise.
  */
+/**
+ * annotation_window_button_press:
+ * @ev:   The #GdkEventButton for the mouse button press.
+ * @data: A pointer to the main #AnnotateData struct.
+ *
+ * Handles a button press event in the annotation window.
+ *
+ * This function initializes the drawing context if needed, acquires the
+ * input grab, computes the pressure, updates the cursor, and starts a new
+ * stroke by storing the initial point.
+ *
+ * Returns: %TRUE if the event was handled, %FALSE otherwise.
+ */
 gboolean
 annotation_window_button_press (GdkEventButton *ev, AnnotateData *data)
 {
@@ -2632,16 +2743,29 @@ annotation_window_button_press (GdkEventButton *ev, AnnotateData *data)
   initialize_annotation_cairo_context (data);
 
   annotate_configure_pen_options (data);
-
   annotate_coord_dev_list_free (masterdata);
+
+  /*
+   * Call annotate_draw_point. This function will call
+   * annotate_calculate_dynamic_style internally to set the
+   * correct style and calculate the dirty area.
+   */
   annotate_draw_point (masterdata, x, y, pressure);
 
-  gdouble thickness = annotate_get_thickness ();
+  /*
+   * Recalculate the style here to get the
+   * correct thickness for storing in the point list.
+   */
+  gdouble final_thickness;
+  gdouble final_alpha;
+  annotate_calculate_dynamic_style (data, masterdata, pressure,
+                                    &final_thickness, &final_alpha);
 
+  /* Prepend the first point with the correct calculated thickness */
   annotate_coord_list_prepend (masterdata,
                                x,
                                y,
-                               thickness,
+                               final_thickness,
                                pressure);
 
   return TRUE;
@@ -2712,7 +2836,7 @@ annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
       annotate_select_tool (data, master, slave, ev->state);
     }
 
-  gdouble pressure = 1.0;
+  gdouble pressure = get_pressure ((GdkEvent *) ev);;
 
   if (! data->is_grabbed)
     {
@@ -2745,17 +2869,19 @@ annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
   initialize_annotation_cairo_context (data);
 
   annotate_configure_pen_options (data);
-
-  gdouble thickness = annotate_get_thickness ();
+  
+  if (pressure <= 0)
+    {
+      return FALSE;
+    }
+  
+  gdouble final_thickness;
+  gdouble final_alpha;
+  annotate_calculate_dynamic_style (data, masterdata, pressure,
+                                    &final_thickness, &final_alpha);
 
   if (data->cur_context->type != ANNOTATE_ERASER)
     {
-      pressure = get_pressure ((GdkEvent *) ev);
-
-      if (pressure <= 0)
-        {
-          return FALSE;
-        }
 
       /*
        * If the point is already selected and higher pressure then
@@ -2772,7 +2898,7 @@ annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
                                    ev->x,
                                    ev->y);
  
-          if (distance < thickness)
+          if (distance < final_thickness)
             {
               /* Seems that you are uprising the pen. */
               if (pressure <= last_point->pressure)
@@ -2782,14 +2908,22 @@ annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
                 }
               else // pressure >= last_point->pressure
                 {
-                  /* Seems that you are pressing the pen more. */
-                  annotate_modify_color (masterdata, data, pressure);
+                  /* Pressure increased: set style and redraw segment */
+                  cairo_set_line_width (data->annotation_cairo_context,
+                                        final_thickness);
+                  cairo_set_source_rgba (data->annotation_cairo_context,
+                                         (gdouble) data->r / 255.0,
+                                         (gdouble) data->g / 255.0,
+                                         (gdouble) data->b / 255.0,
+                                         final_alpha);
+
                   annotate_draw_line (masterdata, ev->x, ev->y, TRUE);
                   /*
                    * Store the new pressure without allocate
                    * a new coordinate.
                    */
                   last_point->pressure = pressure;
+                  last_point->width = final_thickness;
                   return TRUE;
                 }
             }
@@ -2800,7 +2934,7 @@ annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
   annotate_coord_list_prepend (masterdata,
                                ev->x,
                                ev->y,
-                               thickness,
+                               final_thickness,
                                pressure);
 
   return TRUE;
@@ -2904,10 +3038,21 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
                                        first_point->y);
 
       gdouble pressure = last_point->pressure;
-      annotate_modify_color (masterdata, data, pressure);
+      gdouble final_thickness;
+      gdouble final_alpha;
+      
+      annotate_calculate_dynamic_style (data, masterdata, pressure,
+                                        &final_thickness, &final_alpha);
+      
+      cairo_set_line_width (data->annotation_cairo_context,
+                            final_thickness);
+      cairo_set_source_rgba (data->annotation_cairo_context,
+                             (gdouble) data->r / 255.0,
+                             (gdouble) data->g / 255.0,
+                             (gdouble) data->b / 255.0,
+                             final_alpha);
 
-      gdouble thickness = annotate_get_thickness ();
-      gdouble gap = distance - thickness;
+      gdouble gap = distance - final_thickness;
       const gdouble snap_tolerance = 20.0;
       gboolean closed_path = (gap < snap_tolerance);
 
@@ -2922,7 +3067,7 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
           annotate_coord_list_prepend (masterdata,
                                        ev->x,
                                        ev->y,
-                                       annotate_get_thickness (),
+                                       final_thickness,
                                        pressure);
         }
       else
@@ -2933,7 +3078,7 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
           annotate_coord_list_prepend (masterdata,
                                        first_point->x,
                                        first_point->y,
-                                       annotate_get_thickness (),
+                                       final_thickness,
                                        pressure);
         }
 
