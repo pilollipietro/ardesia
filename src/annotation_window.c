@@ -172,6 +172,47 @@ annotate_paint_context_new (AnnotatePaintType type)
 }
 
 /**
+ * annotate_get_stroke_segment_until_distance:
+ * @list:               List of #AnnotatePoint nodes (original stroke points).
+ * @distance_threshold: Maximum radial distance from the first point.
+ *
+ * Builds and returns a new GSList containing all points from @list
+ * up to (but not including) the first point whose distance from the
+ * starting point exceeds @distance_threshold.
+ *
+ * The returned list contains the same #AnnotatePoint pointers from @list
+ * (not duplicated). The caller is responsible for freeing the GSList
+ * container with g_slist_free(), but not the individual points.
+ *
+ * Returns: (transfer container): A new GSList with the segment points.
+ */
+static GSList *
+annotate_get_stroke_segment_until_distance (GSList *list,
+                                            gdouble distance_threshold)
+{
+  if (list == NULL)
+    return NULL;
+
+  AnnotatePoint *first_point = (AnnotatePoint *) list->data;
+  GSList *segment = NULL;
+  GSList *iter = list;
+
+  while (iter) {
+    AnnotatePoint *p = (AnnotatePoint *) iter->data;
+    gdouble distance = get_distance (p->x, p->y,
+                                     first_point->x, first_point->y);
+
+    if (distance > distance_threshold)
+      break;
+
+    segment = g_slist_append (segment, p);
+    iter = g_slist_next (iter);
+  }
+
+  return segment;
+}
+
+/**
  * annotate_get_arrow_direction:
  * @devdata: The #AnnotateDeviceData containing the coordinate list.
  *
@@ -193,58 +234,47 @@ annotate_get_arrow_direction (AnnotateDeviceData *devdata)
 {
   GSList *list = devdata->coord_list;
   if (g_slist_length (list) < 2)
-    {
-      return 0.0;
-    }
+    return NAN;
 
   /*
    * Use the static (max) thickness as the tolerance
    * for the shape recognition algorithm.
    */
-  gdouble tollerance = annotate_get_thickness ();
+  gdouble tolerance = annotate_get_thickness ();
+  gdouble static_thickness = annotate_get_thickness ();
+  gdouble segment_distance = static_thickness * 10.0;
 
-  /*
-   * Call the "smart" algorithm to filter out
-   * noise and "riccioli". This is the same logic
-   * used by roundify() and rectify().
-   */
-  GSList *meaningful_point_list = NULL;
-  meaningful_point_list = build_meaningful_point_list (devdata->coord_list,
-                                                       tollerance);
+  /* Get only the recent stroke segment (last portion) */
+  GSList *segment_list =
+      annotate_get_stroke_segment_until_distance (list, segment_distance);
+  if (segment_list == NULL)
+    return NAN;
 
-  /* 3. Check the *new* (clean) list */
+  /* Smooth this segment by removing minor oscillations and noise. */
+  GSList *meaningful_point_list =
+      build_meaningful_point_list (segment_list, tolerance);
+
+  /* We only used existing AnnotatePoint pointers → free only container */
+  g_slist_free (segment_list);
+
   guint length = g_slist_length (meaningful_point_list);
   if (length < 2)
     {
-      /* The stroke was too small or noisy, fallback */
-      if (meaningful_point_list)
-        {
-          g_slist_foreach (meaningful_point_list, (GFunc) g_free, NULL);
-          g_slist_free (meaningful_point_list);
-        }
-      /* Fallback to the original *very last* point (best guess) */
-      AnnotatePoint *last_point = (AnnotatePoint *) list->data;
-      AnnotatePoint *old_point = (AnnotatePoint *) g_slist_nth_data (list, 1);
-      return atan2 (last_point->y - old_point->y,
-                    last_point->x - old_point->x);
+      g_slist_free_full (meaningful_point_list, g_free);
+      return NAN;
     }
 
   /*
-   * Calculate direction using the last two
-   * "meaningful" points. This gives the stable
-   * direction of the stroke, ignoring the final hook.
+   * Calculate direction using the last two "meaningful" points.
+   * This gives the stable direction of the stroke end.
    */
-  AnnotatePoint *last_point = (AnnotatePoint *) g_slist_nth_data (
-      meaningful_point_list, 0);
-  AnnotatePoint *old_point = (AnnotatePoint *) g_slist_nth_data (
-      meaningful_point_list, 1);
-  
+  AnnotatePoint *last_point = (AnnotatePoint *) g_slist_nth_data (meaningful_point_list, 0);
+  AnnotatePoint *old_point  = (AnnotatePoint *) g_slist_nth_data (meaningful_point_list, 1);
+
   gdouble direction = atan2 (last_point->y - old_point->y,
                              last_point->x - old_point->x);
 
-  /* Clean up the temporary list */
-  g_slist_foreach (meaningful_point_list, (GFunc) g_free, NULL);
-  g_slist_free (meaningful_point_list);
+  g_slist_free_full (meaningful_point_list, g_free);
 
   return direction;
 }
@@ -1361,6 +1391,16 @@ delete_ardesia_tmp_dir (void)
 static void
 draw_arrow_in_point (AnnotatePoint *point, gdouble width, gdouble direction)
 {
+  if (isnan(direction))
+    {
+      g_debug ("Skip draw arrow, direction undefined");
+      return;
+    }
+  else
+    {
+      g_debug ("Draw arrow, direction %f\n", direction / M_PI * 180);
+    }
+    
   cairo_t *annotation_cairo_context;
   annotation_cairo_context = annotation_data->annotation_cairo_context;
 
@@ -2100,34 +2140,10 @@ annotate_acquire_grab (void)
 void
 annotate_draw_arrow (AnnotateDeviceData *devdata, gdouble distance)
 {
-  gdouble direction          = 0;
-  gdouble pen_width          = annotate_get_thickness ();
-  gdouble arrow_minimum_size = pen_width * 2;
-
   AnnotatePoint *point;
   point = (AnnotatePoint *) g_slist_nth_data (devdata->coord_list, 0);
-
-  if (distance < arrow_minimum_size)
-    {
-      return;
-    }
-
-  g_debug ("Draw arrow: ");
-
-  if (g_slist_length (devdata->coord_list) < 2)
-    {
-      /*
-       * If it has length lesser then two then is a point and
-       * it has no sense draw the arrow.
-       */
-      return;
-    }
-
-  /* Postcondition length >= 2 */
-  direction = annotate_get_arrow_direction (devdata);
-
-  g_debug ("Arrow direction %f\n", direction / M_PI * 180);
-
+  gdouble direction = annotate_get_arrow_direction (devdata);
+  gdouble pen_width = annotate_get_thickness ();
   draw_arrow_in_point (point, pen_width, direction);
 }
 
@@ -3089,7 +3105,10 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
           /* If is selected an arrow type then I draw the arrow. */
           if (! closed_path && data->arrow)
             {
-              /* Print arrow at the end of the path. */
+              /*
+               * Draw the arrow at the end of the stroke.
+               * Uses the maximum stroke thickness regardless of final pressure.
+               */
               annotate_draw_arrow (masterdata, distance);
             }
         }
