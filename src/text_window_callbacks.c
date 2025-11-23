@@ -66,7 +66,7 @@ is_above_virtual_keyboard (gint x, gint y)
 }
 #endif
 
- /**
+/**
  * draw_layout_with_thickness:
  * @cr: Cairo drawing context.
  * @layout: Pango layout containing the text glyphs.
@@ -76,7 +76,8 @@ is_above_virtual_keyboard (gint x, gint y)
  * compensating for glyph offsets to align text correctly to the baseline.
  **/
 static void
-draw_layout_with_thickness (cairo_t *cr, PangoLayout *layout,
+draw_layout_with_thickness (cairo_t *cr,
+                            PangoLayout *layout,
                             CharInfo *char_info)
 {
   GdkRGBA *color = rgba_to_gdkcolor (char_info->color);
@@ -161,7 +162,8 @@ on_text_window_expose_event (GtkWidget *widget, cairo_t *cr, gpointer data)
  * Returns TRUE to indicate that the event has been handled.
  **/
 gboolean
-on_text_window_button_release (GtkWidget *win, GdkEventButton *ev,
+on_text_window_button_release (GtkWidget *win,
+                               GdkEventButton *ev,
                                TextData *data)
 {
   GtkWidget *annotation_window = get_annotation_window ();
@@ -227,7 +229,8 @@ on_text_window_button_release (GtkWidget *win, GdkEventButton *ev,
  * Returns: TRUE to indicate that the event has been handled.
  **/
 G_MODULE_EXPORT gboolean
-on_text_window_cursor_motion (GtkWidget *win, GdkEventMotion *ev,
+on_text_window_cursor_motion (GtkWidget *win,
+                              GdkEventMotion *ev,
                               gpointer func_data)
 {
 #ifdef _WIN32
@@ -256,6 +259,51 @@ make_new_character (void)
       return NULL;
     }
   return char_info;
+}
+
+/**
+ * invalidate_character_area:
+ * @char_info: (transfer none): The #CharInfo structure containing
+ *             the character's
+ * position, Pango metrics, and visual properties.
+ *
+ * Calculates the screen area occupied by a single character and requests a
+ * redraw of that specific area in the annotation window.
+ *
+ * The function:
+ * - Computes the character's visual bounds using Pango's `ink_rect` and the
+ * character's origin.
+ * - Expands the bounds by the stroke thickness (`visual_thickness`) plus a
+ * padding to ensure the entire stroke and its anti-aliasing artifacts are
+ * included in the redrawn area.
+ * - Calls `gtk_widget_queue_draw_area` to efficiently update only the minimal
+ * area affected by the character.
+ */
+static void
+invalidate_character_area (CharInfo *char_info)
+{
+  if (! char_info)
+    return;
+
+  GtkWidget *annotation_window = annotation_data->annotation_window;
+  if (! annotation_window)
+    return;
+
+  gdouble stroke_expand = ceil (char_info->visual_thickness / 2.0) + 1.0;
+
+  gdouble origin_x = char_info->x;
+  gdouble origin_y = char_info->y -
+                     (gdouble) char_info->baseline / PANGO_SCALE;
+
+  PangoRectangle ink_rect = char_info->ink_rect;
+  gint           dirty_x = (gint) floor (origin_x + ink_rect.x - stroke_expand);
+  gint           dirty_y = (gint) floor (origin_y + ink_rect.y - stroke_expand);
+  gint dirty_width       = (gint) ceil (ink_rect.width + stroke_expand * 2.0);
+  gint dirty_height      = (gint) ceil (ink_rect.height + stroke_expand * 2.0);
+
+  gtk_widget_queue_draw_area(annotation_window,
+                              dirty_x, dirty_y,
+                              dirty_width, dirty_height);
 }
 
 /**
@@ -291,10 +339,14 @@ draw_character (cairo_t *cr, CharInfo *char_info)
       draw_layout_with_thickness (cr, layout, char_info);
 
       PangoRectangle logical_rect;
-      pango_layout_get_pixel_extents (layout, NULL, &logical_rect);
+      PangoRectangle ink_rect;
+      pango_layout_get_pixel_extents (layout, &ink_rect, &logical_rect);
+      char_info->ink_rect = ink_rect;
 
       gdouble visual_thickness = calculate_visual_thickness (
           char_info->pen_width, char_info->font_size);
+
+      char_info->visual_thickness = visual_thickness;
 
       if (g_strcmp0 (char_info->character, " ") == 0)
         {
@@ -319,34 +371,13 @@ draw_character (cairo_t *cr, CharInfo *char_info)
               logical_rect.width + (gint) ceil (visual_thickness / 2.0);
         }
 
-      PangoRectangle ink_rect;
-      pango_layout_get_pixel_extents (layout, &ink_rect, NULL);
       char_info->text_height = ink_rect.height;
 
       cairo_surface_flush (cairo_get_target (cr));
       cairo_restore (cr);
       g_object_unref (layout);
 
-      /*
-       * Invalidate the character's bounding box to trigger a redraw
-       * only for the modified area.
-       */
-      GtkWidget *annotation_window = annotation_data->annotation_window;
-      gint       dirty_x, dirty_y, dirty_width, dirty_height;
-
-      dirty_x = (gint) (char_info->x + ink_rect.x);
-      dirty_y =
-          (gint) (char_info->y -
-              (gdouble) char_info->baseline / PANGO_SCALE + ink_rect.y);
-
-      dirty_width  = ink_rect.width;
-      dirty_height = ink_rect.height;
-
-      gtk_widget_queue_draw_area (annotation_window,
-                                  dirty_x,
-                                  dirty_y,
-                                  dirty_width,
-                                  dirty_height);
+      invalidate_character_area (char_info);
     }
 }
 
@@ -440,7 +471,7 @@ assign_text_properties (CharInfo *char_info)
 static void
 delete_character (void)
 {
-  if (! text_data->cr)
+  if (! text_data->cr || ! text_data->letterlist)
     return;
 
   CharInfo *char_info = (CharInfo *) text_data->letterlist->data;
@@ -452,20 +483,11 @@ delete_character (void)
       cairo_save (text_data->cr);
       cairo_set_operator (text_data->cr, CAIRO_OPERATOR_CLEAR);
 
-      PangoLayout *layout = pango_cairo_create_layout (text_data->cr);
-      pango_layout_set_font_description (layout,
-                                         char_info->pango_font_description);
-      pango_layout_set_text (layout, char_info->character, -1);
-      pango_cairo_update_layout (text_data->cr, layout);
-
       /* Get the base "ink" rectangle from Pango. */
-      PangoRectangle ink_rect;
-      pango_layout_get_pixel_extents (layout, &ink_rect, NULL);
+      PangoRectangle ink_rect = char_info->ink_rect;
 
-      /* Calculate the visual thickness that was used for drawing. */
-      gdouble visual_thickness =
-          calculate_visual_thickness (char_info->pen_width,
-                                      char_info->font_size);
+      /* Get the visual thickness that was used for drawing. */
+      gdouble visual_thickness = char_info->visual_thickness;
 
       /* Determine the top-left origin of the layout on the canvas. */
       gdouble origin_x = char_info->x;
@@ -487,35 +509,12 @@ delete_character (void)
       gdouble rect_height =
           (gdouble) ink_rect.height + visual_thickness + (padding * 2);
 
-      /* 5. Clear only this exact, calculated rectangle. */
+      /* Clear only this exact, calculated rectangle. */
       cairo_rectangle (text_data->cr, rect_x, rect_y, rect_width, rect_height);
       cairo_fill (text_data->cr);
-
       cairo_restore (text_data->cr);
-      g_object_unref (layout);
 
-      GtkWidget *annotation_window = annotation_data->annotation_window;
-
-      gtk_widget_queue_draw_area (annotation_window,
-                                  (gint)rect_x,
-                                  (gint)rect_y,
-                                  (gint)rect_width,
-                                  (gint)rect_height);
-
-      gint dirty_x, dirty_y, dirty_width, dirty_height;
-
-      dirty_x = char_info->x + ink_rect.x;
-      dirty_y = (char_info->y -
-                 (gdouble) char_info->baseline / PANGO_SCALE +
-                 ink_rect.y);
-      dirty_width  = ink_rect.width;
-      dirty_height = ink_rect.height;
-
-      gtk_widget_queue_draw_area (annotation_window,
-                                  (gint)dirty_x,
-                                  (gint)dirty_y,
-                                  (gint)dirty_width,
-                                  (gint)dirty_height);
+      invalidate_character_area (char_info);
     }
 
   /* Reset cursor position to where the deleted character was */

@@ -98,6 +98,10 @@ typedef struct
 
   gint text_height;
 
+  gdouble visual_thickness;
+
+  PangoRectangle ink_rect;
+
 } CharInfo;
 
 typedef struct

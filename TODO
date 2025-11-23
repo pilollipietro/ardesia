@@ -14,20 +14,19 @@
   - Screencast recorder using a library (ffmpeg or libvlc)
 
 - Candidate features:
-  - Import images
-  - Make an image gallery (sticky notes...)
-  - Deploy the artefact online
-    - video; youtube upload as kazam
   - Lazo selection tool
     - Move the selected area content
     - Paste the selected area content
+  - Import images
+  - Make an image gallery (sticky notes...)
   - Recognize the hand written text
   - Support for a generic virtual keyboard 
-  - Not parallel to the axis shape recognition
   - Zoom the selected area content
   - Rotate the selected area content
   - Send a bug report with stacktrace when a crash occurs;
     may be with google-breakpad
+  - Deploy the artefact online
+    - video; youtube upload as kazam
 
 ===
 EOF
