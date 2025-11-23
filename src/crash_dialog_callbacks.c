@@ -24,7 +24,14 @@
 #include "crash_dialog.h"
 #include "utils.h"
 
-/* Shot when the ok button in crash dialog is pushed. */
+/**
+ * on_crash_ok_button_clicked:
+ * @button: The #GtkButton that was clicked.
+ * @data: Pointer to a #CrashData struct containing the crash report.
+ *
+ * Callback triggered when the "OK" button in the crash dialog is pressed.
+ * Sends the crash report via email using send_trace_with_email().
+ */
 G_MODULE_EXPORT void
 on_crash_ok_button_clicked (GtkButton *buton, gpointer data)
 {
@@ -32,7 +39,14 @@ on_crash_ok_button_clicked (GtkButton *buton, gpointer data)
   send_trace_with_email (crash_data->crash_report);
 }
 
-/* Shot when the ok button in preference dialog is pushed. */
+/**
+ * on_crash_cancel_button_clicked:
+ * @button: The #GtkButton that was clicked.
+ * @data: User data (unused).
+ *
+ * Callback triggered when the "Cancel" button in the crash dialog is pressed.
+ * This function intentionally does nothing.
+ */
 G_MODULE_EXPORT void
 on_crash_cancel_button_clicked (GtkButton *buton, gpointer data)
 {

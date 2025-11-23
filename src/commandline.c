@@ -53,6 +53,17 @@ static struct option long_options[] = {
   { 0,                   0,                 0, 0    }
 };
 
+/**
+ * add_defaults_to_commandline:
+ * @commandline: (inout): A pointer to a #CommandLine struct to initialize.
+ *
+ * Initializes the provided #CommandLine structure with default values
+ * for all fields. This includes UI layout, monitor selection, text
+ * settings, and the default clipping rectangle.
+ *
+ * If @commandline is %NULL, a warning is emitted and the function returns
+ * without making any changes.
+ */
 void
 add_defaults_to_commandline (CommandLine *commandline)
 {
@@ -132,7 +143,12 @@ destroy_command_line (CommandLine *commandline)
   g_free (commandline);
 }
 
-/* Print the version of the tool and exit. */
+/**
+ * print_version:
+ *
+ * Prints the current version of Ardesia to standard output and
+ * immediately exits the program with a success status.
+ */
 static void
 print_version (void)
 {
@@ -140,7 +156,16 @@ print_version (void)
   exit (EXIT_SUCCESS);
 }
 
-/* Print the command line help. */
+/**
+ * print_help:
+ *
+ * Prints the command line usage instructions for Ardesia, including
+ * available options, their short and long forms, default values, and
+ * author information.
+ *
+ * This function outputs the help text to standard output and does not
+ * return a value.
+ */
 static void
 print_help (void)
 {

@@ -43,9 +43,18 @@ static gboolean started = FALSE;
 /* is the recorder paused */
 static gboolean paused = FALSE;
 
-/*
- * Create a recorder process; it return the pid
- */
+/**
+ * call_recorder:
+ * @filename: The name of the video file to save.
+ * @option:   The recorder command option ("start", "pause", "resume", "stop").
+ *
+ * Spawns a separate screencast recorder process (VLC) with the specified
+ * @filename and @option. Sets up temporary PID and log files in the
+ * project directory and checks if the recorder started successfully.
+ *
+ * Returns: The process ID (PID) of the recorder if started successfully,
+ *          or -1 if the recorder failed to start.
+ **/
 static GPid
 call_recorder (gchar *filename, gchar *option)
 {
@@ -77,10 +86,13 @@ call_recorder (gchar *filename, gchar *option)
 
   gdk_window_get_root_origin (gtk_widget_get_window (annotation_window),
                               &x, &y);
+
   argv[3] = g_strdup_printf ("%d", y);
   argv[4] = g_strdup_printf ("%d", x);
+
   argv[5] = g_strdup_printf (
       "%d", gtk_widget_get_allocated_width (annotation_window));
+
   argv[6] = g_strdup_printf (
       "%d", gtk_widget_get_allocated_height (annotation_window));
 
@@ -274,13 +286,15 @@ stop_recorder (void)
 
 /**
  * visualize_missing_recorder_program_dialog:
+ * @parent: The parent #GtkWindow for modal positioning.
+ * @message: The error message to display.
  *
  * Displays a modal GTK error dialog informing the user that the recorder
- * program is missing or failed to start. Blocks until the user acknowledges.
+ * program is missing or failed to start. The function blocks until the user
+ * acknowledges the dialog by clicking OK.
  *
- * Parameters:
- *   parent  - the parent GTK window for modal positioning
- *   message - the error message to display
+ * This function ensures the dialog is modal relative to @parent and
+ * automatically destroys the dialog widget after use.
  **/
 void
 visualize_missing_recorder_program_dialog (GtkWindow *parent, gchar *message)
@@ -307,20 +321,28 @@ visualize_missing_recorder_program_dialog (GtkWindow *parent, gchar *message)
 
 /**
  * start_save_video_dialog:
+ * @toolbutton: The recorder tool button from the Ardesia toolbar.
+ * @parent: The parent #GtkWindow for modal dialog positioning.
  *
- * Opens a dialog asking the user where to save a screencast video.
+ * Opens a file chooser dialog asking the user where to save a screencast video.
+ * This function ensures that the filename does not overwrite existing files
+ * unless the user confirms.
+ * The .ogv extension is automatically added if missing.
  *
- * Parameters:
- *   toolbutton - the recorder tool button from the Ardesia bar
- *   parent     - the parent GTK window for modal dialog positioning
+ * The function also handles starting and stopping the virtual keyboard
+ * as needed and interacts with the user to confirm file overwrites or
+ * handle errors.
  *
- * Returns:
- *   TRUE if the recorder was successfully started, FALSE otherwise.
+ * Returns: %TRUE if the recorder was successfully started, %FALSE otherwise.
  *
  * Notes:
- *   - Ensures the filename does not overwrite existing files unless confirmed.
- *   - Adds the .ogv extension automatically if missing.
- *   - Handles virtual keyboard start/stop and user interaction.
+ * - Ensures the filename is unique by appending a number if the target file
+ *   already exists.
+ * - Automatically appends the ".ogv" extension if not present in the filename.
+ * - Calls start_virtual_keyboard() before showing the dialog and
+ *   stop_virtual_keyboard() afterward.
+ * - Calls call_recorder() to start the recording; if it fails, displays an
+ *   error dialog.
  **/
 gboolean
 start_save_video_dialog (GtkButton *toolbutton, GtkWindow *parent)
@@ -421,10 +443,8 @@ start_save_video_dialog (GtkButton *toolbutton, GtkWindow *parent)
               fclose (stream);
             }
         }
-
-      recorder_pid = call_recorder (filename, "start");
-      status       = (recorder_pid > 0);
     }
+
   stop_virtual_keyboard ();
 
   if (chooser)
@@ -432,14 +452,17 @@ start_save_video_dialog (GtkButton *toolbutton, GtkWindow *parent)
       gtk_widget_destroy (chooser);
       chooser = NULL;
     }
+  recorder_pid = call_recorder (filename, "start");
+  status       = (recorder_pid > 0);
+  if (! status)
+    {
+      visualize_missing_recorder_program_dialog (
+          parent,
+          "VLC failed to start properly, check installation and logs.");
+    }
 
   g_free (filename);
   filename = NULL;
 
-  if (!status)
-    {
-      visualize_missing_recorder_program_dialog (
-          parent, "VLC failed to start properly, check installation and logs.");
-    }
   return status;
 }

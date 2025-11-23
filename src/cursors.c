@@ -42,7 +42,21 @@ static cairo_surface_t *arrow_image_surface = (cairo_surface_t *) NULL;
 /* The image surface that will contain the filler icon. */
 static cairo_surface_t *filler_image_surface = (cairo_surface_t *) NULL;
 
-/* Get cairo surface from svg. */
+/**
+ * cairo_image_surface_create_from_svg:
+ * Creates a Cairo image surface from an SVG file.
+ *
+ * Loads the SVG document from @file, retrieves its intrinsic size,
+ * and renders it into a newly allocated ARGB32 Cairo image surface.
+ *
+ * The returned surface must be destroyed with cairo_surface_destroy()
+ * by the caller.
+ *
+ * @file: Path to the SVG file.
+ *
+ * Returns: (transfer full): A newly created cairo_image_surface_t,
+ *   or %NULL on failure.
+ */
 static cairo_surface_t *
 cairo_image_surface_create_from_svg (const gchar *file)
 {
@@ -68,6 +82,22 @@ cairo_image_surface_create_from_svg (const gchar *file)
   return surface;
 }
 
+/**
+ * svg_replace_color:
+ * Replaces all occurrences of a color string inside SVG data.
+ *
+ * Creates a modified copy of @svg_data where every occurrence of
+ * @old_color is replaced with @new_color.
+ *
+ * The returned string is newly allocated and must be freed with g_free().
+ *
+ * @svg_data: The original SVG text buffer.
+ * @old_color: The color string to be replaced (e.g. "#FF0000").
+ * @new_color: The replacement color string.
+ *
+ * Returns: (transfer full): A newly allocated string containing the
+ *   modified SVG data, or %NULL if any parameter is %NULL.
+ */
 static
 gchar *
 svg_replace_color (const gchar *svg_data,
@@ -85,9 +115,20 @@ svg_replace_color (const gchar *svg_data,
   return g_string_free (gstr, FALSE);
 }
 
-/*
- * Read svg file and replace old_color with new_color and return
- * cairo_surface_t.
+/**
+ * cairo_image_surface_create_from_svg_repl:
+ * @file: Path to the SVG file.
+ * @old_color: The color string to be replaced (e.g. "#FF0000").
+ * @new_color: The replacement color string.
+ *
+ * Loads an SVG file, replaces all occurrences of @old_color with @new_color,
+ * and renders it into a newly allocated Cairo ARGB32 image surface.
+ *
+ * The returned surface must be destroyed with cairo_surface_destroy()
+ * by the caller.
+ *
+ * Returns: (transfer full): A newly created #cairo_surface_t, or %NULL on
+ * failure.
  */
 static cairo_surface_t *
 cairo_image_surface_create_from_svg_repl (const gchar *file,
@@ -152,7 +193,18 @@ cairo_image_surface_create_from_svg_repl (const gchar *file,
   return surface;
 }
 
-/* Get the eraser image surface. */
+/**
+ * get_eraser_image_surface:
+ * Returns the cached eraser image surface.
+ *
+ * If the surface was not created yet, it is created from the SVG
+ * defined by %ERASER_ICON and then cached for future calls.
+ *
+ * The returned surface is owned by this module and must not be
+ * destroyed by the caller.
+ *
+ * Returns: (transfer none): The cached eraser #cairo_surface_t.
+ */
 static cairo_surface_t *
 get_eraser_image_surface (void)
 {
@@ -165,7 +217,21 @@ get_eraser_image_surface (void)
   return eraser_image_surface;
 }
 
-/* Get the highlighter image surface. */
+/**
+ * get_highlighter_image_surface:
+ * @old_color: The hex color string to be replaced (e.g. "FF0000FF").
+ * @new_color: The replacement hex color string (e.g. "00FF00FF").
+ *
+ * Gets the highlighter image surface with a modified color.
+ *
+ * If a previous surface exists, it is destroyed and recreated using the
+ * %HIGHLIGHTER_ICON SVG, replacing @old_color with @new_color.
+ *
+ * The returned surface is cached internally and must not be freed by
+ * the caller.
+ *
+ * Returns: (transfer none): The updated highlighter #cairo_surface_t.
+ */
 static cairo_surface_t *
 get_highlighter_image_surface (const gchar *old_color,
                                const gchar *new_color)
@@ -183,7 +249,21 @@ get_highlighter_image_surface (const gchar *old_color,
   return highlighter_image_surface;
 }
 
-/* Get the arrow image surface. */
+/**
+ * get_arrow_image_surface:
+ * @old_color: The hex color string to be replaced (e.g. "FF0000FF").
+ * @new_color: The replacement hex color string (e.g. "00FF00FF").
+ *
+ * Gets the arrow image surface with a modified color.
+ *
+ * If a previous surface exists, it is destroyed and recreated using the
+ * %ARROW_ICON SVG, replacing @old_color with @new_color.
+ *
+ * The returned surface is cached internally and must not be freed by
+ * the caller.
+ *
+ * Returns: (transfer none): The updated arrow #cairo_surface_t.
+ */
 static cairo_surface_t *
 get_arrow_image_surface (const gchar *old_color, char *new_color)
 {
@@ -198,7 +278,21 @@ get_arrow_image_surface (const gchar *old_color, char *new_color)
   return arrow_image_surface;
 }
 
-/* Get the filler image surface. */
+/**
+ * get_filler_image_surface:
+ * @old_color: The hex color string to be replaced (e.g. "FF0000FF").
+ * @new_color: The replacement hex color string (e.g. "00FF00FF").
+ *
+ * Gets the filler image surface with a modified color.
+ *
+ * If a previous surface exists, it is destroyed and recreated using the
+ * %FILLER_ICON SVG, replacing @old_color with @new_color.
+ *
+ * The returned surface is cached internally and must not be freed by
+ * the caller.
+ *
+ * Returns: (transfer none): The updated filler #cairo_surface_t.
+ */
 static cairo_surface_t *
 get_filler_image_surface (const gchar *old_color,
                           const gchar *new_color)
@@ -214,7 +308,22 @@ get_filler_image_surface (const gchar *old_color,
   return filler_image_surface;
 }
 
-/* Get the pen image surface. */
+/**
+ * get_pen_image_surface:
+ * @old_color: The hex color string to be replaced (e.g. "FF0000FF").
+ * @new_color: The replacement hex color string (e.g. "00FF00FF").
+ *
+ * Gets the pen image surface with a modified color.
+ *
+ * If a previous pen surface already exists, it is destroyed and recreated
+ * from the %PENCIL_ICON SVG, applying a color replacement from @old_color
+ * to @new_color.
+ *
+ * The returned surface is cached internally and must not be freed by
+ * the caller.
+ *
+ * Returns: (transfer none): The updated pen #cairo_surface_t.
+ */
 static cairo_surface_t *
 get_pen_image_surface (const gchar *old_color,
                        const gchar *new_color)
@@ -231,7 +340,11 @@ get_pen_image_surface (const gchar *old_color,
   return pen_image_surface;
 }
 
-/* Destroy the eraser image surface. */
+/**
+ * destroy_eraser_image_surface:
+ *
+ * Destroys the cached eraser image surface, if it exists.
+ */
 static void
 destroy_eraser_image_surface (void)
 {
@@ -241,7 +354,11 @@ destroy_eraser_image_surface (void)
     }
 }
 
-/* Destroy the highlighter image surface. */
+/**
+ * destroy_highlighter_image_surface:
+ *
+ * Destroys the cached highlighter image surface, if it exists.
+ */
 static void
 destroy_highlighter_image_surface (void)
 {
@@ -251,7 +368,12 @@ destroy_highlighter_image_surface (void)
     }
 }
 
-/* Destroy the pen image surface. */
+/**
+ * destroy_pen_image_surface:
+ *
+ * Destroys the cached pen image surface, if it exists.
+ */
+
 static void
 destroy_pen_image_surface (void)
 {
@@ -261,7 +383,11 @@ destroy_pen_image_surface (void)
     }
 }
 
-/* Destroy the filler image surface. */
+/**
+ * destroy_filler_image_surface:
+ *
+ * Destroys the cached filler image surface, if it exists.
+ */
 static void
 destroy_filler_image_surface (void)
 {
@@ -271,7 +397,14 @@ destroy_filler_image_surface (void)
     }
 }
 
-/* Swap blue with red in pibxbuf. */
+/**
+ * gdk_pixbuf_swap_blue_with_red:
+ * @pixbuf: (inout): a pointer to a #GdkPixbuf whose pixels will be modified.
+ *
+ * Swaps the blue and red channels of all pixels in @pixbuf.
+ *
+ * The pixbuf is modified in place.
+ */
 static void
 gdk_pixbuf_swap_blue_with_red (GdkPixbuf **pixbuf)
 {
@@ -299,7 +432,16 @@ gdk_pixbuf_swap_blue_with_red (GdkPixbuf **pixbuf)
     }
 }
 
-/* Create pixmap and mask for the eraser cursor. */
+/**
+ * get_eraser_pixbuf:
+ * @thickness: Thickness of the eraser circle.
+ * @pixbuf: (out): Location to store the newly created pixbuf.
+ * @circle_width: Width of the circle outline.
+ *
+ * Generates a #GdkPixbuf representing the eraser cursor, including
+ * a circle with the given thickness and the eraser icon. The pixbuf
+ * is modified in-place to swap red and blue channels as needed.
+ */
 static void
 get_eraser_pixbuf (gdouble thickness,
                    GdkPixbuf **pixbuf,
@@ -359,7 +501,15 @@ get_eraser_pixbuf (gdouble thickness,
   gdk_pixbuf_swap_blue_with_red (pixbuf);
 }
 
-/* Create pixmap and mask for the eraser cursor. */
+/**
+ * get_filler_pixbuf:
+ * @pixbuf: (out): Location to store the newly created pixbuf.
+ * @color: Hex string representing the desired color.
+ *
+ * Generates a #GdkPixbuf representing the filler (paint bucket) cursor
+ * with the specified color. The pixbuf is modified in-place to swap
+ * red and blue channels as needed.
+ */
 static void
 get_filler_pixbuf (GdkPixbuf **pixbuf,
                    gchar *color)
@@ -411,7 +561,19 @@ get_filler_pixbuf (GdkPixbuf **pixbuf,
   gdk_pixbuf_swap_blue_with_red (pixbuf);
 }
 
-/* Create pixmap and mask for the pen cursor. */
+/**
+ * get_pen_pixbuf:
+ * @pixbuf: (out): Location to store the newly created pixbuf.
+ * @color: Hex string representing the desired color.
+ * @thickness: Thickness of the pen circle.
+ * @arrow: %TRUE if the pen should have an arrow shape.
+ * @circle_width: Width of the circle outline.
+ *
+ * Generates a #GdkPixbuf representing the pen cursor, which may include
+ * a circle of the given thickness and either a pencil, highlighter, or
+ * arrow icon depending on @color and @arrow. The pixbuf is modified
+ * in-place to swap red and blue channels as needed.
+ */
 static void
 get_pen_pixbuf (GdkPixbuf **pixbuf,
                 gchar *color,
@@ -506,7 +668,12 @@ get_pen_pixbuf (GdkPixbuf **pixbuf,
   gdk_pixbuf_swap_blue_with_red (pixbuf);
 }
 
-/* Destroy the image surfaces used for the cursors. */
+/**
+ * destroy_cached_image_surfaces:
+ *
+ * Destroys all cached image surfaces used for cursors (eraser, pen,
+ * highlighter, filler) to release allocated memory.
+ */
 static void
 destroy_cached_image_surfaces (void)
 {

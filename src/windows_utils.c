@@ -117,12 +117,16 @@ windows_send_email (gchar *to,
 
   MapiFileDesc m_fd[attach_lenght];
 
-  gint i = 0;
-  for (i = 0; i < attach_lenght; i++)
+  int idx = 0;
+
+  for (GSList *node = attachment_list; node != NULL; node = node->next)
     {
-      gchar *attachment    = g_slist_nth_data (attachment_list, i);
-      m_fd[i].lpszPathName = attachment;
-      m_fd[i].lpszFileName = attachment;
+      gchar *attachment = (gchar *) node->data;
+
+      m_fd[idx].lpszPathName = attachment;
+      m_fd[idx].lpszFileName = attachment;
+
+      idx++;
     }
 
   m_msg.nFileCount = sizeof (m_fd) / sizeof (m_fd[0]);

@@ -60,6 +60,36 @@ typedef struct
 } SavepointThreadData;
 
 /**
+ * gslist_has_at_least:
+ * @list: (nullable): a #GSList.
+ * @n: minimum number of elements required.
+ *
+ * Checks whether a #GSList contains at least @n elements.
+ *
+ * This function is intended to avoid calling g_slist_length() when only a
+ * threshold check is needed, since computing the length would require
+ * traversing the entire list. Instead, this stops as soon as @n elements
+ * are found or the list ends.
+ *
+ * The @list pointer is not modified.
+ *
+ * Returns: %TRUE if @list contains at least @n elements, %FALSE otherwise.
+ */
+gboolean
+gslist_has_at_least (const GSList *list, guint n)
+{
+  while (n-- > 0)
+    {
+      if (list == NULL)
+        return FALSE;
+
+      list = list->next;
+    }
+
+  return TRUE;
+}
+
+/**
  * savepoint_thread_data_free:
  * @task_data: A pointer to a #SavepointThreadData struct.
  *
@@ -108,11 +138,14 @@ savepoint_worker_thread (GTask *task,
     {
       g_warning ("(Thread) Failed to write savepoint PNG %s: %s",
                  data->filename, cairo_status_to_string (status));
+      g_task_return_new_error (task, G_IO_ERROR, G_IO_ERROR_FAILED,
+                               "Failed to write PNG: %s",
+                               cairo_status_to_string (status));
+      savepoint_thread_data_free (data);
+      return;
     }
-  else
-    {
-      g_debug ("(Thread) Savepoint stored in file: %s", data->filename);
-    }
+  g_debug ("(Thread) Savepoint stored in file: %s", data->filename);
+  g_task_return_boolean (task, TRUE);
 }
 
 /**
@@ -172,6 +205,56 @@ annotate_paint_context_new (AnnotatePaintType type)
 }
 
 /**
+ * get_oldest_point:
+ * @devdata: Pointer to the annotation device data containing the list
+ *           of points.
+ *
+ * Returns the oldest point in the coordinate list of @devdata.
+ *
+ * Since points are added using g_slist_prepend(), the oldest point is
+ * located at the tail of the GSList. This function walks the list to
+ * retrieve the last node.
+ *
+ * If the list is empty or @devdata is NULL, it returns %NULL.
+ *
+ * Returns: (transfer none): The oldest AnnotatePoint,
+ * or %NULL if no points are available.
+ */
+static AnnotatePoint *
+get_oldest_point (AnnotateDeviceData *devdata)
+{
+  if (devdata == NULL || devdata->coord_list == NULL)
+    return NULL;
+
+  GSList *last = g_slist_last (devdata->coord_list);
+  return last ? (AnnotatePoint *) last->data : NULL;
+}
+
+/**
+ * get_current_point:
+ * @devdata: Pointer to the annotation device data containing the list
+ *           of points.
+ *
+ * Returns the most recently added point in the coordinate list of
+ * @devdata.
+ *
+ * This function retrieves the current point, which is stored at the head
+ * of the GSList since points are added using g_slist_prepend().
+ * If the list is empty or @devdata is NULL, it returns %NULL.
+ *
+ * Returns: (transfer none): The most recently added AnnotatePoint,
+ * or %NULL if no points are available.
+ */
+static AnnotatePoint *
+get_current_point (AnnotateDeviceData *devdata)
+{
+  if (devdata == NULL || devdata->coord_list == NULL)
+    return NULL;
+
+  return (AnnotatePoint *) devdata->coord_list->data;
+}
+
+/**
  * annotate_get_stroke_segment_until_distance:
  * @list:               List of #AnnotatePoint nodes (original stroke points).
  * @distance_threshold: Maximum radial distance from the first point.
@@ -194,89 +277,84 @@ annotate_get_stroke_segment_until_distance (GSList *list,
     return NULL;
 
   AnnotatePoint *first_point = (AnnotatePoint *) list->data;
-  GSList *segment = NULL;
-  GSList *iter = list;
+  GSList        *segment     = NULL;
+  GSList        *iter        = list;
 
-  while (iter) {
-    AnnotatePoint *p = (AnnotatePoint *) iter->data;
-    gdouble distance = get_distance (p->x, p->y,
-                                     first_point->x, first_point->y);
+  while (iter)
+    {
+      AnnotatePoint *p = (AnnotatePoint *) iter->data;
+      gdouble distance = get_distance (p->x,
+                                       p->y,
+                                       first_point->x,
+                                       first_point->y);
 
-    if (distance > distance_threshold)
-      break;
 
-    segment = g_slist_append (segment, p);
-    iter = g_slist_next (iter);
-  }
+      segment = g_slist_prepend (segment, p);
+      iter    = g_slist_next (iter);
+      if (distance > distance_threshold)
+        break;
+    }
 
   return segment;
 }
 
 /**
  * annotate_get_arrow_direction:
- * @devdata: The #AnnotateDeviceData containing the coordinate list.
+ * @devdata: an #AnnotateDeviceData containing the stroke coordinate list.
+ * @pen_width: the current pen width, used to derive a distance threshold.
  *
- * Calculates the direction of the end of a stroke for drawing an arrowhead.
+ * Computes the direction of the final part of a stroke for rendering
+ * an arrow head.
  *
- * This function simplifies the user's drawn path into a temporary list of
- * significant points using build_meaningful_point_list(). It then
- * calculates the angle between the last two points of this simplified list.
+ * The function extracts a tail segment of the stroke whose length is
+ * proportional to the pen width (pen_width * 3). From this segment,
+ * it takes the last point of the stroke and the farthest point within
+ * that segment, and computes the angle of the vector between them.
  *
- * The temporary list is freed before the function returns. If the simplified
- * path contains fewer than two points, a direction cannot be determined,
- * and the function returns 0.0.
+ * This makes the arrow direction more stable and less sensitive to
+ * small hand tremors at the very end of the stroke.
  *
- * Returns: A gdouble representing the direction of the stroke end in radians,
- * or 0.0 if a direction cannot be determined.
+ * If the extracted segment contains fewer than two distinct points,
+ * or if the direction cannot be determined reliably, the function
+ * returns %NAN.
+ *
+ * The temporary segment list returned by
+ * annotate_get_stroke_segment_until_distance() is freed internally.
+ *
+ * Returns: the stroke direction in radians, or %NAN if undefined.
  */
 static gdouble
-annotate_get_arrow_direction (AnnotateDeviceData *devdata)
+annotate_get_arrow_direction (AnnotateDeviceData *devdata, gdouble pen_width)
 {
   GSList *list = devdata->coord_list;
-  if (g_slist_length (list) < 2)
-    return NAN;
+  g_assert (gslist_has_at_least (list, 2));
 
-  /*
-   * Use the static (max) thickness as the tolerance
-   * for the shape recognition algorithm.
-   */
-  gdouble tolerance = annotate_get_thickness ();
-  gdouble static_thickness = annotate_get_thickness ();
-  gdouble segment_distance = static_thickness * 10.0;
+  gdouble distance_threshold = pen_width * 3;
 
-  /* Get only the recent stroke segment (last portion) */
-  GSList *segment_list =
-      annotate_get_stroke_segment_until_distance (list, segment_distance);
-  if (segment_list == NULL)
-    return NAN;
+  GSList *segment;
+  segment = annotate_get_stroke_segment_until_distance (list,
+                                                        distance_threshold);
 
-  /* Smooth this segment by removing minor oscillations and noise. */
-  GSList *meaningful_point_list =
-      build_meaningful_point_list (segment_list, tolerance);
-
-  /* We only used existing AnnotatePoint pointers → free only container */
-  g_slist_free (segment_list);
-
-  guint length = g_slist_length (meaningful_point_list);
-  if (length < 2)
+  if (segment->next == NULL)
     {
-      g_slist_free_full (meaningful_point_list, g_free);
+      g_slist_free (segment);
       return NAN;
     }
 
-  /*
-   * Calculate direction using the last two "meaningful" points.
-   * This gives the stable direction of the stroke end.
-   */
-  AnnotatePoint *last_point = (AnnotatePoint *) g_slist_nth_data (meaningful_point_list, 0);
-  AnnotatePoint *old_point  = (AnnotatePoint *) g_slist_nth_data (meaningful_point_list, 1);
+  AnnotatePoint *p_last = (AnnotatePoint *) list->data;
 
-  gdouble direction = atan2 (last_point->y - old_point->y,
-                             last_point->x - old_point->x);
+  AnnotatePoint *p_prev = (AnnotatePoint *) segment->data;
 
-  g_slist_free_full (meaningful_point_list, g_free);
+  if (p_prev == p_last)
+    {
+      g_slist_free (segment);
+      return NAN;
+    }
 
-  return direction;
+  gdouble angle = atan2 (p_last->y - p_prev->y, p_last->x - p_prev->x);
+
+  g_slist_free (segment);
+  return angle;
 }
 
 /**
@@ -449,74 +527,91 @@ annotate_acquire_input_grab (void)
 }
 
 /**
- * Calculates the final thickness and alpha based on pressure
- * and the hybrid (Pen/Highlighter) logic.
+ * _clamp:
+ * @v: The value to clamp.
+ * @lo: The lower bound.
+ * @hi: The upper bound.
  *
- * This is a "pure" calculation function.
- * It does not set the Cairo state.
+ * Clamps the given value @v to the range between @lo and @hi.
  *
- * @data:       The main AnnotateData struct.
- * @devdata:    The device data (for smoothing).
- * @pressure:   The current pressure (0.0 - 1.0).
- * @out_width:  (out): The calculated final thickness.
- * @out_alpha:  (out): The calculated final alpha.
+ * Returns: The clamped value, which is guaranteed to be >= @lo and <= @hi.
  */
-static void
-annotate_calculate_dynamic_style (AnnotateData *data,
-                                  AnnotateDeviceData *devdata,
-                                  gdouble pressure,
-                                  gdouble *out_width,
-                                  gdouble *out_alpha)
+static inline gdouble
+_clamp (gdouble v, gdouble lo, gdouble hi)
 {
-  /* --- 1. Pressure Calculation (Original Logic) --- */
-  gdouble old_pressure = pressure;
-  if (devdata->coord_list != NULL)
-    {
-      AnnotatePoint *last_point = (AnnotatePoint *)
-                                  g_slist_nth_data (devdata->coord_list, 0);
-      if (last_point)
-        {
-          old_pressure = last_point->pressure;
-        }
-    }
-  
-  gdouble smoothed_pressure = (3.0 * pressure + 1.0 * old_pressure) / 4.0;
-  gdouble curved_pressure = sqrt (smoothed_pressure);
-
-  /* --- 2. Weight Calculation ("No-If" Logic) --- */
-  /* (127.0 is 255.0 - 128.0) */
-  gdouble pen_weight = (gdouble)(data->a - 128) / 127.0;
-  if (pen_weight < 0.0) { pen_weight = 0.0; }
-  if (pen_weight > 1.0) { pen_weight = 1.0; }
-  gdouble highlighter_weight = 1.0 - pen_weight;
-
-  /* --- 3. Final Value Calculation --- */
-  gdouble base_a = (gdouble) data->a / 255.0;
-  
-  /* A. Thickness Calculation */
-  gdouble max_width = data->thickness;
-  gdouble min_width = fmax (max_width * 0.2, 1.0); /* 20% or 1.0 */
-  gdouble target_width_pen = min_width +
-                             ( (max_width - min_width) * curved_pressure);
-  gdouble target_width_highlighter = max_width; /* Fixed width */
-
-  *out_width = (target_width_highlighter * highlighter_weight) +
-               (target_width_pen * pen_weight);
-
-  /* B. Opacity Calculation */
-  gdouble min_opacity_highlighter = base_a * 0.1; /* 10% base */
-  gdouble target_alpha_highlighter = min_opacity_highlighter +
-       ( (base_a - min_opacity_highlighter) * curved_pressure);
-  gdouble target_alpha_pen = base_a; /* Fixed alpha */
-
-  *out_alpha = (target_alpha_highlighter * highlighter_weight) +
-               (target_alpha_pen * pen_weight);
+  if (v < lo)
+    return lo;
+  if (v > hi)
+    return hi;
+  return v;
 }
 
 /**
- * Sets the cairo style based on pressure by calling the
- * dynamic style calculator and applying the results.
- * (This function replaces the old logic).
+ * annotate_calculate_dynamic_style:
+ *
+ * Calculates the final thickness and alpha of an annotation stroke
+ * based on input pressure and hybrid Pen/Highlighter behavior.
+ *
+ * This function performs a pure calculation; it does not modify
+ * the Cairo context or drawing state.
+ *
+ * @data:       Pointer to the main AnnotateData structure.
+ * @devdata:    Pointer to device-specific data (used for smoothing).
+ * @pressure:   Current pressure value (0.0 - 1.0).
+ * @out_thickness: (out) Calculated stroke thickness.
+ * @out_alpha:     (out) Calculated stroke alpha (0.0 - 1.0).
+ *
+ * Behavior:
+ * - Pen contribution scales thickness with pressure.
+ * - Highlighter contribution scales alpha with pressure.
+ * - Final thickness and alpha are blended based on alpha weighting.
+ */
+void
+annotate_calculate_dynamic_style (AnnotateData *data,
+                                  AnnotateDeviceData *devdata,
+                                  gdouble pressure,
+                                  gdouble *out_thickness,
+                                  gdouble *out_alpha)
+{
+  gdouble base_thickness   = annotate_get_thickness ();
+  gdouble base_a           = data->a / 255.0;
+  gdouble clamped_pressure = CLAMP (pressure, 0.0, 1.0);
+
+  /* Normalize weights based on alpha (0..1) */
+  gdouble alpha_norm = CLAMP (data->a / 255.0, 0.0, 1.0);
+
+  gdouble pen_weight = CLAMP ((alpha_norm - 0.5) * 2.0, 0.0, 1.0);
+  gdouble hl_weight  = 1.0 - pen_weight;
+
+  /* Pen behavior (pressure → thickness) */
+  gdouble pen_thickness = base_thickness * (0.3 + 0.7 * clamped_pressure);
+  gdouble pen_alpha     = base_a;
+
+  /* Highlighter behavior (pressure → alpha) */
+  gdouble hl_thickness = base_thickness;
+  gdouble hl_alpha     = base_a * (0.3 + 0.7 * clamped_pressure);
+
+  /* Blend the two behaviors smoothly */
+  *out_thickness = (pen_weight * pen_thickness) + (hl_weight * hl_thickness);
+  *out_alpha     = (pen_weight * pen_alpha) + (hl_weight * hl_alpha);
+
+  *out_alpha = CLAMP (*out_alpha, 0.0, 1.0);
+}
+
+/**
+ * annotate_set_style_from_pressure:
+ * @devdata: The device data associated with the current input device.
+ * @data: The main AnnotateData structure.
+ * @pressure: The current pressure value from the input device (0.0 – 1.0).
+ *
+ * Updates the Cairo drawing style based on pen pressure.
+ *
+ * This function computes the final stroke thickness and alpha by calling
+ * annotate_calculate_dynamic_style() and applies them to the main
+ * annotation Cairo context.
+ *
+ * The current foreground color stored in @data is used, while the alpha
+ * channel is dynamically controlled by the computed pressure response.
  */
 void
 annotate_set_style_from_pressure (AnnotateDeviceData *devdata,
@@ -524,19 +619,19 @@ annotate_set_style_from_pressure (AnnotateDeviceData *devdata,
                                   gdouble pressure)
 {
   cairo_t *cr = data->annotation_cairo_context;
-  if (!cr)
+  if (! cr)
     {
       return;
     }
-    
+
   gdouble final_thickness;
   gdouble final_alpha;
 
-  /* 1. Calculate both values */
+  /* Calculate both values */
   annotate_calculate_dynamic_style (data, devdata, pressure,
                                     &final_thickness, &final_alpha);
-  
-  /* 2. Apply both values */
+
+  /* Apply both values */
   cairo_set_line_width (cr, final_thickness);
   cairo_set_source_rgba (cr,
                          (gdouble) data->r / 255.0,
@@ -557,8 +652,9 @@ annotate_set_style_from_pressure (AnnotateDeviceData *devdata,
  * Draws a pressure-sensitive ellipse on the annotation context.
  *
  * The function first sets the drawing color and alpha based on pressure by
- * calling annotate_set_style_from_pressure(). It then constructs the ellipse path
- * within the specified bounding box using Cairo transformations and an arc.
+ * calling annotate_set_style_from_pressure().
+ * It then constructs the ellipse path within the specified bounding box using
+ * Cairo transformations and an arc.
  */
 static void
 annotate_draw_ellipse (AnnotateDeviceData *devdata, gdouble x, gdouble y,
@@ -568,14 +664,14 @@ annotate_draw_ellipse (AnnotateDeviceData *devdata, gdouble x, gdouble y,
   annotation_cairo_context = annotation_data->annotation_cairo_context;
 
   g_debug ("Draw ellipse: 2a=%f 2b=%f\n", width, height);
-  
+
   gdouble final_thickness;
   gdouble final_alpha;
 
   /* Calculate the style */
   annotate_calculate_dynamic_style (annotation_data, devdata, pressure,
                                     &final_thickness, &final_alpha);
-  
+
   /* Set the style on Cairo */
   cairo_set_line_width (annotation_cairo_context, final_thickness);
   cairo_set_source_rgba (annotation_cairo_context,
@@ -587,8 +683,7 @@ annotate_draw_ellipse (AnnotateDeviceData *devdata, gdouble x, gdouble y,
   cairo_save (annotation_cairo_context);
 
   /* The ellipse is done as a 360 degree arc translated. */
-  cairo_translate (annotation_cairo_context, x + width / 2.,
-                   y + height / 2.);
+  cairo_translate (annotation_cairo_context, x + width / 2., y + height / 2.);
   cairo_scale (annotation_cairo_context, width / 2., height / 2.);
   cairo_arc (annotation_cairo_context, 0., 0., 1., 0., 2 * M_PI);
   cairo_restore (annotation_cairo_context);
@@ -618,27 +713,22 @@ annotate_draw_point (AnnotateDeviceData *devdata,
 
   cairo_save (annotation_data->annotation_cairo_context);
 
-  /* 1. Calculate the style values first */
   annotate_calculate_dynamic_style (annotation_data, devdata, pressure,
                                     &final_thickness, &final_alpha);
-  
-  /* 2. Now set the style on Cairo */
+
   cairo_set_line_width (annotation_data->annotation_cairo_context,
                         final_thickness);
+
   cairo_set_source_rgba (annotation_data->annotation_cairo_context,
                          (gdouble) annotation_data->r / 255.0,
                          (gdouble) annotation_data->g / 255.0,
                          (gdouble) annotation_data->b / 255.0,
                          final_alpha);
-  
-  /* 3. Draw the point */
+
   cairo_move_to (annotation_data->annotation_cairo_context, x, y);
   cairo_line_to (annotation_data->annotation_cairo_context, x, y);
-  cairo_restore (annotation_data->annotation_cairo_context);
 
-  /* Compute dirty area */
   GtkWidget *annotation_window = get_annotation_window ();
-  /* Use the calculated dynamic thickness for the dirty rect */
   gdouble    thickness         = final_thickness;
   gdouble    padding           = thickness * 2.0;
   gdouble    dirty_rect_x      = x - padding;
@@ -652,72 +742,60 @@ annotate_draw_point (AnnotateDeviceData *devdata,
                               (gint)dirty_rect_y,
                               (gint)dirty_rect_width,
                               (gint)dirty_rect_height);
+
+  cairo_restore (annotation_data->annotation_cairo_context);
 }
 
 /**
  * annotate_draw_line:
- * @devdata: Device data containing the last point of the stroke.
- * @x2:      The x-coordinate of the new point to draw to.
- * @y2:      The y-coordinate of the new point to draw to.
- * @stroke:  If %TRUE, a self-contained stroke is drawn from the last
- * point to the new point. If %FALSE, a line segment is simply
- * added to the current Cairo path without stroking it.
+ * @x1: The x-coordinate of the starting point of the line.
+ * @y1: The y-coordinate of the starting point of the line.
+ * @x2: The x-coordinate of the ending point of the line.
+ * @y2: The y-coordinate of the ending point of the line.
  *
- * Draws a line segment.
+ * Draws a line segment from (@x1, @y1) to (@x2, @y2) on the annotation surface.
  *
- * Depending on the @stroke flag, this function either adds a line segment
- * to the current path (for building complex shapes) or immediately renders
- * a line from the previously recorded point to the new coordinates.
+ * The function:
+ * - Moves the Cairo context to the starting point (@x1, @y1).
+ * - Adds a line to the ending point (@x2, @y2).
+ * - Strokes the path to render the line immediately.
+ * - Computes a bounding box around the line segment, adding a margin based
+ *   on the line width.
+ * - Requests a redraw of the affected area in the GTK annotation window.
+ *
+ * This function always renders the line immediately and does not accumulate
+ * a path.
  */
 void
-annotate_draw_line (AnnotateDeviceData *devdata,
-                    gdouble x2,
-                    gdouble y2,
-                    gboolean stroke)
+annotate_draw_line (gdouble x1, gdouble y1, gdouble x2, gdouble y2)
 {
-  cairo_save (annotation_data->annotation_cairo_context);
-  if (! stroke)
-    {
-      cairo_line_to (annotation_data->annotation_cairo_context, x2, y2);
-    }
-  else
-    {
-      AnnotatePoint *last_point;
-      last_point = (AnnotatePoint *) g_slist_nth_data (devdata->coord_list, 0);
-      if (last_point)
-        {
-          cairo_move_to (annotation_data->annotation_cairo_context,
-                         last_point->x,
-                         last_point->y);
-        }
-      else
-        {
-          cairo_move_to (annotation_data->annotation_cairo_context, x2, y2);
-        }
-      cairo_line_to (annotation_data->annotation_cairo_context, x2, y2);
-      cairo_stroke (annotation_data->annotation_cairo_context);
+  cairo_t *annotation_cairo_context = annotation_data->annotation_cairo_context;
+  cairo_save (annotation_cairo_context);
 
-      GtkWidget *annotation_window = get_annotation_window ();
+  cairo_move_to (annotation_cairo_context, x1, y1);
 
-      gdouble x1 = last_point ? last_point->x : x2;
-      gdouble y1 = last_point ? last_point->y : y2;
+  cairo_line_to (annotation_cairo_context, x2, y2);
 
-      gdouble min_x = MIN (x1, x2);
-      gdouble min_y = MIN (y1, y2);
-      gdouble max_x = MAX (x1, x2);
-      gdouble max_y = MAX (y1, y2);
+  cairo_stroke (annotation_cairo_context);
 
-      gint t = annotation_data->thickness;
-      gint margin = t + 2;
+  GtkWidget *annotation_window = get_annotation_window ();
 
-      gtk_widget_queue_draw_area (annotation_window,
-                                  (gint)(min_x - margin),
-                                  (gint)(min_y - margin),
-                                  (gint)((max_x - min_x) + 2 * margin),
-                                  (gint)((max_y - min_y) + 2 * margin));
+  gdouble min_x = MIN (x1, x2);
+  gdouble min_y = MIN (y1, y2);
+  gdouble max_x = MAX (x1, x2);
+  gdouble max_y = MAX (y1, y2);
 
-    }
-  cairo_restore (annotation_data->annotation_cairo_context);
+  gdouble t = cairo_get_line_width (annotation_cairo_context);
+
+  gdouble margin = t + 2;
+
+  gtk_widget_queue_draw_area (annotation_window,
+                              (gint)(min_x - margin),
+                              (gint)(min_y - margin),
+                              (gint)((max_x - min_x) + 2 * margin),
+                              (gint)((max_y - min_y) + 2 * margin));
+
+  cairo_restore (annotation_cairo_context);
 }
 
 /**
@@ -735,156 +813,132 @@ annotate_draw_line (AnnotateDeviceData *devdata,
 void
 annotate_draw_point_list (AnnotateDeviceData *devdata, GSList *list)
 {
-  cairo_save (annotation_data->annotation_cairo_context);
-  if (list)
+  if (! list)
+    return;
+
+  cairo_t *cr = annotation_data->annotation_cairo_context;
+  cairo_save (cr);
+
+  gdouble sum_thickness = 0.0;
+  gdouble sum_alpha     = 0.0;
+  guint   count         = 0;
+
+  gboolean first = TRUE;
+
+  /* Build the path and accumulate thickness/alpha */
+  for (GSList *l = list; l != NULL; l = l->next)
     {
-      guint i      = 0;
-      guint length = g_slist_length (list);
-      for (i = 0; i < length; i = i + 1)
+      AnnotatePoint *point = (AnnotatePoint *) l->data;
+      gdouble        thickness, alpha;
+
+      annotate_calculate_dynamic_style (annotation_data, devdata,
+                                        point->pressure, &thickness, &alpha);
+
+      sum_thickness += thickness;
+      sum_alpha += alpha;
+
+      if (first)
         {
-          AnnotatePoint *point = (AnnotatePoint *) g_slist_nth_data (list, i);
-          if (! point)
-            {
-              return;
-            }
-
-          if (length == 1)
-            {
-              /* It is a point. */
-              annotate_draw_point (devdata,
-                                   point->x,
-                                   point->y,
-                                   point->pressure);
-              break;
-            }
-          
-          gdouble final_thickness;
-          gdouble final_alpha;
-
-          /* Calculate the style for this point */
-          annotate_calculate_dynamic_style (annotation_data, devdata,
-                                            point->pressure,
-                                            &final_thickness, &final_alpha);
-                                            
-          /* Set the style on Cairo */
-          cairo_set_line_width (annotation_data->annotation_cairo_context,
-                                final_thickness);
-          cairo_set_source_rgba (annotation_data->annotation_cairo_context,
-                                 (gdouble) annotation_data->r / 255.0,
-                                 (gdouble) annotation_data->g / 255.0,
-                                 (gdouble) annotation_data->b / 255.0,
-                                 final_alpha);
-
-          /* Draw the line segment */
-          annotate_draw_line (devdata, point->x, point->y, FALSE);
+          cairo_move_to (cr, point->x, point->y);
+          first = FALSE;
         }
+      else
+        {
+          cairo_line_to (cr, point->x, point->y);
+        }
+      count += 1;
     }
-  cairo_restore (annotation_data->annotation_cairo_context);
+
+  /* Compute average style */
+  gdouble avg_thickness = sum_thickness / count;
+  gdouble avg_alpha     = sum_alpha / count;
+
+  /* Set style once for the whole stroke */
+  cairo_set_line_width (cr, avg_thickness);
+  cairo_set_source_rgba (cr,
+                         (gdouble) annotation_data->r / 255.0,
+                         (gdouble) annotation_data->g / 255.0,
+                         (gdouble) annotation_data->b / 255.0,
+                         avg_alpha);
+
+  /* Stroke the path */
+  cairo_stroke (cr);
+  cairo_restore (cr);
 }
 
 /**
  * annotate_draw_curve:
- * @devdata: Device data for color modification.
- * @list:    A dense #GSList of #AnnotatePoint structs representing the curve.
+ * @devdata: (transfer none): device data containing color and style
+ *           information.
+ * @spline_res: (transfer none): a #SplineResult containing the start point
+ *             and a list of #SplineSegment structs representing the curve.
  *
- * Renders a smooth curve by constructing a path of cubic Bezier splines.
+ * Renders a smooth curve using cubic Bézier segments stored in a
+ * #SplineResult.
  *
- * This function is designed to render the dense point list generated by a
- * spline algorithm (like Catmull-Rom). It iterates through the @list,
- * taking points three at a time to form the control and anchor points
- * for a series of `cairo_curve_to` segments. This is used to
- * render a smoothed version of a freehand stroke.
- * The path is not stroked; the caller is responsible for rendering.
+ * The function moves the Cairo path to the @spline_res->start_point, then
+ * iterates through each #SplineSegment in @spline_res->segments, drawing a
+ * cubic Bézier curve to the segment endpoint (@seg->p) using the control
+ * points (@seg->cp1 and @seg->cp2). Line width and alpha are dynamically
+ * adjusted based on the endpoint's pressure.
  *
+ * Important notes:
+ *  - Neither the #SplineResult nor its points are freed by this function.
+ *  - This function only constructs the path; it does not stroke or fill it.
+ *    The caller is responsible for final rendering.
+ *  - Malformed segments (missing endpoints) are skipped with a warning.
  */
 static void
-annotate_draw_curve (AnnotateDeviceData *devdata, GSList *list)
+annotate_draw_curve(AnnotateDeviceData *devdata,
+                    SplineResult       *spline_res)
 {
-  guint length = g_slist_length (list);
+  if (! spline_res || ! spline_res->start_point || ! spline_res->segments)
+    return;
 
-  if (list)
+  cairo_t       *cr = annotation_data->annotation_cairo_context;
+  AnnotatePoint *p0 = spline_res->start_point;
+
+  /* Move path to the starting point. */
+  cairo_move_to (cr, p0->x, p0->y);
+
+  /* Iterate over Bézier segments. */
+  for (GSList *l = spline_res->segments; l != NULL; l = l->next)
     {
-      guint i = 0;
-      for (i = 0; i < length; i = i + 3)
+      SplineSegment *seg = (SplineSegment *) l->data;
+      if (! seg || ! seg->p)
         {
-          AnnotatePoint *first_point = NULL;
-          first_point = (AnnotatePoint *) g_slist_nth_data (list,
-                                                            i);
-          if (! first_point)
-            {
-              return;
-            }
-          if (length == 1)
-            {
-              /* It is a point. */
-              annotate_draw_point (devdata,
-                                   first_point->x,
-                                   first_point->y,
-                                   first_point->pressure);
-            }
-          else
-            {
-              AnnotatePoint *second_point = NULL;
-              second_point = (AnnotatePoint *) g_slist_nth_data (list,
-                                                                 i + 1);
-              if (! second_point)
-                {
-                  return;
-                }
-              else
-                {
-                  AnnotatePoint *third_point = NULL;
-                  third_point = (AnnotatePoint *) g_slist_nth_data (list,
-                                                                    i + 2);
-                  if (! third_point)
-                    {
-                      /* draw line from first to second point */
-                      annotate_draw_line (devdata,
-                                          second_point->x,
-                                          second_point->y,
-                                          FALSE);
-                      return;
-                    }
-                  
-                  gdouble final_thickness;
-                  gdouble final_alpha;
-
-                  /*
-                   * Calculate style based on the *second* point's
-                   * pressure, as it's the anchor for the first curve.
-                   */
-                  annotate_calculate_dynamic_style (annotation_data, devdata,
-                                                    second_point->pressure,
-                                                    &final_thickness,
-                                                    &final_alpha);
-                  
-                  /* Set the style on Cairo */
-                  cairo_set_line_width (
-                      annotation_data->annotation_cairo_context,
-                      final_thickness);
-                  cairo_set_source_rgba (
-                      annotation_data->annotation_cairo_context,
-                      (gdouble) annotation_data->r / 255.0,
-                      (gdouble) annotation_data->g / 255.0,
-                      (gdouble) annotation_data->b / 255.0,
-                      final_alpha);
-
-                  cairo_curve_to (annotation_data->annotation_cairo_context,
-                                  first_point->x,
-                                  first_point->y,
-                                  second_point->x,
-                                  second_point->y,
-                                  third_point->x,
-                                  third_point->y);
-                }
-            }
+          g_warning ("Malformed SplineSegment detected (missing end point).");
+          continue;
         }
+
+      ControlPoint   cp1 = seg->cp1;
+      ControlPoint   cp2 = seg->cp2;
+      AnnotatePoint *p   = seg->p; // segment endpoint
+
+      gdouble final_thickness;
+      gdouble final_alpha;
+
+      /* Compute style based on endpoint pressure */
+      annotate_calculate_dynamic_style (annotation_data,
+                                        devdata, p->pressure,
+                                        &final_thickness,
+                                        &final_alpha);
+
+      cairo_set_line_width (cr, final_thickness);
+
+      cairo_set_source_rgba (cr,
+                             (gdouble) annotation_data->r / 255.0,
+                             (gdouble) annotation_data->g / 255.0,
+                             (gdouble) annotation_data->b / 255.0,
+                             final_alpha);
+
+      // Draw cubic Bézier curve
+      cairo_curve_to (cr, cp1.x, cp1.y, cp2.x, cp2.y, p->x, p->y);
     }
 }
 
 /**
  * annotate_restore_surface:
- *
  * Restores the drawing canvas to a previous state from a savepoint.
  *
  * This function identifies the current savepoint based on the undo/redo
@@ -961,11 +1015,11 @@ annotate_restore_surface (void)
 static void
 rectify (AnnotateDeviceData *devdata, gboolean closed_path)
 {
-  gdouble tollerance = annotate_get_thickness ();
+  gdouble tolerance = annotate_get_thickness ();
   GSList *broken_list = broken (devdata->coord_list,
                                 closed_path,
                                 TRUE,
-                                tollerance);
+                                tolerance);
 
   g_debug ("rectify\n");
 
@@ -973,9 +1027,57 @@ rectify (AnnotateDeviceData *devdata, gboolean closed_path)
   annotate_restore_surface ();
 
   annotate_draw_point_list (devdata, broken_list);
-
+  cairo_stroke (annotation_data->annotation_cairo_context);
   annotate_coord_dev_list_free (devdata);
   devdata->coord_list = broken_list;
+}
+
+/**
+ * find_bounding_box:
+ * @list: (element-type AnnotatePoint) #GSList of points.
+ * @left: (out): Pointer to store the minimum X coordinate.
+ * @right: (out): Pointer to store the maximum X coordinate.
+ * @top: (out): Pointer to store the minimum Y coordinate.
+ * @bottom: (out): Pointer to store the maximum Y coordinate.
+ *
+ * Efficiently computes the bounding box (min/max X/Y coordinates)
+ * for a list of AnnotatePoint elements using an O(N) linear scan.
+ * The input list must contain at least one element.
+ *
+ * Returns: The last AnnotatePoint processed (the last element's data).
+ */
+static AnnotatePoint *
+find_bounding_box (GSList *list,
+                   gdouble *left, gdouble *right,
+                   gdouble *top, gdouble *bottom)
+{
+  GSList        *node   = list;
+  AnnotatePoint *point1 = (AnnotatePoint *) node->data;
+
+  *left   = point1->x;
+  *right  = point1->x;
+  *top    = point1->y;
+  *bottom = point1->y;
+
+  node = node->next;
+  while (node)
+    {
+      point1 = (AnnotatePoint *) node->data;
+
+      if (point1->x < *left)
+        *left = point1->x;
+      else if (point1->x > *right)
+        *right = point1->x;
+
+      if (point1->y < *top)
+        *top = point1->y;
+      else if (point1->y > *bottom)
+        *bottom = point1->y;
+
+      node = node->next;
+    }
+
+  return point1;
 }
 
 /**
@@ -993,7 +1095,7 @@ rectify (AnnotateDeviceData *devdata, gboolean closed_path)
 static void
 roundify (AnnotateDeviceData *devdata, gboolean closed_path)
 {
-  gdouble tollerance = annotate_get_thickness ();
+  gdouble tolerance = annotate_get_thickness ();
 
   /* Build the meaningful point list with the standard deviation algorithm. */
   GSList *meaningful_point_list = (GSList *) NULL;
@@ -1002,72 +1104,38 @@ roundify (AnnotateDeviceData *devdata, gboolean closed_path)
   annotate_restore_surface ();
 
   meaningful_point_list = build_meaningful_point_list (devdata->coord_list,
-                                                       tollerance);
+                                                       tolerance);
 
   annotate_coord_dev_list_free (devdata);
 
-  if (g_slist_length (meaningful_point_list) < 4)
-    {
-      annotate_draw_point_list (devdata, meaningful_point_list);
-      devdata->coord_list = meaningful_point_list;
-    }
-  else if ((closed_path) &&
-           (is_similar_to_an_ellipse (meaningful_point_list, tollerance)))
+  if ((closed_path) &&
+           (is_similar_to_an_ellipse (meaningful_point_list, tolerance)))
     {
       GSList *rect_list = build_outbounded_rectangle (meaningful_point_list);
 
       if (rect_list)
         {
-          /*
-           * Identify the bounding rectangle of all the points and draws
-           * the appropriate ellipse/circle.
-           */
-          gint           n    = g_slist_length (rect_list);
-          gint           left = 0, right = 0, top = 0, bottom = 0;
-          AnnotatePoint *point1 = NULL;
-          point1 = (AnnotatePoint *) g_slist_nth_data (rect_list, 0);
-          left   = point1->x;
-          right  = point1->x;
-          top    = point1->y;
-          bottom = point1->y;
-          for (int ii = 1; ii < n; ii++)
-            {
-              point1 = (AnnotatePoint *) g_slist_nth_data (rect_list, ii);
-              if (point1->x < left)
-                {
-                  left = point1->x;
-                }
-              else if (point1->x > right)
-                {
-                  right = point1->x;
-                }
-              if (point1->y < top)
-                {
-                  top = point1->y;
-                }
-              else if (point1->y > bottom)
-                {
-                  bottom = point1->y;
-                }
-            }
-          annotate_draw_ellipse (devdata, left, top, right - left, bottom - top,
-                                 point1->pressure);
+          gdouble        left, right, top, bottom;
+          AnnotatePoint *last_point_processed;
+          last_point_processed = find_bounding_box (rect_list,
+                                                    &left, &right,
+                                                    &top, &bottom);
 
-          g_slist_foreach (rect_list, (GFunc) g_free, NULL);
-          g_slist_free (rect_list);
+          annotate_draw_ellipse (devdata, left, top, right - left, bottom - top,
+                                 last_point_processed->pressure);
+          g_slist_free_full (rect_list, g_free);
           devdata->coord_list = meaningful_point_list;
         }
     }
-
   else
     {
-      GSList *splined_list = spline (meaningful_point_list);
-      annotate_draw_curve (devdata, splined_list);
-
+      SplineResult *spline_res = spline (meaningful_point_list);
+      annotate_draw_curve (devdata, spline_res);
+      GSList *new_coords = spline_coord_list (spline_res);
+      g_slist_free_full (meaningful_point_list, g_free);
       annotate_coord_dev_list_free (devdata);
-      devdata->coord_list = splined_list;
-      g_slist_foreach (meaningful_point_list, (GFunc) g_free, (gpointer) NULL);
-      g_slist_free (meaningful_point_list);
+      devdata->coord_list = new_coords;
+      spline_result_free (spline_res);
     }
 }
 
@@ -1086,10 +1154,12 @@ static void
 splinify (AnnotateDeviceData *devdata)
 {
   annotate_restore_surface ();
-  GSList *splined_list = spline (devdata->coord_list);
-  annotate_draw_curve (devdata, splined_list);
+  SplineResult *spline_res = spline (devdata->coord_list);
+  annotate_draw_curve (devdata, spline_res);
+  GSList *new_coords = spline_coord_list (spline_res);
   annotate_coord_dev_list_free (devdata);
-  devdata->coord_list = splined_list;
+  devdata->coord_list = new_coords;
+  spline_result_free (spline_res);
 }
 
 /**
@@ -1121,7 +1191,7 @@ create_annotation_window (Workspace *workspace, CommandLine *commandline)
   annotation_data->annotation_window_gtk_builder = gtk_builder_new ();
 
   GtkBuilder * annotation_window_gtk_builder =
-    annotation_data->annotation_window_gtk_builder;
+      annotation_data->annotation_window_gtk_builder;
 
   annotation_data->is_opaque = commandline->is_opaque;
   annotation_data->paths     = NULL;
@@ -1196,9 +1266,7 @@ make_annotation_window_transparent (void)
     {
       GtkWidget *annotation_window = get_annotation_window ();
       /* This trys to set an alpha channel. */
-      on_screen_changed (annotation_window,
-                         NULL,
-                         annotation_data);
+      on_screen_changed (annotation_window, NULL, annotation_data);
 
       /* Put the opacity to 0 to avoid the initial flickering. */
       gtk_widget_set_opacity (annotation_window, 0.01);
@@ -1239,14 +1307,11 @@ position_annotation_window (int x, int y, int width, int height)
                x, y, width, height);
       gtk_window_move (GTK_WINDOW (annotation_window), x, y);
 
-      gtk_window_set_keep_above (GTK_WINDOW (annotation_window),
-                                 TRUE);
+      gtk_window_set_keep_above (GTK_WINDOW (annotation_window), TRUE);
 
       make_annotation_window_transparent ();
 
-      gtk_widget_set_size_request (annotation_window,
-                                   width,
-                                   height);
+      gtk_widget_set_size_request (annotation_window, width, height);
 
       gtk_widget_show_all (annotation_window);
     }
@@ -1270,7 +1335,8 @@ create_savepoint_dir (void)
   gchar *ardesia_tmp_dir = g_build_filename (tmpdir, PACKAGE_NAME, (gchar *) 0);
 
   gchar *project_tmp_dir = g_build_filename (ardesia_tmp_dir,
-                                             project_name, (gchar *) 0);
+                                             project_name,
+                                             (gchar *) 0);
 
   if (g_file_test (ardesia_tmp_dir, G_FILE_TEST_IS_DIR))
     {
@@ -1311,8 +1377,10 @@ delete_savepoint (AnnotateSavepoint *savepoint)
         }
       GSList *savepoint_list = NULL;
       savepoint_list         = annotation_data->savepoint_list;
+
       annotation_data->savepoint_list = g_slist_remove (savepoint_list,
                                                         savepoint);
+
       g_free (savepoint);
       savepoint = (AnnotateSavepoint *) NULL;
     }
@@ -1365,13 +1433,22 @@ annotate_savepoint_list_free (void)
   annotation_data->savepoint_list = (GSList *) NULL;
 }
 
-/* Delete the ardesia temporary directory */
+/**
+ * delete_ardesia_tmp_dir:
+ *
+ * Deletes the Ardesia temporary directory and all its contents.
+ *
+ * This function constructs the path to the temporary directory
+ * using the system temporary folder and PACKAGE_NAME, then
+ * recursively removes it.
+ */
 static void
 delete_ardesia_tmp_dir (void)
 {
   gchar *ardesia_tmp_dir = g_build_filename (g_get_tmp_dir (),
                                              PACKAGE_NAME,
                                              (gchar *) 0);
+
   rmdir_recursive (ardesia_tmp_dir);
   g_free (ardesia_tmp_dir);
 }
@@ -1391,7 +1468,7 @@ delete_ardesia_tmp_dir (void)
 static void
 draw_arrow_in_point (AnnotatePoint *point, gdouble width, gdouble direction)
 {
-  if (isnan(direction))
+  if (isnan (direction))
     {
       g_debug ("Skip draw arrow, direction undefined");
       return;
@@ -1400,7 +1477,7 @@ draw_arrow_in_point (AnnotatePoint *point, gdouble width, gdouble direction)
     {
       g_debug ("Draw arrow, direction %f\n", direction / M_PI * 180);
     }
-    
+
   cairo_t *annotation_cairo_context;
   annotation_cairo_context = annotation_data->annotation_cairo_context;
 
@@ -1427,30 +1504,20 @@ draw_arrow_in_point (AnnotatePoint *point, gdouble width, gdouble direction)
   cairo_stroke (annotation_cairo_context);
 
   /* Initialize cairo properties. */
-  cairo_set_line_join (annotation_cairo_context,
-                       CAIRO_LINE_JOIN_MITER);
+  cairo_set_line_join (annotation_cairo_context, CAIRO_LINE_JOIN_MITER);
 
-  cairo_set_operator (annotation_cairo_context,
-                      CAIRO_OPERATOR_SOURCE);
+  cairo_set_operator (annotation_cairo_context, CAIRO_OPERATOR_SOURCE);
 
   cairo_set_line_width (annotation_cairo_context, width);
 
   /* Draw the arrow. */
-  cairo_move_to (annotation_cairo_context,
-                 arrow_head_2_x,
-                 arrow_head_2_y);
+  cairo_move_to (annotation_cairo_context, arrow_head_2_x, arrow_head_2_y);
 
-  cairo_line_to (annotation_cairo_context,
-                 arrow_head_1_x,
-                 arrow_head_1_y);
+  cairo_line_to (annotation_cairo_context, arrow_head_1_x, arrow_head_1_y);
 
-  cairo_line_to (annotation_cairo_context,
-                 arrow_head_0_x,
-                 arrow_head_0_y);
+  cairo_line_to (annotation_cairo_context, arrow_head_0_x, arrow_head_0_y);
 
-  cairo_line_to (annotation_cairo_context,
-                 arrow_head_3_x,
-                 arrow_head_3_y);
+  cairo_line_to (annotation_cairo_context, arrow_head_3_x, arrow_head_3_y);
 
   cairo_close_path (annotation_cairo_context);
   cairo_fill_preserve (annotation_cairo_context);
@@ -1484,7 +1551,7 @@ draw_arrow_in_point (AnnotatePoint *point, gdouble width, gdouble direction)
                               (int)min_y,
                               (int)(max_x - min_x),
                               (int)(max_y - min_y));
-  
+
 }
 
 /**
@@ -1514,18 +1581,15 @@ annotate_configure_pen_options (AnnotateData *data)
     {
       cairo_new_path (annotation_cairo_context);
 
-      cairo_set_line_cap (annotation_cairo_context,
-                          CAIRO_LINE_CAP_ROUND);
+      cairo_set_line_cap (annotation_cairo_context, CAIRO_LINE_CAP_ROUND);
 
-      cairo_set_line_join (annotation_cairo_context,
-                           CAIRO_LINE_JOIN_ROUND);
+      cairo_set_line_join (annotation_cairo_context, CAIRO_LINE_JOIN_ROUND);
 
       if (data->cur_context->type == ANNOTATE_ERASER)
         {
           data->cur_context = data->default_eraser;
 
-          cairo_set_operator (annotation_cairo_context,
-                              CAIRO_OPERATOR_CLEAR);
+          cairo_set_operator (annotation_cairo_context, CAIRO_OPERATOR_CLEAR);
 
           /*
            * Make eraser slightly larger to overpaint and
@@ -1537,8 +1601,7 @@ annotate_configure_pen_options (AnnotateData *data)
         }
       else
         {
-          cairo_set_operator (annotation_cairo_context,
-                              CAIRO_OPERATOR_SOURCE);
+          cairo_set_operator (annotation_cairo_context, CAIRO_OPERATOR_SOURCE);
 
           cairo_set_line_width (annotation_cairo_context,
                                 annotate_get_thickness ());
@@ -1610,6 +1673,7 @@ annotate_add_savepoint (void)
                                          G_DIR_SEPARATOR_S,
                                          PACKAGE_NAME,
                                          savepoint_index);
+
   if (! savepoint->filename)
     {
       g_warning ("Failed to allocate filename for savepoint");
@@ -1701,8 +1765,7 @@ initialize_annotation_cairo_context (AnnotateData *data)
       int height = gtk_widget_get_allocated_height (annotation_window);
       if (data->annotation_cairo_context == NULL)
         {
-          data->annotation_cairo_context = create_new_context (width,
-                                                               height);
+          data->annotation_cairo_context = create_new_context (width, height);
         }
       if (background_data->cr == NULL)
         {
@@ -1917,13 +1980,29 @@ void
 annotate_coord_list_prepend (AnnotateDeviceData *devdata, gdouble x, gdouble y,
                              gdouble width, gdouble pressure)
 {
-  AnnotatePoint *point = g_malloc ((gsize) sizeof (AnnotatePoint));
-  point->x             = x;
-  point->y             = y;
-  point->width         = width;
-  point->pressure      = pressure;
-  devdata->coord_list  = g_slist_prepend (devdata->coord_list, point);
+  AnnotatePoint *point         = g_malloc ((gsize) sizeof (AnnotatePoint));
+  GSList        *old_list_head = devdata->coord_list;
+
+  point->x        = x;
+  point->y        = y;
+  point->width    = width;
+  point->pressure = pressure;
+
+  devdata->coord_list = g_slist_prepend (old_list_head, point);
   g_debug ("add to coord list (%f, %f)", point->x, point->y);
+
+  if (old_list_head != NULL)
+    {
+      AnnotatePoint *p_prev = (AnnotatePoint *) old_list_head->data;
+
+      gdouble dx = fabs (p_prev->x - point->x);
+      gdouble dy = fabs (p_prev->y - point->y);
+      gdouble d  = sqrt (dx * dx + dy * dy);
+
+      g_debug ("DBG: prepend new sample x=%.2f y=%.2f d_to_prev=%.3f "
+               "pres=%.3f",
+               x, y, d, pressure);
+    }
 }
 
 /**
@@ -1944,8 +2023,7 @@ annotate_coord_dev_list_free (AnnotateDeviceData *devdata)
 {
   if (devdata->coord_list)
     {
-      g_slist_foreach (devdata->coord_list, (GFunc) g_free, (gpointer) NULL);
-      g_slist_free (devdata->coord_list);
+      g_slist_free_full (devdata->coord_list, g_free);
       devdata->coord_list = (GSList *) NULL;
     }
 }
@@ -1978,10 +2056,10 @@ annotate_push_context (cairo_t *cr)
       annotation_data->annotation_cairo_context;
 
   if (annotation_cairo_context == NULL)
-  {
-    g_warning ("Cannot push context on null annotation_cairo_context");
-    return;
-  }
+    {
+      g_warning ("Cannot push context on null annotation_cairo_context");
+      return;
+    }
   cairo_save (annotation_cairo_context);
   cairo_surface_t *source_surface = (cairo_surface_t *) NULL;
   g_debug ("The text window content has been painted over the "
@@ -1992,18 +2070,14 @@ annotate_push_context (cairo_t *cr)
   /* this gets the target surface for the cairo context */
   source_surface = cairo_get_target (cr);
 
-  cairo_set_operator (annotation_cairo_context,
-                      CAIRO_OPERATOR_OVER);
- 
+  cairo_set_operator (annotation_cairo_context, CAIRO_OPERATOR_OVER);
+
   /*
    * Creates a pattern from surface at x,y on the context
    * at 0, left screen -> right screen, right screen disappears
    * at -1920, left screen -> disappears, right screen is good
    */
-  cairo_set_source_surface (annotation_cairo_context,
-                            source_surface,
-                            0,
-                            0);
+  cairo_set_source_surface (annotation_cairo_context, source_surface, 0, 0);
 
   /* paints the current source everywhere in clip region. */
   cairo_paint (annotation_cairo_context);
@@ -2140,10 +2214,9 @@ annotate_acquire_grab (void)
 void
 annotate_draw_arrow (AnnotateDeviceData *devdata, gdouble distance)
 {
-  AnnotatePoint *point;
-  point = (AnnotatePoint *) g_slist_nth_data (devdata->coord_list, 0);
-  gdouble direction = annotate_get_arrow_direction (devdata);
-  gdouble pen_width = annotate_get_thickness ();
+  AnnotatePoint *point     = get_current_point (devdata);
+  gdouble        pen_width = annotate_get_thickness ();
+  gdouble        direction = annotate_get_arrow_direction (devdata, pen_width);
   draw_arrow_in_point (point, pen_width, direction);
 }
 
@@ -2275,6 +2348,14 @@ annotate_paint_context_free (AnnotatePaintContext *context)
     }
 }
 
+/**
+ * destroy_text_config:
+ * Frees a TextConfig structure.
+ *
+ * If @cfg is NULL, the function does nothing.
+ *
+ * @cfg: The TextConfig structure to free.
+ */
 void
 destroy_text_config (TextConfig *cfg)
 {
@@ -2353,6 +2434,11 @@ annotate_quit (void)
           annotation_data->recordingstudio_window = (GtkWidget *) NULL;
         }
 
+      if (annotation_data->clapperboard_cairo_context)
+        {
+          cairo_destroy (annotation_data->clapperboard_cairo_context);
+        }
+
       remove_input_devices (annotation_data);
       annotate_savepoint_list_free ();
 
@@ -2395,10 +2481,6 @@ annotate_quit (void)
       /* Destroy cairo object. */
       cairo_destroy (annotation_data->annotation_cairo_context);
 
-      if (annotation_data->clapperboard_cairo_context)
-        {
-          cairo_destroy (annotation_data->clapperboard_cairo_context);
-        }
       if (annotation_data->font_window)
         {
           gtk_widget_destroy (annotation_data->font_window);
@@ -2610,7 +2692,6 @@ create_annotation_data (void)
   annotation_data->recordingstudio_options            = NULL;
 
   annotation_data->clapperboard_cairo_context = NULL;
-  annotation_data->is_clapperboard_visible    = FALSE;
 
   annotation_data->cursor_window_gtk_builder = NULL;
   annotation_data->cursor_window             = NULL;
@@ -2681,19 +2762,6 @@ annotate_init (Monitor *monitor)
  *
  * Returns: %TRUE if the event was handled, %FALSE otherwise.
  */
-/**
- * annotation_window_button_press:
- * @ev:   The #GdkEventButton for the mouse button press.
- * @data: A pointer to the main #AnnotateData struct.
- *
- * Handles a button press event in the annotation window.
- *
- * This function initializes the drawing context if needed, acquires the
- * input grab, computes the pressure, updates the cursor, and starts a new
- * stroke by storing the initial point.
- *
- * Returns: %TRUE if the event was handled, %FALSE otherwise.
- */
 gboolean
 annotation_window_button_press (GdkEventButton *ev, AnnotateData *data)
 {
@@ -2709,8 +2777,6 @@ annotation_window_button_press (GdkEventButton *ev, AnnotateData *data)
   GHashTable         *devdatatable = data->devdatatable;
   AnnotateDeviceData *masterdata;
   masterdata = g_hash_table_lookup (devdatatable, master);
-
-  gdouble pressure = 1.0;
 
   if (data->cur_context == data->default_filler)
     {
@@ -2748,11 +2814,27 @@ annotation_window_button_press (GdkEventButton *ev, AnnotateData *data)
     }
 #endif
 
-  pressure = get_pressure ((GdkEvent *) ev);
+  gdouble pressure = get_pressure ((GdkEvent *) ev);
 
   if (pressure <= 0)
     {
       return FALSE;
+    }
+
+  AnnotatePoint *last_point = get_current_point (masterdata);
+  if (last_point != NULL)
+    {
+      if (fabs (last_point->x - x) < 1e-6 && fabs (last_point->y - y) < 1e-6)
+        {
+          if (last_point->pressure < pressure)
+            {
+              last_point->pressure = pressure;
+            }
+          else
+            {
+              return FALSE;
+            }
+        }
     }
 
   /* Acquires the grab capability. */
@@ -2760,13 +2842,6 @@ annotation_window_button_press (GdkEventButton *ev, AnnotateData *data)
 
   annotate_configure_pen_options (data);
   annotate_coord_dev_list_free (masterdata);
-
-  /*
-   * Call annotate_draw_point. This function will call
-   * annotate_calculate_dynamic_style internally to set the
-   * correct style and calculate the dirty area.
-   */
-  annotate_draw_point (masterdata, x, y, pressure);
 
   /*
    * Recalculate the style here to get the
@@ -2777,12 +2852,15 @@ annotation_window_button_press (GdkEventButton *ev, AnnotateData *data)
   annotate_calculate_dynamic_style (data, masterdata, pressure,
                                     &final_thickness, &final_alpha);
 
+  /*
+   * Call annotate_draw_point. This function will call
+   * annotate_calculate_dynamic_style internally to set the
+   * correct style and calculate the dirty area.
+   */
+  annotate_draw_point (masterdata, x, y, pressure);
+
   /* Prepend the first point with the correct calculated thickness */
-  annotate_coord_list_prepend (masterdata,
-                               x,
-                               y,
-                               final_thickness,
-                               pressure);
+  annotate_coord_list_prepend (masterdata, x, y, final_thickness, pressure);
 
   return TRUE;
 }
@@ -2852,7 +2930,7 @@ annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
       annotate_select_tool (data, master, slave, ev->state);
     }
 
-  gdouble pressure = get_pressure ((GdkEvent *) ev);;
+  gdouble pressure = get_pressure ((GdkEvent *) ev);
 
   if (! data->is_grabbed)
     {
@@ -2885,68 +2963,40 @@ annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
   initialize_annotation_cairo_context (data);
 
   annotate_configure_pen_options (data);
-  
+
   if (pressure <= 0)
     {
       return FALSE;
     }
-  
+
   gdouble final_thickness;
   gdouble final_alpha;
+
   annotate_calculate_dynamic_style (data, masterdata, pressure,
                                     &final_thickness, &final_alpha);
 
+  AnnotatePoint *last_point = get_current_point (masterdata);
+
   if (data->cur_context->type != ANNOTATE_ERASER)
     {
-
-      /*
-       * If the point is already selected and higher pressure then
-       * print else jump it.
-       */
       if (masterdata->coord_list)
         {
-          AnnotatePoint *last_point = (AnnotatePoint *) g_slist_nth_data (
-              masterdata->coord_list, 0);
+          cairo_set_line_width (data->annotation_cairo_context,
+                                final_thickness);
 
-          gdouble distance;
-          distance = get_distance (last_point->x,
-                                   last_point->y,
-                                   ev->x,
-                                   ev->y);
- 
-          if (distance < final_thickness)
-            {
-              /* Seems that you are uprising the pen. */
-              if (pressure <= last_point->pressure)
-                {
-                  /* Jump the point you are uprising the hand. */
-                  return FALSE;
-                }
-              else // pressure >= last_point->pressure
-                {
-                  /* Pressure increased: set style and redraw segment */
-                  cairo_set_line_width (data->annotation_cairo_context,
-                                        final_thickness);
-                  cairo_set_source_rgba (data->annotation_cairo_context,
-                                         (gdouble) data->r / 255.0,
-                                         (gdouble) data->g / 255.0,
-                                         (gdouble) data->b / 255.0,
-                                         final_alpha);
+          cairo_set_source_rgba (data->annotation_cairo_context,
+                                 (gdouble) data->r / 255.0,
+                                 (gdouble) data->g / 255.0,
+                                 (gdouble) data->b / 255.0,
+                                 final_alpha);
 
-                  annotate_draw_line (masterdata, ev->x, ev->y, TRUE);
-                  /*
-                   * Store the new pressure without allocate
-                   * a new coordinate.
-                   */
-                  last_point->pressure = pressure;
-                  last_point->width = final_thickness;
-                  return TRUE;
-                }
-            }
+          annotate_draw_line (last_point->x, last_point->y, ev->x, ev->y);
         }
     }
-
-  annotate_draw_line (masterdata, ev->x, ev->y, TRUE);
+  else
+    {
+      annotate_draw_line (last_point->x, last_point->y, ev->x, ev->y);
+    }
   annotate_coord_list_prepend (masterdata,
                                ev->x,
                                ev->y,
@@ -2969,7 +3019,7 @@ save_closed_path (void)
 {
   cairo_t      *annotation_cr = annotation_data->annotation_cairo_context;
   cairo_path_t *path_copy     = cairo_copy_path (annotation_cr);
-  annotation_data->paths = g_list_append (annotation_data->paths, path_copy);
+  annotation_data->paths = g_list_prepend (annotation_data->paths, path_copy);
 }
 
 /**
@@ -2998,8 +3048,6 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
   /* Get the data for this device. */
   AnnotateDeviceData *masterdata = g_hash_table_lookup (data->devdatatable,
                                                         master);
-
-  guint length = g_slist_length (masterdata->coord_list);
 
   if (! data->is_grabbed)
     {
@@ -3039,47 +3087,53 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
     }
 
   initialize_annotation_cairo_context (data);
+  gdouble pressure = get_pressure ((GdkEvent *) ev);
+  gdouble final_thickness;
+  gdouble final_alpha;
 
-  if (length > 2)
+  annotate_calculate_dynamic_style (data, masterdata, pressure,
+                                    &final_thickness, &final_alpha);
+  AnnotatePoint *current_point = get_current_point (masterdata);
+
+  if (! masterdata->coord_list->next)
     {
-      AnnotatePoint *first_point = (AnnotatePoint *) g_slist_nth_data (
-          masterdata->coord_list, length - 1);
-      AnnotatePoint *last_point;
-      last_point = (AnnotatePoint *) g_slist_nth_data (masterdata->coord_list,
-                                                       0);
+      annotate_coord_list_prepend (masterdata,
+                                   ev->x,
+                                   ev->y,
+                                   final_thickness,
+                                   pressure);
+
+      annotate_draw_point (masterdata, ev->x, ev->y, pressure);
+    }
+  else
+    {
+      AnnotatePoint *oldest_point = get_oldest_point (masterdata);
 
       gdouble distance = get_distance (ev->x,
                                        ev->y,
-                                       first_point->x,
-                                       first_point->y);
+                                       oldest_point->x,
+                                       oldest_point->y);
 
-      gdouble pressure = last_point->pressure;
-      gdouble final_thickness;
-      gdouble final_alpha;
-      
-      annotate_calculate_dynamic_style (data, masterdata, pressure,
-                                        &final_thickness, &final_alpha);
-      
-      cairo_set_line_width (data->annotation_cairo_context,
-                            final_thickness);
+      cairo_set_line_width (data->annotation_cairo_context, final_thickness);
+
       cairo_set_source_rgba (data->annotation_cairo_context,
                              (gdouble) data->r / 255.0,
                              (gdouble) data->g / 255.0,
                              (gdouble) data->b / 255.0,
                              final_alpha);
 
-      gdouble gap = distance - final_thickness;
+      gdouble       gap            = distance - final_thickness;
       const gdouble snap_tolerance = 20.0;
-      gboolean closed_path = (gap < snap_tolerance);
+      gboolean      closed_path    = (gap < snap_tolerance);
 
+      pressure = current_point->pressure;
       /*
        * If the distance between two point lesser than tolerance
        * they are the same point for me.
        */
       if (! closed_path)
         {
-          /* Different point. */
-          annotate_draw_line (masterdata, ev->x, ev->y, TRUE);
+          annotate_draw_line (current_point->x, current_point->y, ev->x, ev->y);
           annotate_coord_list_prepend (masterdata,
                                        ev->x,
                                        ev->y,
@@ -3089,11 +3143,14 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
       else
         {
           /* Rounded to be the same point. */
-          annotate_draw_line (masterdata, first_point->x, first_point->y, TRUE);
+          annotate_draw_line (current_point->x,
+                              current_point->y,
+                              oldest_point->x,
+                              oldest_point->y);
 
           annotate_coord_list_prepend (masterdata,
-                                       first_point->x,
-                                       first_point->y,
+                                       oldest_point->x,
+                                       oldest_point->y,
                                        final_thickness,
                                        pressure);
         }

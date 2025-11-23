@@ -21,8 +21,32 @@
  *
  */
 
+#include "utils.h"
 #include <glib.h>
 #include <math.h>
 #include <stdlib.h>
 
-GSList *spline (GSList *list);
+typedef struct
+{
+  double x;
+  double y;
+} ControlPoint;
+
+typedef struct
+{
+  AnnotatePoint *p;
+  ControlPoint   cp1;
+  ControlPoint   cp2;
+} SplineSegment;
+
+typedef struct
+{
+  AnnotatePoint *start_point;
+  GSList        *segments;
+} SplineResult;
+
+SplineResult *spline (GSList *list);
+
+void spline_result_free (SplineResult *res);
+
+GSList *spline_coord_list (SplineResult *res);

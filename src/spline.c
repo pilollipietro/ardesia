@@ -18,113 +18,278 @@
  *
  * You should have received a copy of the GNU General Public License along
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 #include "spline.h"
 #include "annotation_window.h"
-#include "utils.h"
+
+/**
+ * ctrl_coord:
+ * @a, @b, @c: coordinates used to compute a Catmull–Rom Bézier control point
+ * @f: scaling factor for the tangent
+ *
+ * Computes a single coordinate for a Bézier control point:
+ *      a + f * (b - c)
+ *
+ * Used internally for both CP1 and CP2 of spline segments.
+ *
+ * Returns: the computed coordinate.
+ */
+static inline gdouble
+ctrl_coord (gdouble a, gdouble b, gdouble c, gdouble f)
+{
+  return a + f * (b - c);
+}
+
+/**
+ * make_segment:
+ * @p: (transfer none): the endpoint of the Bézier segment (borrowed reference)
+ * @cp1_x: X coordinate of the first control point
+ * @cp1_y: Y coordinate of the first control point
+ * @cp2_x: X coordinate of the second control point
+ * @cp2_y: Y coordinate of the second control point
+ *
+ * Allocates and initializes a #SplineSegment structure. The segment contains:
+ *
+ *   • @p      — the Bézier endpoint (B3), borrowed from the input list
+ *   • @cp1_x,
+ *     @cp1_y  — first Bézier control point (CP1)
+ *   • @cp2_x,
+ *     @cp2_y  — second Bézier control point (CP2)
+ *
+ * The caller takes ownership of the returned #SplineSegment and must free it
+ * (typically via spline_result_free()).
+ *
+ * Note: @p is *not* owned by the segment and must not be freed here.
+ *
+ * Returns: (transfer full): a newly allocated #SplineSegment.
+ */
+static SplineSegment *
+make_segment (AnnotatePoint *p,
+              double cp1_x, double cp1_y,
+              double cp2_x, double cp2_y)
+{
+  SplineSegment *s = g_new0 (SplineSegment, 1);
+  s->p             = p;
+  s->cp1.x         = cp1_x;
+  s->cp1.y         = cp1_y;
+  s->cp2.x         = cp2_x;
+  s->cp2.y         = cp2_y;
+  return s;
+}
 
 /**
  * spline:
- * @list: A #GSList of #AnnotatePoint structs representing a polyline.
+ * @points: (element-type AnnotatePoint): a #GSList of input points defining
+ * the polyline to be interpolated, ordered from the oldest point to
+ * the most recent.
  *
- * Computes a smooth, C1-continuous curve that INTERPOLATES (passes through)
- * a given set of points.
+ * Generates a smooth curve from a list of points using a Catmull–Rom spline.
+ * The function returns a #SplineResult structure containing:
  *
- * This implementation uses the principles of Catmull-Rom splines to generate
- * control points for cubic Bézier curves. This creates a visually smooth
- * result that is faithful to the user's input, without requiring external
- * heavy dependencies like GSL.
+ *  • @start_point —  @start_point — first point of the spline (borrowed
+ *    reference to the most recent input point).
  *
- * Returns: (transfer full) (nullable): A new #GSList containing the
- * points required to draw the smoothed curve. The list is composed of
- * sequential triplets: (control point 1, control point 2, endpoint),
- * intended for use with cairo_curve_to(). The caller is responsible for
- * freeing this list and its contents.
- **/
-
-/**
- * spline_from_points:
- * @points: (element-type AnnotatePoint): A #GSList of points to interpolate.
+ *  • @segments — a #GSList of #SplineSegment structures; each segment holds:
+ *      - seg->cp1: the first Bézier control point (CP1)
+ *      - seg->cp2: the second Bézier control point (CP2)
+ *      - seg->p  : the endpoint of the cubic Bézier curve (B3)
  *
- * Converts a list of points into a smooth curve using a Catmull-Rom spline.
- * The output is a new list of points that can be rendered as a series of
- * cubic Bézier curves. The format is [P0, CP1_0, CP2_0, P1, CP1_1, ...].
+ *    Segments are prepended during construction, so the list of segments
+ *    is reversed relative to the iteration over the input points. As a result,
+ *    @segments ordered from the most recent input point to the oldest point.
  *
- * This function is optimized to be O(n) by iterating backwards over the
- * input list and using g_slist_prepend() to build the output list directly,
- * avoiding a costly final reversal.
+ * The returned spline is suitable for drawing directly with
+ * cairo_curve_to(), using the pattern:
  *
- * Returns: (transfer full) (element-type AnnotatePoint): A new #GSList
- * containing the points for the spline, or %NULL if there are
- * fewer than two input points. The caller is responsible for
- * freeing this list and its data.
+ *      seg->cp1, seg->cp2, seg->p
+ *
+ * Memory ownership:
+ *  • The caller takes ownership of the returned #SplineResult and must free it
+ *    using spline_result_free().
+ *
+ *  • Neither @start_point nor any segment endpoint (seg->p) is freed by
+ *    spline_result_free(), because these are borrowed references to points
+ *    from the caller-owned @points list.
+ *
+ * Returns: (transfer full): a newly allocated #SplineResult, or %NULL if
+ * @points has fewer than two elements.
  */
-GSList *
+SplineResult *
 spline (GSList *points)
 {
-  GSList        *ret = NULL;
-  guint          length;
-  AnnotatePoint *first_point;
+  g_assert (gslist_has_at_least (points, 2));
 
-  length = g_slist_length (points);
+  gdouble tau    = 0.0;
+  gdouble factor = (1.0 - tau) / 6.0;
 
-  if (length < 2)
+  GSList       *ret    = NULL;
+  GSList       *node   = points;
+  GSList       *prev   = NULL;
+  SplineResult *result = g_new0 (SplineResult, 1);
+
+  /* prepare a "phantom" point before the first real point for
+   * tangent calculation */
+
+  AnnotatePoint *first_real  = node->data;
+  AnnotatePoint *second_real = node->next->data;
+
+  AnnotatePoint *pre_first = allocate_point (
+      first_real->x - (second_real->x - first_real->x),
+      first_real->y - (second_real->y - first_real->y),
+      first_real->width,
+      first_real->pressure);
+
+  AnnotatePoint *post_last = NULL;
+  AnnotatePoint *last_real = NULL;
+
+  /* iterate over the list once to build segments and track last nodes */
+  while (node)
     {
-      return NULL;
+      AnnotatePoint *Pi  = node->data;
+      AnnotatePoint *Pi1 = node->next ? node->next->data : NULL;
+
+      /* find previous and next points for Catmull-Rom control calculation */
+      AnnotatePoint *Pp = prev ? prev->data : pre_first;
+      AnnotatePoint *Pn;
+      Pn = Pi1 && node->next->next ? node->next->next->data : NULL;
+
+      if (! Pn && Pi1)
+        {
+          /* last segment: create a "phantom" post_last point
+           * to maintain smooth tangent
+           */
+          post_last = allocate_point (Pi1->x + (Pi1->x - Pi->x),
+                                      Pi1->y + (Pi1->y - Pi->y),
+                                      Pi1->width, Pi1->pressure);
+          Pn        = post_last;
+        }
+
+      if (Pi1)
+        {
+          /* compute Bézier control points */
+          gdouble cp1_x = Pi->x + factor * (Pi1->x - Pp->x);
+          gdouble cp1_y = Pi->y + factor * (Pi1->y - Pp->y);
+
+          gdouble cp2_x = Pi1->x - factor * (Pn->x - Pi->x);
+          gdouble cp2_y = Pi1->y - factor * (Pn->y - Pi->y);
+
+          /* NOTE:
+           * Segments are stored in reverse (Pi1 → Pi), so CPs are
+           * intentionally swapped when calling make_segment().
+           * Do NOT reorder them.
+           */
+          SplineSegment *seg = make_segment (Pi, cp2_x, cp2_y, cp1_x, cp1_y);
+          ret                = g_slist_prepend (ret, seg);
+        }
+
+      prev = node;
+      node = node->next;
     }
 
-  /*
-   * Iterate backwards from the second-to-last point to the first. This allows
-   * us to build the final list in the correct order using g_slist_prepend(),
-   * which is an efficient O(1) operation.
-   */
-  for (gint i = length - 2; i >= 0; i--)
+  /* after loop, prev node points to the last real node */
+  last_real = prev->data;
+
+  if (pre_first)
     {
-      AnnotatePoint *p0, *p1, *p2, *p3;
-      AnnotatePoint *control_point_1, *control_point_2, *end_point;
-      gdouble        cp1_x, cp1_y, cp2_x, cp2_y;
-      gdouble        cp1_pressure, cp2_pressure, cp1_width, cp2_width;
-
-      p1 = g_slist_nth_data (points, i);
-      p2 = g_slist_nth_data (points, i + 1);
-
-      /* Duplicate endpoints to handle boundary conditions */
-      p0 = (i > 0) ? g_slist_nth_data (points, i - 1) : p1;
-      p3 = (i < length - 2) ? g_slist_nth_data (points, i + 2) : p2;
-
-      /* Calculate Bézier control points from Catmull-Rom tangents */
-      cp1_x = p1->x + (p2->x - p0->x) / 6.0;
-      cp1_y = p1->y + (p2->y - p0->y) / 6.0;
-      cp2_x = p2->x - (p3->x - p1->x) / 6.0;
-      cp2_y = p2->y - (p3->y - p1->y) / 6.0;
-
-      /* Interpolate attributes for the control points */
-      cp1_pressure = p1->pressure + (p2->pressure - p1->pressure) / 3.0;
-      cp2_pressure = p1->pressure + (p2->pressure - p1->pressure) * 2.0 / 3.0;
-      cp1_width    = p1->width + (p2->width - p1->width) / 3.0;
-      cp2_width    = p1->width + (p2->width - p1->width) * 2.0 / 3.0;
-
-      control_point_1 = allocate_point (cp1_x, cp1_y, cp1_width, cp1_pressure);
-      control_point_2 = allocate_point (cp2_x, cp2_y, cp2_width, cp2_pressure);
-      end_point       = allocate_point (p2->x, p2->y, p2->width, p2->pressure);
-
-      /* Prepend the segment's points (end, cp2, cp1) to the list head */
-      ret = g_slist_prepend (ret, end_point);
-      ret = g_slist_prepend (ret, control_point_2);
-      ret = g_slist_prepend (ret, control_point_1);
+      g_free (pre_first);
+    }
+  if (post_last)
+    {
+      g_free (post_last);
     }
 
-  /*
-   * The loop has built the curve segments. Now, prepend the very first
-   * point of the path to complete the list.
-   */
-  first_point = g_slist_nth_data (points, 0);
-  ret = g_slist_prepend (ret,
-                         allocate_point (first_point->x, first_point->y,
-                                         first_point->width,
-                                         first_point->pressure));
+  result->start_point = last_real;
+  result->segments    = ret;
 
-  return ret;
+  return result;
+}
+
+/**
+ * spline_result_free:
+ * @res: (transfer full): a #SplineResult returned by spline()
+ *
+ * Frees a #SplineResult structure previously allocated by spline().
+ *
+ * The function frees:
+ * - all #SplineSegment structures stored in @res->segments
+ * - the GSList that contains those segments
+ * - the #SplineResult structure itself
+ *
+ * Important:
+ * - `seg->p` (the endpoint of each segment) is **not** freed, because it
+ *   refers to one of the original input points, owned by the caller.
+ * - `res->start_point` is also **not** freed for the same reason: it is a
+ *   borrowed reference to the first point of the input list.
+ *
+ * Does nothing if @res is %NULL.
+ */
+void
+spline_result_free (SplineResult *res)
+{
+  if (! res)
+    return;
+
+  for (GSList *l = res->segments; l != NULL; l = l->next)
+    {
+      SplineSegment *seg = l->data;
+
+      if (seg)
+        {
+          g_free (seg);
+        }
+    }
+
+  g_slist_free (res->segments);
+  g_free (res);
+}
+
+/**
+ * spline_coord_list:
+ * @res: (transfer none): a #SplineResult returned by spline()
+ *
+ * Converts a #SplineResult into a plain #GSList of points representing
+ * the spline coordinates (P0, P1, P2, ...), copying the points.
+ *
+ * The list is constructed in reverse order of segment processing (most recent
+ * point first, P_last), which is the standard chronological order for
+ * the device coordinate list.
+ *
+ * Memory ownership:
+ * - The caller takes ownership of the returned #GSList container and all
+ * the #AnnotatePoint elements within it, created via g_memdup2.
+ *
+ * Returns: (transfer full): a new #GSList of copied AnnotatePoint elements.
+ */
+GSList *
+spline_coord_list (SplineResult *res)
+{
+  if (! res)
+    return NULL;
+
+  GSList *new_list = NULL;
+
+  if (res->start_point)
+    {
+      AnnotatePoint *p0_copy;
+      p0_copy = (AnnotatePoint *) g_memdup2 (res->start_point,
+                                             sizeof (AnnotatePoint));
+
+      new_list = g_slist_prepend (new_list, p0_copy);
+    }
+
+  for (GSList *l = res->segments; l != NULL; l = l->next)
+    {
+      SplineSegment *seg = (SplineSegment *) l->data;
+
+      if (! seg || ! seg->p)
+        continue;
+
+      AnnotatePoint *p_end_copy;
+      p_end_copy = (AnnotatePoint *) g_memdup2 (seg->p,
+                                                sizeof (AnnotatePoint));
+
+      new_list = g_slist_prepend (new_list, p_end_copy);
+    }
+  return g_slist_reverse (new_list);
 }

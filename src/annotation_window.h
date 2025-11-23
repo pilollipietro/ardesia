@@ -150,7 +150,6 @@ typedef struct
   /* Associated data */
   RecordingStudioData *recordingstudio_options;
   cairo_t             *clapperboard_cairo_context;
-  gboolean             is_clapperboard_visible;
 
   /* cursor window */
   GtkBuilder *cursor_window_gtk_builder;
@@ -249,6 +248,8 @@ typedef struct
 
 extern AnnotateData *annotation_data;
 
+gboolean gslist_has_at_least (const GSList *list, guint n);
+
 void initialize_annotation_cairo_context (AnnotateData *data);
 
 GtkWidget *create_annotation_window (Workspace *workspace,
@@ -298,13 +299,12 @@ void annotate_select_filler (void);
 
 void annotate_add_savepoint (void);
 
-gboolean is_selected_color_opaque(void);
+gboolean is_selected_color_opaque (void);
 
 gboolean annotation_window_button_press (GdkEventButton *ev,
                                          AnnotateData *data);
 
-gboolean annotation_window_mouse_move (GdkEventMotion *ev,
-                                       AnnotateData *data);
+gboolean annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data);
 
 gboolean annotation_window_button_release (GdkEventButton *ev,
                                            AnnotateData *data);

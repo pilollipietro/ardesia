@@ -21,6 +21,9 @@
  *
  */
 
+#ifndef UTILS_H
+#define UTILS_H
+
 #include <glib.h>
 #include <glib/gstdio.h>
 
@@ -105,8 +108,6 @@ void free_artifacts (void);
 
 GtkWidget *get_bar_widget ();
 
-gchar *gdkcolor_to_rgb (GdkRGBA *gdkcolor);
-
 gchar *gdkrgba_to_rgba (GdkRGBA *gdkcolor);
 
 cairo_surface_t *scale_surface (cairo_surface_t *surface,
@@ -180,3 +181,5 @@ void save_cairo_context (cairo_t *cr,
                          gchar *savedir,
                          gchar *category,
                          int index);
+
+#endif // UTILS_H

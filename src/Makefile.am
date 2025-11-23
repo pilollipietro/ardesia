@@ -100,7 +100,9 @@ ardesia_SOURCES = \
 	ardesia.c                                 \
 	ardesia.h                                 \
 	recordingstudio.c                         \
-	recordingstudio.h
+	recordingstudio.h                         \
+	recordingstudio_callbacks.c               \
+	recordingstudio_callbacks.h
 
 
 ardesia_LDFLAGS =

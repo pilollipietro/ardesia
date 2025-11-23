@@ -35,7 +35,12 @@
 /* The file pointer to the iwb file. */
 static FILE *fp = NULL;
 
-/* Add the xml header. */
+/**
+ * add_header:
+ *
+ * Writes the XML header for the .iwb file to the currently open file pointer.
+ * Includes the namespaces and version attributes.
+ */
 static void
 add_header (void)
 {
@@ -56,14 +61,23 @@ add_header (void)
   g_free (line);
 }
 
-/* Close the iwb xml tag. */
+/**
+ * close_iwb:
+ *
+ * Writes the closing </iwb> tag to the currently open file pointer.
+ */
 static void
 close_iwb (void)
 {
   fputs ("</iwb>\n", fp);
 }
 
-/* Open the svg tag. */
+/**
+ * open_svg:
+ *
+ * Writes an opening <svg:svg> tag to the currently open file pointer
+ * using the dimensions of the annotation window.
+ */
 static void
 open_svg (void)
 {
@@ -82,14 +96,24 @@ open_svg (void)
   g_free(line);
 }
 
-/* Close the svg tag. */
+/**
+ * close_svg:
+ *
+ * Writes a closing </svg:svg> tag to the currently open file pointer.
+ */
 static void
 close_svg (void)
 {
   fputs("\t</svg:svg>\n", fp);
 }
 
-/* Add the savepoint element. */
+/**
+ * add_savepoint:
+ * @index: The index of the savepoint.
+ *
+ * Writes a savepoint element referencing an image PNG file for the given index.
+ * The PNG file is assumed to exist under the images folder.
+ */
 static void
 add_savepoint (gint index)
 {
@@ -123,7 +147,15 @@ add_savepoint (gint index)
   close_svg ();
 }
 
-/* Add the background element. */
+/**
+ * add_background:
+ * @img_dir_path: The path to the folder containing the background image.
+ * @background_image: The path to the background image file, or %NULL if none.
+ *
+ * Adds a background element to the .iwb file. If a background image is
+ * provided and valid, it is copied and referenced; otherwise a colored
+ * rectangle is generated based on the background color data.
+ */
 static void
 add_background (gchar *img_dir_path, gchar *background_image)
 {
@@ -196,7 +228,11 @@ add_background (gchar *img_dir_path, gchar *background_image)
   g_free (image_destination_path);
 }
 
-/* Add the background reference. */
+/**
+ * add_background_reference:
+ *
+ * Adds a reference to the background element in the .iwb file.
+ */
 static void
 add_background_reference (void)
 {
@@ -207,7 +243,13 @@ add_background_reference (void)
   g_free (line);
 }
 
-/* Add the savepoint elements. */
+/**
+ * add_savepoints:
+ * @savepoint_number: The number of savepoints to add.
+ *
+ * Adds multiple savepoint elements to the .iwb file, iterating from 1 to
+ * @savepoint_number and calling add_savepoint() for each.
+ */
 static void
 add_savepoints (gint savepoint_number)
 {
@@ -219,7 +261,12 @@ add_savepoints (gint savepoint_number)
     }
 }
 
-/* Add the savepoint reference. */
+/**
+ * add_savepoint_reference:
+ * @index: The index of the savepoint to reference.
+ *
+ * Adds a reference element for a specific savepoint in the .iwb file.
+ */
 static void
 add_savepoint_reference (gint index)
 {
@@ -234,7 +281,13 @@ add_savepoint_reference (gint index)
   g_free (id);
 }
 
-/* Add the savepoint references. */
+/**
+ * add_savepoint_references:
+ * @savepoint_number: The number of savepoints to reference.
+ *
+ * Adds multiple savepoint reference elements to the .iwb file by calling
+ * add_savepoint_reference() for each savepoint.
+ */
 static void
 add_savepoint_references (gint savepoint_number)
 {
@@ -246,7 +299,15 @@ add_savepoint_references (gint savepoint_number)
     }
 }
 
-/* Create the iwb xml content file. */
+/**
+ * create_xml_content:
+ * @content_filename: The path to the XML file to create.
+ * @img_dir_path: Path to the images folder containing savepoints.
+ * @background_image: Path to the background image file, or %NULL if none.
+ *
+ * Generates the content.xml file for the .iwb archive, including the header,
+ * background, savepoints, and references.
+ */
 static void
 create_xml_content (gchar *content_filename,
                     gchar *img_dir_path,
@@ -281,7 +342,14 @@ create_xml_content (gchar *content_filename,
   fclose (fp);
 }
 
-/* Add the filename under path to the gst_outfile. */
+/**
+ * add_file_to_gst_outfile:
+ * @out_file: The parent #GsfOutfile to add the file to.
+ * @path: The path to the file.
+ * @file_name: The name under which the file will appear in the archive.
+ *
+ * Adds a single file to a #GsfOutfile archive.
+ */
 static void
 add_file_to_gst_outfile (GsfOutfile *out_file,
                          gchar *path,
@@ -300,7 +368,14 @@ add_file_to_gst_outfile (GsfOutfile *out_file,
   g_free (file_path);
 }
 
-/* Add all the files in the folder under the working_dir to the gst_outfile. */
+/**
+ * add_folder_to_gst_outfile:
+ * @gst_outfile: The parent #GsfOutfile to add the folder contents to.
+ * @working_dir: Path to the working directory containing the folder.
+ * @folder: Name of the folder to add.
+ *
+ * Adds all files in the specified folder to a #GsfOutfile archive.
+ */
 static void
 add_folder_to_gst_outfile (GsfOutfile *gst_outfile,
                            gchar *working_dir,
@@ -328,7 +403,16 @@ add_folder_to_gst_outfile (GsfOutfile *gst_outfile,
   g_free (path);
 }
 
-/* Create the iwb file. */
+/**
+ * create_iwb:
+ * @zip_filename: The path where the .iwb (zip) file will be created.
+ * @working_dir: Path to the temporary project folder.
+ * @images_folder: Name of the images folder inside the project folder.
+ * @content_filename: Name of the content XML file inside the project folder.
+ *
+ * Creates the final .iwb archive by packaging the images folder and
+ * content.xml file into a zip archive using libgsf.
+ */
 static void
 create_iwb (gchar *zip_filename,
             gchar *working_dir,

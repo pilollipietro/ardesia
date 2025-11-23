@@ -54,7 +54,6 @@ void
 set_defaults_for_workspace (Workspace *workspace)
 {
   g_debug ("Setting workspace defaults\n");
-  // gchar *workspace_dir = (gchar *) NULL;
   if (workspace->monitors == NULL)
     {
       workspace->monitors = create_monitor_list ();
@@ -62,16 +61,12 @@ set_defaults_for_workspace (Workspace *workspace)
   workspace->date = get_date ();
 
   /* Show the project name wizard. */
-  // project_name = start_project_dialog ();
   workspace->project_name = g_strdup_printf ("ardesia_project_%s",
                                              workspace->date);
 
   workspace->workspace_dir = NULL;
   workspace->project_dir   = NULL;
   workspace->iwb_filename  = NULL;
-  // workspace_dir = configure_workspace (project_name);
-  // project_dir = create_default_project_dir (workspace_dir, project_name);
-  // g_free (workspace_dir);
 }
 
 /**
@@ -115,7 +110,7 @@ destroy_workspace (Workspace *workspace)
   g_free (workspace);
 }
 
-/*
+/**
  * Create_workspace_shortcut:
  * @workspace: a #Workspace structure containing at least the workspace_dir.
  *
@@ -151,7 +146,7 @@ create_workspace_shortcut (Workspace *workspace)
   g_free (desktop_entry_filename);
 }
 
-/*
+/**
  * create_default_project_dir:
  * @workspace: a #Workspace structure containing workspace_dir and project_name.
  *
@@ -188,7 +183,7 @@ create_default_project_dir (Workspace *workspace)
     }
 }
 
-/*
+/**
  * Configure_workspace:
  * @workspace: a #Workspace to configure (its workspace_dir will be set).
  *

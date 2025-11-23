@@ -49,3 +49,11 @@ typedef struct
 } CursorAnimState;
 
 #endif // RECORDINGSTUDIO_H
+
+void update_ui_state (GtkBuilder *builder);
+
+GtkWidget *create_cursor_window (void);
+
+gboolean move_cursor_window (gpointer data);
+
+void draw_video_cursor (cairo_t *cr, GtkWidget *widget, CursorAnimState *state);

@@ -25,7 +25,16 @@
 #include "project_dialog.h"
 #include "utils.h"
 
-/* This shot when the text entry is in focus. */
+/**
+ * on_project_dialog_entry_focus_in_event:
+ * @widget: The text entry widget that received focus.
+ * @event: The focus-in event data.
+ * @func_data: Pointer to user data (not used).
+ *
+ * Triggered when the project name entry receives focus.
+ *
+ * Returns: TRUE to stop further handling of the focus event.
+ */
 G_MODULE_EXPORT gboolean
 on_project_dialog_entry_focus_in_event (GtkWidget *widget,
                                         GdkEvent *event,
@@ -35,7 +44,14 @@ on_project_dialog_entry_focus_in_event (GtkWidget *widget,
   return TRUE;
 }
 
-/* Shot when the ok button in preference dialog is pushed. */
+/**
+ * on_project_ok_button_clicked:
+ * @button: The "OK" button in the project dialog that was clicked.
+ * @data: Pointer to ProjectData structure containing dialog state.
+ *
+ * Reads the text from the project name entry, updates the ProjectData with
+ * the new project name, and stops the virtual keyboard.
+ */
 G_MODULE_EXPORT void
 on_project_ok_button_clicked (GtkButton *buton, gpointer data)
 {

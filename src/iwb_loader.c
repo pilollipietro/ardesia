@@ -32,7 +32,14 @@
 #include "iwb_loader.h"
 #include "utils.h"
 
-/* Add the background image reference. */
+/**
+ * add_background_image_reference:
+ * @project_tmp_dir: Path to the temporary project directory.
+ * @href: The href of the background image.
+ *
+ * Updates the current background with the image specified by @href.
+ * Builds the full path to the image and calls update_background_image().
+ */
 static void
 add_background_image_reference (gchar *project_tmp_dir, xmlChar *href)
 {
@@ -42,7 +49,14 @@ add_background_image_reference (gchar *project_tmp_dir, xmlChar *href)
   update_background_image (background_path);
 }
 
-/* Add the background color reference. */
+/**
+ * add_background_color_reference:
+ * @context: The XPath context of the current document.
+ * @ref: The reference ID of the background color rectangle.
+ *
+ * Extracts the fill color and opacity from the SVG rect element with ID @ref
+ * and updates the background color accordingly.
+ */
 static void
 add_background_color_reference (xmlXPathContextPtr context, xmlChar *ref)
 {
@@ -110,7 +124,16 @@ add_background_color_reference (xmlXPathContextPtr context, xmlChar *ref)
   g_free ((gchar *) xpath);
 }
 
-/* Follow the ref and load the associated save-point. */
+/**
+ * load_background_by_reference:
+ * @project_tmp_dir: Path to the temporary project directory.
+ * @context: The XPath context of the current document.
+ * @ref: The reference ID to the background element.
+ *
+ * Loads a background by following the reference @ref.
+ * If the element has an href attribute, it is treated as an image;
+ * otherwise, it is treated as a color.
+ */
 void
 load_background_by_reference (gchar *project_tmp_dir,
                               xmlXPathContextPtr context,
@@ -139,7 +162,18 @@ load_background_by_reference (gchar *project_tmp_dir,
   g_free ((gchar *) xpath);
 }
 
-/* Follow the ref and load the associated save-point. */
+/**
+ * load_savepoint_by_reference:
+ * @savepoint_list: The current GSList of save points.
+ * @project_tmp_dir: Path to the temporary project directory.
+ * @context: The XPath context of the current document.
+ * @ref: The reference ID to the savepoint element.
+ *
+ * Loads a save point by following the reference @ref, creates an
+ * AnnotateSavepoint, and adds it to @savepoint_list.
+ *
+ * Returns: (transfer full) Updated #GSList of save points.
+ */
 GSList *
 load_savepoint_by_reference (GSList *savepoint_list, gchar *project_tmp_dir,
                              xmlXPathContextPtr context, xmlChar *ref)
@@ -165,7 +199,13 @@ load_savepoint_by_reference (GSList *savepoint_list, gchar *project_tmp_dir,
   return savepoint_list;
 }
 
-/* Decompress infile in dest_dir. */
+/**
+ * decompress_infile:
+ * @infile: The GsfInfile to decompress.
+ * @dest_dir: Directory where decompressed files should be stored.
+ *
+ * Recursively decompresses a GsfInfile (ZIP archive) into @dest_dir.
+ */
 static void
 decompress_infile (GsfInfile *infile, gchar *dest_dir)
 {
@@ -199,7 +239,13 @@ decompress_infile (GsfInfile *infile, gchar *dest_dir)
     }
 }
 
-/* Decompress the iwb file; it is a zip file. */
+/**
+ * decompress_iwb:
+ * @iwbfile: Path to the IWB file.
+ * @project_tmp_dir: Directory where the decompressed content should be stored.
+ *
+ * Decompresses an IWB file (ZIP archive) into @project_tmp_dir.
+ */
 static void
 decompress_iwb (gchar *iwbfile, gchar *project_tmp_dir)
 {
@@ -226,7 +272,14 @@ decompress_iwb (gchar *iwbfile, gchar *project_tmp_dir)
   gsf_shutdown ();
 }
 
-/* Add iwb name spaces to the xmlXPathContext. */
+/**
+ * register_namespaces:
+ * @context: XPath context.
+ *
+ * Registers the SVG, IWB, and XLink namespaces in the XPath context.
+ *
+ * Returns: The same #xmlXPathContextPtr passed in, after registration.
+ */
 static xmlXPathContextPtr
 register_namespaces (xmlXPathContextPtr context)
 {
@@ -242,7 +295,18 @@ register_namespaces (xmlXPathContextPtr context)
   return context;
 }
 
-/* Load save-points from iwb. */
+/**
+ * load_savepoints_by_iwb:
+ * @savepoint_list: Current #GSList of save points.
+ * @project_tmp_dir: Path to the temporary project directory.
+ * @context: XPath context of the parsed IWB content.
+ *
+ * Parses all <iwb:element> nodes in the IWB file.
+ * Loads backgrounds and save points
+ * as needed and appends them to @savepoint_list.
+ *
+ * Returns: (transfer full) Updated #GSList of save points.
+ */
 static GSList *
 load_savepoints_by_iwb (GSList *savepoint_list,
                         gchar *project_tmp_dir,

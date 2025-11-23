@@ -138,8 +138,12 @@ load_color_onto_context (gchar *hex_color, cairo_t *cr)
       cairo_save (cr);
       cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
 
-      cairo_set_source_rgba (cr, (gdouble) r / 256, (gdouble) g / 256,
-                             (gdouble) b / 256, (gdouble) a / 256);
+      cairo_set_source_rgba (cr,
+                             r / 255.0,
+                             g / 255.0,
+                             b / 255.0,
+                             a / 255.0);
+
       cairo_paint (cr);
       cairo_stroke (cr);
       cairo_restore (cr);
@@ -164,49 +168,4 @@ create_new_context (int width, int height)
   cairo_t *cr = cairo_create (surface);
   cairo_surface_destroy (surface);
   return cr;
-}
-
-cairo_t *
-create_copy_of_context (cairo_t *current_context)
-{
-  if (current_context == NULL)
-    {
-      int width  = 0;
-      int height = 0;
-      get_context_size (current_context, &width, &height);
-      cairo_surface_t *dest_surface;
-
-      dest_surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-                                                 width,
-                                                 height);
-
-      cairo_surface_t *source_surface = cairo_get_target (current_context);
-      cairo_t         *dest_cr        = cairo_create (dest_surface);
-      cairo_set_operator (dest_cr, CAIRO_OPERATOR_SOURCE);
-      cairo_set_source_surface (dest_cr, source_surface, 0, 0);
-      cairo_paint (dest_cr);
-      cairo_surface_destroy (dest_surface);
-      return dest_cr;
-    }
-  return NULL;
-}
-
-void
-draw_test_text (cairo_t *cr, gchar *text)
-{
-  cairo_save (cr);
-
-  cairo_set_source_rgb (cr, 1, 1, 1);
-  cairo_paint (cr);
-
-  cairo_select_font_face (cr,
-                          "monospace",
-                          CAIRO_FONT_SLANT_NORMAL,
-                          CAIRO_FONT_WEIGHT_BOLD);
-
-  cairo_set_font_size (cr, 32.0);
-  cairo_set_source_rgb (cr, 0.1, 0.1, 0.1);
-  cairo_move_to (cr, 10.0, 50.0);
-  cairo_show_text (cr, text);
-  cairo_restore (cr);
 }

@@ -115,10 +115,18 @@ stop_timer (void)
     }
 }
 
-/*
- * Draws the blinking cursor using the stable, unified font metrics.
- * The rectangle's height perfectly matches the font's ascent/descent.
- */
+/**
+ * blink_cursor:
+ * @data: User data passed to the timeout function (unused).
+ *
+ * Toggles the visibility of the text cursor in the annotation window.
+ * The cursor is drawn as a vertical rectangle aligned with the text's
+ * baseline and scaled according to the current font metrics and pen width.
+ * When visible, it is drawn with the current text color; when hidden, the
+ * same area is cleared to maintain a blinking effect.
+ *
+ * Returns: TRUE to keep the timeout active for continuous blinking.
+ **/
 static gboolean
 blink_cursor (gpointer data)
 {
@@ -208,10 +216,14 @@ stop_blink_cursor (void)
   blink_cursor (NULL);
 }
 
-/*
- * Calculates and stores the exact font metrics (ascent/descent).
- * This provides a stable "source of truth" for all vertical alignment.
- */
+/**
+ * set_cursor_height:
+ * @widget: GTK widget used to create a temporary Pango layout.
+ *
+ * Computes and stores precise font metrics (ascent, descent, and total height)
+ * for the current annotation font. These metrics provide a stable reference
+ * for vertical alignment of the blinking cursor and text rendering.
+ **/
 static void
 set_cursor_height (GtkWidget *widget)
 {
@@ -301,11 +313,20 @@ calculate_visual_thickness (gdouble pen_width, gint font_size)
   return OUTPUT_MIN + normalized_value * (output_max - OUTPUT_MIN);
 }
 
-/*
- * Creates and assigns a "viewfinder" I-beam cursor, based on the final
- * specific requirements. The central stem of the I-beam perfectly matches
- * the font's height, with serifs added externally above and below.
- */
+/**
+ * assign_text_cursor_to_window:
+ * @window: The GTK window to which the custom text cursor will be applied.
+ *
+ * Creates a custom "I-beam" text cursor for the specified window.
+ * The central stem of the cursor matches the font height, while
+ * small serifs are added at the top and bottom for visibility.
+ *
+ * The cursor hotspot is aligned with the text baseline to ensure
+ * proper placement during text editing.
+ *
+ * Returns: TRUE on successful cursor assignment, FALSE if the
+ *          necessary text data or metrics are uninitialized.
+ **/
 static gboolean
 assign_text_cursor_to_window (GtkWidget *window)
 {
@@ -438,7 +459,15 @@ save_text (void)
     }
 }
 
-/* Clear cairo context of text window. */
+/**
+ * clear_if_empty:
+ *
+ * Clears the Cairo drawing context of the text window if there are
+ * no characters currently stored in the letter list.
+ *
+ * This ensures that the window does not retain stale drawings when
+ * the text content is empty.
+ **/
 static void
 clear_if_empty (void)
 {
@@ -452,7 +481,16 @@ clear_if_empty (void)
     }
 }
 
-/* Initialization routine. Called on text expose. */
+/**
+ * init_text_widget:
+ * @widget: The GTK widget representing the text window.
+ *
+ * Initializes the text widget when it is first exposed. This includes:
+ *   - Calculating and storing font metrics for stable cursor height.
+ *   - Creating and assigning the I-beam text cursor to the window.
+ *   - Grabbing the pointer on Windows for proper mouse event handling.
+ *   - Clearing the text window if no characters are present.
+ **/
 void
 init_text_widget (GtkWidget *widget)
 {
@@ -466,7 +504,22 @@ init_text_widget (GtkWidget *widget)
   clear_if_empty ();
 }
 
-/* Create text data. */
+/**
+ * create_text_data:
+ *
+ * Allocates and initializes the global TextData structure if it has not
+ * been created yet. Sets up default values for:
+ *   - Drawing context pointer
+ *   - Cursor position
+ *   - Character list
+ *   - Virtual keyboard PID
+ *   - Blinking cursor timer and visibility
+ *   - Default color and pen width
+ *   - Font metrics (ascent, descent, max height)
+ *
+ * This function ensures the text subsystem has a valid, ready-to-use
+ * data structure before any text operations.
+ **/
 static void
 create_text_data (void)
 {

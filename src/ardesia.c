@@ -39,8 +39,20 @@ Workspace         *workspace;
 CommandLine       *commandline = NULL;
 
 /**
- * Get the drawable area for annotation, text and background windows
- * @return NULL if not set, GdkRectangle if it is
+ * get_drawable_area:
+ *
+ * Returns the GdkRectangle representing the drawable area for annotation,
+ * text, and background windows, based on the current command line options
+ * and workspace settings.
+ *
+ * The drawable area depends on the mode:
+ * - DRAW_ON_MONITOR: returns the rectangle of the selected monitor.
+ * - DRAW_ON_FULLDESKTOP: returns a rectangle covering the full desktop.
+ * - DRAW_ON_CLIPAREA: returns a rectangle defined by commandline->clipRect,
+ *   clamped to the screen boundaries.
+ *
+ * Returns: a pointer to a GdkRectangle, or NULL if the area cannot be
+ *          determined.
  */
 GdkRectangle *
 get_drawable_area (void)
@@ -107,6 +119,18 @@ get_drawable_area (void)
   return NULL;
 }
 
+/**
+ * get_toolbar_area:
+ *
+ * Returns the GdkRectangle representing the area for the toolbar window.
+ *
+ * In DRAW_ON_MONITOR mode, the rectangle corresponds to the selected
+ * tools monitor.
+ * In other modes, the drawable area is used as toolbar area.
+ *
+ * Returns: a pointer to a GdkRectangle, or NULL if the area cannot be
+ *          determined.
+ */
 GdkRectangle *
 get_toolbar_area (void)
 {
@@ -131,7 +155,12 @@ get_toolbar_area (void)
 
 #ifndef _WIN32
 
-/* Call the dialog that inform the user to enable a composite manager. */
+/**
+ * run_missing_composite_manager_dialog:
+ *
+ * Displays a GTK modal dialog informing the user that a composite manager
+ * must be enabled to run Ardesia. Exits the program after the dialog is closed.
+ */
 static void
 run_missing_composite_manager_dialog (void)
 {
@@ -155,7 +184,12 @@ run_missing_composite_manager_dialog (void)
   exit (EXIT_FAILURE);
 }
 
-/* Check if a composite manager is active. */
+/**
+ * check_composite_manager:
+ *
+ * Checks if a composite manager is active on the current screen.
+ * If not, runs run_missing_composite_manager_dialog() and exits.
+ */
 static void
 check_composite_manager (void)
 {
@@ -172,7 +206,12 @@ check_composite_manager (void)
 
 #endif
 
-/* Enable the localization support with gettext. */
+/**
+ * enable_localization_support:
+ *
+ * Initializes localization support using gettext if ENABLE_NLS is defined.
+ * Sets locale and text domain for translations.
+ */
 static void
 enable_localization_support (void)
 {
@@ -183,6 +222,14 @@ enable_localization_support (void)
 #endif
 }
 
+/**
+ * build_annotation_window:
+ *
+ * Creates and shows the annotation window. Positions it based on
+ * the drawable area calculated from the workspace and command line options.
+ *
+ * If the window cannot be created, quits the program.
+ */
 void
 build_annotation_window (void)
 {
@@ -199,6 +246,15 @@ build_annotation_window (void)
   gtk_widget_show (annotation_window);
 }
 
+/**
+ * build_toolbar_window:
+ *
+ * Creates and shows the toolbar window (Ardesia bar). Positions it based on
+ * the toolbar area calculated from the workspace and command line options.
+ *
+ * The toolbar window is set to stay above other windows.
+ * If the window cannot be created, quits the program.
+ */
 void
 build_toolbar_window (void)
 {
@@ -216,7 +272,17 @@ build_toolbar_window (void)
   gtk_widget_show (ardesia_bar_window);
 }
 
-/* This is the starting point of the program. */
+/**
+ * main:
+ * @argc: argument count
+ * @argv: argument vector
+ *
+ * The main entry point for Ardesia. Initializes GTK, handles command line
+ * arguments, sets up the workspace, creates windows, initializes fonts,
+ * and enters the GTK main loop.
+ *
+ * Returns: 0 on normal exit, 1 on fatal error.
+ */
 int
 main (int argc, char *argv[])
 {

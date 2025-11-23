@@ -23,7 +23,16 @@
 
 #include "input.h"
 
-/* Add input device. */
+/**
+ * add_input_mode_device:
+ * @data:   The main #AnnotateData application context.
+ * @device: The #GdkDevice to initialize.
+ * @mode:   The #GdkInputMode to set for the device.
+ *
+ * Initializes a single input device, setting up its coordinate list and
+ * inserting it into the application's device hash table. Also attempts to
+ * set the device mode according to @mode, logging success or failure.
+ **/
 static void
 add_input_mode_device (AnnotateData *data, GdkDevice *device, GdkInputMode mode)
 {
@@ -48,7 +57,14 @@ add_input_mode_device (AnnotateData *data, GdkDevice *device, GdkInputMode mode)
            gdk_device_get_name (device), gdk_device_get_source (device));
 }
 
-/* Set-up input device list. */
+/**
+ * setup_input_device_list:
+ * @data:    The main #AnnotateData application context.
+ * @devices: A #GList of #GdkDevice objects to add.
+ *
+ * Sets up multiple input devices by first removing any existing devices
+ * and then adding each device in @devices using add_input_mode_device().
+ **/
 static void
 setup_input_device_list (AnnotateData *data, GList *devices)
 {
@@ -56,7 +72,13 @@ setup_input_device_list (AnnotateData *data, GList *devices)
   g_list_foreach (devices, (GFunc) add_input_device, data);
 }
 
-/* Select the preferred input mode depending on axis. */
+/**
+ * select_input_device_mode:
+ * @device: The #GdkDevice to inspect.
+ *
+ * Determines the preferred input mode for @device based on its axes and
+ * source type. Returns either GDK_MODE_SCREEN or GDK_MODE_WINDOW.
+ **/
 static GdkInputMode
 select_input_device_mode (GdkDevice *device)
 {
@@ -99,40 +121,78 @@ remove_input_devices (AnnotateData *data)
     }
 }
 
-int deviceIndex = 0;
+/**
+ * gdk_device_source_name:
+ * @src: The #GdkInputSource value to convert.
+ *
+ * Returns a human-readable string representing the type of input device
+ * source specified by @src. Possible return values include "Mouse",
+ * "Keyboard", "Pen", "Eraser", "Cursor", "Touchscreen", "Touchpad",
+ * "Trackpoint", "Tablet Pad", or "Unknown" if the source is not recognized.
+ **/
+const gchar *
+gdk_device_source_name (GdkInputSource src)
+{
+  switch (src)
+    {
+    case GDK_SOURCE_MOUSE:
+      return "Mouse";
+    case GDK_SOURCE_KEYBOARD:
+      return "Keyboard";
+    case GDK_SOURCE_PEN:
+      return "Pen";
+    case GDK_SOURCE_ERASER:
+      return "Eraser";
+    case GDK_SOURCE_CURSOR:
+      return "Cursor";
+    case GDK_SOURCE_TOUCHSCREEN:
+      return "Touchscreen";
+    case GDK_SOURCE_TOUCHPAD:
+      return "Touchpad";
+    case GDK_SOURCE_TRACKPOINT:
+      return "Trackpoint";
+    case GDK_SOURCE_TABLET_PAD:
+      return "Tablet Pad";
+    default:
+      return "Unknown";
+    }
+}
+
+/**
+ * print_device_info:
+ * @device: The #GdkDevice to inspect.
+ *
+ * Prints debug information about @device, including vendor, product,
+ * number of axes, and source type.
+ **/
 void
 print_device_info (GdkDevice *device)
 {
-  g_debug ("Device %d: Name : %s\n", deviceIndex, gdk_device_get_name (device));
+  const gchar *vendor  = NULL;
+  const gchar *product = NULL;
+  gint         n_axes  = -1;
+
   if (gdk_device_get_device_type (device) != GDK_DEVICE_TYPE_MASTER)
     {
-      g_debug ("Device %d: Vendor ID : %s\n", deviceIndex,
-               gdk_device_get_vendor_id (device));
-      g_debug ("Device %d: Product ID : %s\n", deviceIndex,
-               gdk_device_get_product_id (device));
-    }
-  if (gdk_device_get_source (device) != GDK_SOURCE_KEYBOARD)
-    {
-      g_debug ("Device %d: Number of Axes : %d\n", deviceIndex,
-               gdk_device_get_n_axes (device));
-    }
-  g_debug ("Device %d: Source : %d\n",
-           deviceIndex,
-           gdk_device_get_source (device));
-  switch (gdk_device_get_source (device))
-    {
-    case 0:
-      g_debug ("Device %d: Source Type : %s\n", deviceIndex, "Mouse");
-      break;
-    case 4:
-      g_debug ("Device %d: Source Type : %s\n", deviceIndex, "Keyboard");
-      break;
-    default:
-      g_debug ("Device %d: Source Type : %s\n", deviceIndex, "Unknown");
-      break;
+      vendor  = gdk_device_get_vendor_id (device);
+      product = gdk_device_get_product_id (device);
     }
 
-  deviceIndex++;
+  if (gdk_device_get_source (device) != GDK_SOURCE_KEYBOARD)
+    {
+      n_axes = gdk_device_get_n_axes (device);
+    }
+
+  const gchar *source_type;
+  source_type = gdk_device_source_name (gdk_device_get_source (device));
+
+  g_debug("Device: %s | Vendor: %s | Product: %s | Axes: %d | Source: %d (%s)",
+          gdk_device_get_name(device),
+          vendor ? vendor : "N/A",
+          product ? product : "N/A",
+          n_axes >= 0 ? n_axes : -1,
+          gdk_device_get_source(device),
+          source_type);
 }
 
 /**
@@ -150,18 +210,16 @@ print_device_info (GdkDevice *device)
 void
 setup_input_devices (AnnotateData *data)
 {
-  GList   *devices = NULL;
-  GdkSeat *seat    = gdk_display_get_default_seat (gdk_display_get_default ());
+  GdkDisplay *display = gdk_display_get_default ();
+  GdkSeat    *seat    = gdk_display_get_default_seat (display);
+  GdkDevice  *master  = gdk_seat_get_pointer (seat);
 
-  GdkDevice *master = gdk_seat_get_pointer (seat);
-  devices           = g_list_append (devices, master);
-  GList *slavers = gdk_seat_get_slaves (seat, GDK_SEAT_CAPABILITY_ALL_POINTING);
-  devices        = g_list_concat (devices, slavers);
-  g_assert (g_list_length (devices) > 0);
-  // write out the devices
-  deviceIndex = 0;
+  GList *slavers = gdk_seat_get_slaves (seat,
+                                        GDK_SEAT_CAPABILITY_ALL_POINTING);
+
+  GList *devices = g_list_prepend (slavers, master);
+  g_assert (devices != NULL);
   g_list_foreach (devices, (GFunc) print_device_info, NULL);
-
   setup_input_device_list (data, devices);
   g_list_free (devices);
 }
@@ -208,10 +266,10 @@ remove_input_device (GdkDevice *device, AnnotateData *data)
       AnnotateDeviceData *devdata = g_hash_table_lookup (data->devdatatable,
                                                          device);
       if (devdata)
-      {
-        annotate_coord_dev_list_free (devdata);
-        g_free(devdata); 
-      }
+        {
+          annotate_coord_dev_list_free (devdata);
+          g_free (devdata);
+        }
       g_hash_table_remove (data->devdatatable, device);
     }
 }

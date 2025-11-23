@@ -67,6 +67,7 @@ intersect (GdkRectangle *a, GdkRectangle *b)
  * @context: Cairo context to draw into.
  *
  * Draws a white test square in the Cairo context.
+ * Note: The RGB values should be normalized to [0,1]; current code uses 0-255.
  */
 void
 draw_test_square (cairo_t *context)
@@ -83,10 +84,11 @@ draw_test_square (cairo_t *context)
 
 /**
  * draw_test_square_with_color:
+ *
  * @context: Cairo context to draw into.
- * @r: Red component (0-255).
- * @g: Green component (0-255).
- * @b: Blue component (0-255).
+ * @r: Red component (0-255, will be normalized to [0,1]).
+ * @g: Green component (0-255, will be normalized to [0,1]).
+ * @b: Blue component (0-255, will be normalized to [0,1]).
  *
  * Draws a colored test square in the Cairo context.
  */
@@ -247,25 +249,6 @@ get_distance (gdouble x1, gdouble y1, gdouble x2, gdouble y2)
 }
 
 /**
- * gdkcolor_to_rgb:
- * @gdkcolor: GdkRGBA pointer.
- *
- * Converts a GdkRGBA color to an RGB string (hex format, e.g. "FF0000").
- *
- * Returns: newly-allocated string representing RGB color.
- */
-gchar *
-gdkcolor_to_rgb (GdkRGBA *gdkcolor)
-{
-  gchar *ret_str = g_strdup_printf ("%02X%02X%02X",
-                                    (int) gdkcolor->red / 255,
-                                    (int) gdkcolor->green / 255,
-                                    (int) gdkcolor->blue / 255);
-
-  return ret_str;
-}
-
-/**
  * gdkrgba_to_rgba:
  * @gdkcolor: GdkRGBA pointer.
  *
@@ -285,9 +268,21 @@ gdkrgba_to_rgba (GdkRGBA *gdkcolor)
   return ret_str;
 }
 
-/*
- * Take an rgb or a rgba string and return the pointer to the allocated GdkColor
- * neglecting the alpha channel; the gtkColor does not support the rgba color.
+/**
+ * rgba_to_gdkcolor:
+ * @rgba: An 8-character string representing RGBA in hexadecimal (RRGGBBAA).
+ *
+ * Converts a hexadecimal RGBA string to a newly allocated #GdkRGBA structure.
+ * Each channel (red, green, blue, alpha) is normalized to the [0.0, 1.0] range.
+ *
+ * Returns: (transfer full) A pointer to a #GdkRGBA structure.
+ *          The caller is responsible for freeing it with g_free().
+ *
+ * Notes:
+ * - The input string must not be NULL and must have exactly 8 characters.
+ * - The alpha channel is preserved, but some GTK drawing operations may
+ *   ignore it.
+ * - Example: "FF0000FF" corresponds to opaque red.
  */
 GdkRGBA *
 rgba_to_gdkcolor (gchar *rgba)
@@ -310,6 +305,7 @@ rgba_to_gdkcolor (gchar *rgba)
  * @cr: Cairo context to clear.
  *
  * Clears the entire Cairo context to transparent.
+ * Uses cairo_save/restore to preserve the previous state.
  */
 void
 clear_cairo_context (cairo_t *cr)
@@ -330,8 +326,7 @@ clear_cairo_context (cairo_t *cr)
  * @height: Desired height.
  *
  * Scales the given surface to the requested width and height.
- *
- * Returns: Newly allocated cairo_surface_t with scaled content.
+ * Note: CAIRO_EXTEND_REFLECT is used to avoid edges being blended with alpha 0.
  */
 cairo_surface_t *
 scale_surface (cairo_surface_t *surface, gdouble width, gdouble height)
@@ -518,6 +513,7 @@ grab_screenshot (void (*screenshot_callback) (GdkPixbuf *))
  * @yp: Y coordinate.
  *
  * Returns TRUE if the point is inside the bar window.
+ * Checks the current position and size of the bar window.
  */
 gboolean
 inside_bar_window (gdouble xp, gdouble yp)
@@ -587,7 +583,7 @@ file_exists (gchar *filename)
 /**
  * get_default_filename:
  *
- * Returns a default file name based on the project name and current date.
+ * Get the default file name based on the project name and current date.
  *
  * Returns: Newly allocated string with the filename.
  */
@@ -603,7 +599,7 @@ get_default_filename (void)
 /**
  * get_home_dir:
  *
- * Returns the home directory.
+ * Get the home directory.
  *
  * Returns: Path to the home directory.
  */
@@ -621,7 +617,7 @@ get_home_dir (void)
 /**
  * get_desktop_dir:
  *
- * Returns the desktop directory.
+ * Get the desktop directory.
  *
  * Returns: Path to the desktop directory.
  */
@@ -634,7 +630,7 @@ get_desktop_dir (void)
 /**
  * get_documents_dir:
  *
- * Returns the documents directory, or home if unavailable.
+ * Get the documents directory, or home if unavailable.
  *
  * Returns: Path to the documents directory.
  */
@@ -751,7 +747,7 @@ remove_dir_if_empty (gchar *dir_path)
 AnnotatePoint *
 allocate_point (gdouble x, gdouble y, gdouble width, gdouble pressure)
 {
-  AnnotatePoint *point = g_malloc ((gsize) sizeof (AnnotatePoint));
+  AnnotatePoint *point = g_new0 (AnnotatePoint, 1);
   point->x             = x;
   point->y             = y;
   point->width         = width;
@@ -768,6 +764,7 @@ allocate_point (gdouble x, gdouble y, gdouble width, gdouble pressure)
  *
  * Sends an email with optional attachments. Uses platform-specific
  * implementation: windows_send_email on Windows, xdg-email on Linux.
+ * Note: On Linux, command concatenation may be unsafe with arbitrary input.
  */
 void
 send_email (gchar *to,
@@ -778,9 +775,6 @@ send_email (gchar *to,
 #ifdef _WIN32
   windows_send_email (to, subject, body, attachment_list);
 #else
-
-  guint attach_lenght = g_slist_length (attachment_list);
-  guint i             = 0;
 
   gchar *mailer        = "xdg-email";
   gchar *subject_param = "--subject";
@@ -794,13 +788,16 @@ send_email (gchar *to,
                                  body_param,
                                  body);
 
-  for (i = 0; i < attach_lenght; i++)
+  for (GSList *node = attachment_list; node != NULL; node = node->next)
     {
-      gchar *attachment = (gchar *) g_slist_nth_data (attachment_list, i);
+      gchar *attachment = (gchar *) node->data;
+
       gchar *attachment_str = g_strdup_printf ("%s '%s'",
                                                attach_param,
                                                attachment);
+
       gchar *new_args = g_strdup_printf ("%s %s", args, attachment_str);
+
       g_free (args);
       args = new_args;
       g_free (attachment_str);
@@ -926,6 +923,7 @@ xdg_create_desktop_entry (gchar *filename,
  * @icon: Icon path.
  *
  * Creates a desktop link (.desktop file) pointing to @src.
+ * Only creates if the file does not exist.
  */
 void
 xdg_create_link (gchar *src, gchar *dest, gchar *icon)
@@ -936,11 +934,13 @@ xdg_create_link (gchar *src, gchar *dest, gchar *icon)
   if (! g_file_test (link_filename, G_FILE_TEST_EXISTS))
     {
       gchar *exec = g_strdup_printf ("xdg-open %s\n", src);
+
       xdg_create_desktop_entry (link_filename,
                                 "Application",
                                 PACKAGE_NAME,
                                 icon,
                                 exec);
+
       g_free (exec);
     }
 
@@ -995,7 +995,8 @@ g_substr (const gchar *string, gint start, gint end)
  * create_segmentation_fault:
  *
  * Function that intentionally causes a segmentation fault.
- * Useful for testing the segmentation fault handler.
+ * Useful for testing the segmentation fault handler;
+ * do not call in production.
  */
 void
 create_segmentation_fault (void)
@@ -1004,6 +1005,14 @@ create_segmentation_fault (void)
   *f     = 0;
 }
 
+/**
+ * get_surface_size:
+ * @surface: Cairo surface.
+ * @width: Output width.
+ * @height: Output height.
+ *
+ * Retrieves the width and height of a Cairo surface in pixels.
+ */
 void
 get_surface_size (cairo_surface_t *surface, int *width, int *height)
 {
@@ -1018,6 +1027,14 @@ get_surface_size (cairo_surface_t *surface, int *width, int *height)
   *height = y2 - y1;
 }
 
+/**
+ * get_context_size:
+ * @cr: Cairo context.
+ * @width: Output width.
+ * @height: Output height.
+ *
+ * Retrieves the width and height of the current Cairo context (may be clipped).
+ */
 void
 get_context_size (cairo_t *cr, int *width, int *height)
 {
@@ -1058,6 +1075,7 @@ save_cairo_context (cairo_t *cr, gchar *savedir, gchar *category, int index)
    * content and write the file.
    */
   cairo_surface_t *saved_surface;
+
   saved_surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
                                               w,
                                               h);

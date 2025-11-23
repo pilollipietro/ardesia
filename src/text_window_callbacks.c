@@ -32,7 +32,16 @@
 
 #ifdef _WIN32
 
-/* Is the point (x,y) above the virtual keyboard? */
+/**
+ * is_above_virtual_keyboard:
+ * @x: X coordinate in screen space.
+ * @y: Y coordinate in screen space.
+ *
+ * Determines if the given (x, y) position is currently above the
+ * virtual keyboard window (Windows-specific).
+ *
+ * Returns: TRUE if the point is over the virtual keyboard, FALSE otherwise.
+ **/
 static gboolean
 is_above_virtual_keyboard (gint x, gint y)
 {
@@ -57,11 +66,15 @@ is_above_virtual_keyboard (gint x, gint y)
 }
 #endif
 
-/*
- * Draws a PangoLayout with a variable thickness, correctly handling glyph
- * positioning by translating the canvas to compensate for individual glyph
- * offsets.
- */
+ /**
+ * draw_layout_with_thickness:
+ * @cr: Cairo drawing context.
+ * @layout: Pango layout containing the text glyphs.
+ * @char_info: Character information including color, pen width, and font.
+ *
+ * Draws a PangoLayout with custom stroke thickness and fills it,
+ * compensating for glyph offsets to align text correctly to the baseline.
+ **/
 static void
 draw_layout_with_thickness (cairo_t *cr, PangoLayout *layout,
                             CharInfo *char_info)
@@ -112,10 +125,19 @@ draw_layout_with_thickness (cairo_t *cr, PangoLayout *layout,
   cairo_restore (cr); /* Reverts the translation */
 }
 
-/*
- * The windows has been exposed.
- * Need Double Buffering to be activated for this to work properly.
- */
+/**
+ * on_text_window_expose_event:
+ * @widget: The GTK widget (text window) being exposed.
+ * @cr: Cairo drawing context for rendering.
+ * @data: User data passed to the callback (unused).
+ *
+ * Called when the text window is exposed (needs redraw). This is typically
+ * triggered when the window is first shown or uncovered. Double buffering
+ * must be enabled for proper rendering.
+ *
+ * Returns: FALSE to propagate the event further, allowing default GTK
+ *          drawing behavior.
+ **/
 G_MODULE_EXPORT gboolean
 on_text_window_expose_event (GtkWidget *widget, cairo_t *cr, gpointer data)
 {
@@ -194,7 +216,16 @@ on_text_window_button_release (GtkWidget *win, GdkEventButton *ev,
   return TRUE;
 }
 
-/* This shots when the text pointer is moving. */
+/**
+ * on_text_window_cursor_motion:
+ *
+ * Handles cursor motion events in the text window.
+ *
+ * This function stops text input when the cursor moves over the bar window
+ * (Windows-specific behavior). It is called on every motion event.
+ *
+ * Returns: TRUE to indicate that the event has been handled.
+ **/
 G_MODULE_EXPORT gboolean
 on_text_window_cursor_motion (GtkWidget *win, GdkEventMotion *ev,
                               gpointer func_data)
@@ -208,6 +239,13 @@ on_text_window_cursor_motion (GtkWidget *win, GdkEventMotion *ev,
   return TRUE;
 }
 
+/**
+ * make_new_character:
+ *
+ * Allocates and initializes a new CharInfo structure for a character.
+ *
+ * Returns: A pointer to the new CharInfo object, or NULL if allocation fails.
+ **/
 static CharInfo *
 make_new_character (void)
 {
@@ -220,10 +258,15 @@ make_new_character (void)
   return char_info;
 }
 
-/*
- * Draws a single character with tunable word spacing to ensure readability
- * at high stroke thicknesses.
- */
+/**
+ * draw_character:
+ * @cr: Cairo drawing context.
+ * @char_info: Character to draw and associated properties.
+ *
+ * Renders a single character with proper thickness and spacing. Handles
+ * word spacing for spaces, computes bounding boxes, and queues redraw
+ * areas for the annotation window.
+ **/
 static void
 draw_character (cairo_t *cr, CharInfo *char_info)
 {
@@ -262,9 +305,9 @@ draw_character (cairo_t *cr, CharInfo *char_info)
            * A value of 2.0 creates significant and clear word separation.
            */
           const gdouble word_spacing_multiplier = 2.0; /* <-- TUNING KNOB */
-          char_info->text_width =
-            logical_rect.width +
-            (gint) ceil (visual_thickness * word_spacing_multiplier);
+          char_info->text_width                 =
+              logical_rect.width +
+              (gint) ceil (visual_thickness * word_spacing_multiplier);
         }
       else
         {
@@ -289,13 +332,14 @@ draw_character (cairo_t *cr, CharInfo *char_info)
        * only for the modified area.
        */
       GtkWidget *annotation_window = annotation_data->annotation_window;
-      gint dirty_x, dirty_y, dirty_width, dirty_height;
+      gint       dirty_x, dirty_y, dirty_width, dirty_height;
 
       dirty_x = (gint) (char_info->x + ink_rect.x);
-      dirty_y = (gint) (char_info->y -
-                        (gdouble) char_info->baseline / PANGO_SCALE +
-                        ink_rect.y);
-      dirty_width = ink_rect.width;
+      dirty_y =
+          (gint) (char_info->y -
+              (gdouble) char_info->baseline / PANGO_SCALE + ink_rect.y);
+
+      dirty_width  = ink_rect.width;
       dirty_height = ink_rect.height;
 
       gtk_widget_queue_draw_area (annotation_window,
@@ -306,18 +350,42 @@ draw_character (cairo_t *cr, CharInfo *char_info)
     }
 }
 
+/**
+ * is_delete_char:
+ * @ch: Key value to test.
+ *
+ * Determines if the key represents a delete/backspace.
+ *
+ * Returns: TRUE if the key is Backspace or Delete, FALSE otherwise.
+ **/
 static gboolean
 is_delete_char (int ch)
 {
   return (ch == GDK_KEY_BackSpace) || (ch == GDK_KEY_Delete);
 }
 
+/**
+ * is_tab_char:
+ * @ch: Key value to test.
+ *
+ * Determines if the key represents a tab.
+ *
+ * Returns: TRUE if the key is Tab, FALSE otherwise.
+ **/
 static gboolean
 is_tab_char (int ch)
 {
   return ch == GDK_KEY_Tab;
 }
 
+/**
+ * is_return_char:
+ * @ch: Key value to test.
+ *
+ * Determines if the key represents a return/enter key.
+ *
+ * Returns: TRUE if the key is Return, ISO_Enter, or KP_Enter, FALSE otherwise.
+ **/
 static gboolean
 is_return_char (int ch)
 {
@@ -326,6 +394,13 @@ is_return_char (int ch)
          (ch == GDK_KEY_KP_Enter);
 }
 
+/**
+ * assign_text_properties:
+ * @char_info: Character structure to populate.
+ *
+ * Assigns properties to a CharInfo object based on the current text
+ * data and annotation settings (position, font, color, pen width, etc.).
+ **/
 static void
 assign_text_properties (CharInfo *char_info)
 {
@@ -340,32 +415,35 @@ assign_text_properties (CharInfo *char_info)
   if (annotation_data->font == NULL)
     {
       char_info->pango_font_description = NULL;
-      char_info->font_family = g_strdup (text_config->fontfamily);
-      char_info->font_size = 32;
+      char_info->font_family            = g_strdup (text_config->fontfamily);
+      char_info->font_size              = 32;
     }
   else
     {
       char_info->pango_font_description = annotation_data->font;
+
       char_info->font_family = g_strdup_printf (
-        "%s", pango_font_description_get_family (annotation_data->font));
+          "%s", pango_font_description_get_family (annotation_data->font));
+
       char_info->font_size =
-        pango_font_description_get_size (annotation_data->font) / PANGO_SCALE;
+          pango_font_description_get_size (annotation_data->font) / PANGO_SCALE;
     }
 }
 
-/*
- * Deletes the last character by clearing its exact stroked bounding box.
- * This seems a robust method that avoids both anti-aliasing
- * artifacts and overlapping with adjacent characters.
- */
+/**
+ * delete_character:
+ *
+ * Deletes the last character in the text, clearing its stroked
+ * bounding box and updating cursor position. Frees memory associated
+ * with the deleted character.
+ **/
 static void
 delete_character (void)
 {
   if (! text_data->cr)
     return;
 
-  CharInfo *char_info =
-      (CharInfo *) g_slist_nth_data (text_data->letterlist, 0);
+  CharInfo *char_info = (CharInfo *) text_data->letterlist->data;
   if (! char_info)
     return;
 
@@ -449,12 +527,22 @@ delete_character (void)
   text_data->letterlist = g_slist_remove (text_data->letterlist, char_info);
 }
 
+/**
+ * handle_delete_char:
+ *
+ * Helper function to delete the last character.
+ **/
 static void
 handle_delete_char (void)
 {
   delete_character (); // undo the last character inserted
 }
 
+/**
+ * handle_return_char:
+ *
+ * Handles inserting a newline character and updating cursor position.
+ **/
 static void
 handle_return_char (void)
 {
@@ -470,6 +558,11 @@ handle_return_char (void)
   text_data->pos->y += text_data->max_font_height + 5; /* 5px line spacing */
 }
 
+/**
+ * handle_tab_char:
+ *
+ * Handles inserting a tab character and moving the cursor by the tab size.
+ **/
 static void
 handle_tab_char (void)
 {
@@ -483,6 +576,13 @@ handle_tab_char (void)
   text_data->pos->x += text_config->tabsize;
 }
 
+/**
+ * handle_printable_char:
+ * @ch: The printable character to insert.
+ *
+ * Handles inserting a printable character, drawing it on the canvas,
+ * and advancing the cursor appropriately.
+ **/
 static void
 handle_printable_char (char ch)
 {

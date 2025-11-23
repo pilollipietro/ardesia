@@ -24,7 +24,14 @@
 #include "share_confirmation_dialog.h"
 #include "utils.h"
 
-/* Shot when the ok button in share dialog is pushed. */
+/**
+ * on_share_ok_button_clicked:
+ * @button: The "OK" button in the share dialog that was clicked.
+ * @data: Pointer to user data (not used).
+ *
+ * Sends the selected artifacts via email when the user confirms the
+ * share action.
+ */
 G_MODULE_EXPORT void
 on_share_ok_button_clicked (GtkButton *buton, gpointer data)
 {
@@ -32,7 +39,13 @@ on_share_ok_button_clicked (GtkButton *buton, gpointer data)
   send_artifacts_with_email (artifact_list);
 }
 
-/* Shot when the ok button in preference dialog is pushed. */
+/**
+ * on_share_cancel_button_clicked:
+ * @button: The "Cancel" button in the share dialog that was clicked.
+ * @data: Pointer to user data (not used).
+ *
+ * Handles the cancel action in the share dialog. No action is performed.
+ */
 G_MODULE_EXPORT void
 on_share_cancel_button_clicked (GtkButton *buton, gpointer data)
 {

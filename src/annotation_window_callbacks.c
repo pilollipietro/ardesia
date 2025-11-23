@@ -35,7 +35,20 @@
 #include "text_window_callbacks.h"
 #include "utils.h"
 
-/* On configure event. */
+/**
+ * on_configure:
+ * @widget: The annotation window widget.
+ * @event: The configure/expose event.
+ * @user_data: Pointer to the #AnnotateData application state.
+ *
+ * Handles configure events for the annotation window.
+ *
+ * When the window is grabbed, this callback resizes and updates the
+ * annotation surfaces depending on the current UI state
+ * (background, annotations or text editor visibility).
+ *
+ * Returns: %TRUE if the event was handled, %FALSE otherwise.
+ */
 G_MODULE_EXPORT gboolean
 on_configure (GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
 {
@@ -124,7 +137,16 @@ on_keyrelease (GtkWidget *widget, GdkEvent *event, gpointer user_data)
   return FALSE;
 }
 
-/** When the window changes z-order or state */
+/**
+ * on_window_state_event:
+ * @widget: The #GtkWidget that received the event.
+ * @event: The #GdkEvent containing the window state change.
+ * @user_data: User-defined data pointer (unused).
+ *
+ * Handles window state changes.
+ *
+ * Returns: %FALSE to propagate the event further.
+ */
 G_MODULE_EXPORT gboolean
 on_window_state_event (GtkWidget *widget, GdkEvent *event, gpointer user_data)
 {
@@ -191,8 +213,11 @@ on_expose (GtkWidget *widget, cairo_t *cr, gpointer user_data)
   clear_cairo_context (cr); // blank the current window for repainting
 
   gint ann_width = 0, ann_height = 0, ann_x = 0, ann_y = 0;
+
   gtk_window_get_position (GTK_WINDOW (annotation_data->annotation_window),
-                           &ann_x, &ann_y);
+                           &ann_x,
+                           &ann_y);
+
   gtk_window_get_size (GTK_WINDOW (annotation_data->annotation_window),
                        &ann_width, &ann_height);
   cairo_rectangle (cr, ann_x, ann_y, ann_width, ann_height);
@@ -200,7 +225,7 @@ on_expose (GtkWidget *widget, cairo_t *cr, gpointer user_data)
 
   if (background_data->preview_cr != NULL)
     {
-        draw_cairo_context (cr, background_data->preview_cr, use_paint);
+      draw_cairo_context (cr, background_data->preview_cr, use_paint);
     }
   else if (annotation_data->is_background_visible)
     {
@@ -214,9 +239,10 @@ on_expose (GtkWidget *widget, cairo_t *cr, gpointer user_data)
   if (annotation_data->is_annotation_visible)
     {
       g_debug ("annotation_window_callbacks\n");
+
       /* Draw annotation layer on context cr. */
       initialize_annotation_cairo_context (annotation_data);
-      restore_background ();
+
       draw_cairo_context (cr,
                           annotation_data->annotation_cairo_context,
                           use_paint);
@@ -231,15 +257,11 @@ on_expose (GtkWidget *widget, cairo_t *cr, gpointer user_data)
         }
     }
 
-  /* Draw clapperboard on top of everything else. */
-  if (annotation_data->is_clapperboard_visible)
+  if (annotation_data->clapperboard_cairo_context)
     {
-      if (annotation_data->clapperboard_cairo_context)
-        {
-          draw_cairo_context (cr,
-                              annotation_data->clapperboard_cairo_context,
-                              use_paint);
-        }
+      draw_cairo_context (cr,
+                          annotation_data->clapperboard_cairo_context,
+                          use_paint);
     }
 
   return TRUE;
@@ -314,7 +336,21 @@ on_button_release (GtkWidget *win, GdkEventButton *ev, gpointer user_data)
   return retval;
 }
 
-/* This shots when the pointer is moving. */
+/**
+ * on_motion_notify:
+ * @win: The #GtkWidget that received the motion-notify-event.
+ * @ev: The #GdkEventMotion containing pointer movement data.
+ * @user_data: A pointer to the main #AnnotateData struct.
+ *
+ * Handles the "motion-notify-event" signal on the annotation window.
+ *
+ * This callback is triggered whenever the pointer moves inside the window.
+ * If the annotation layer is visible and the text editor is not active,
+ * it forwards the event to annotation_window_mouse_move() to update
+ * drawing or cursor feedback.
+ *
+ * Returns: %TRUE if the event was handled, %FALSE otherwise.
+ */
 G_MODULE_EXPORT gboolean
 on_motion_notify (GtkWidget *win, GdkEventMotion *ev, gpointer user_data)
 {

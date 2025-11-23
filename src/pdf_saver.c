@@ -35,7 +35,16 @@
 /* internal structure allocated once. */
 static PdfData *pdf_data;
 
-/* Start the dialog that ask the file name where is being exported the pdf. */
+/**
+ * start_save_pdf_dialog:
+ * @parent: The parent #GtkWindow for the file chooser dialog.
+ * @pixbuf: A #GdkPixbuf to show as preview in the file chooser.
+ *
+ * Displays a GTK file chooser dialog to select the filename for saving
+ * a PDF. Provides a small preview of the @pixbuf image and enforces
+ * the ".pdf" extension. Returns TRUE if a valid filename was chosen,
+ * FALSE otherwise.
+ **/
 static gboolean
 start_save_pdf_dialog (GtkWindow *parent, GdkPixbuf *pixbuf)
 {
@@ -124,7 +133,15 @@ start_save_pdf_dialog (GtkWindow *parent, GdkPixbuf *pixbuf)
   return ret;
 }
 
-/* Initialize the pdf saver. */
+/**
+ * init_pdf_saver:
+ * @parent: The parent #GtkWindow for any dialogs.
+ * @pixbuf: A #GdkPixbuf to show as preview in the file chooser.
+ *
+ * Initializes the PDF saving system, allocates the #PdfData structure,
+ * and prompts the user to select a filename. Returns TRUE if the initialization
+ * and filename selection succeed, FALSE otherwise.
+ **/
 static gboolean
 init_pdf_saver (GtkWindow *parent, GdkPixbuf *pixbuf)
 {
@@ -149,7 +166,13 @@ init_pdf_saver (GtkWindow *parent, GdkPixbuf *pixbuf)
   return TRUE;
 }
 
-/* Save the surfaces in the pdf file. */
+/**
+ * pdf_save:
+ *
+ * Saves all pages currently stored in #pdf_data->input_filelist to the
+ * PDF file specified in #pdf_data->filename. This function creates a
+ * Cairo PDF surface and paints each page onto it in order.
+ **/
 static void
 pdf_save (void)
 {
@@ -158,20 +181,17 @@ pdf_save (void)
   int        height = gtk_widget_get_allocated_height (annotation_window);
 
   /* create the cairo surface for pdf */
-  cairo_surface_t *pdf_surface = cairo_pdf_surface_create (pdf_data->filename,
-                                                           width,
-                                                           height);
+  cairo_surface_t *pdf_surface =
+    cairo_pdf_surface_create (pdf_data->filename, width, height);
+
   cairo_t *pdf_cr = cairo_create (pdf_surface);
 
-  gint lenght = g_slist_length (pdf_data->input_filelist);
+  /* Reverse the list so we can iterate in forward order */
+  GSList *reversed = g_slist_reverse (g_slist_copy (pdf_data->input_filelist));
 
-  gint i;
-
-  for (i = lenght - 1; i >= 0; i--)
+  for (GSList *node = reversed; node != NULL; node = node->next)
     {
-      gchar *current_filename;
-      current_filename  =
-         (gchar *) g_slist_nth_data (pdf_data->input_filelist, i);
+      gchar *current_filename = (gchar *) node->data;
 
       /* Load the file name content. */
       GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file (current_filename, NULL);
@@ -181,13 +201,19 @@ pdf_save (void)
       g_object_unref (pixbuf);
     }
 
+  g_slist_free (reversed);
+
   cairo_surface_flush (pdf_surface);
-  /* destroy */
   cairo_surface_destroy (pdf_surface);
   cairo_destroy (pdf_cr);
 }
 
-/* Wait if there is a pending thread. */
+/**
+ * wait_for_pdf_save_pending_thread:
+ *
+ * Waits for any active PDF saving thread to complete and sets
+ * #pdf_data->thread to NULL once finished.
+ **/
 static void
 wait_for_pdf_save_pending_thread (void)
 {
@@ -198,6 +224,15 @@ wait_for_pdf_save_pending_thread (void)
     }
 }
 
+/**
+ * add_pdf_page_callback:
+ * @pixbuf: A #GdkPixbuf representing the screenshot to add.
+ *
+ * Handles adding a single page to the PDF document. Captures the
+ * annotation window content, saves it as a temporary PNG, and appends
+ * it to the list of pages for later PDF creation. Starts the PDF saving
+ * thread if necessary.
+ **/
 void
 add_pdf_page_callback (GdkPixbuf *pixbuf)
 {
@@ -294,8 +329,7 @@ quit_pdf_saver (void)
       while (pdf_data->input_filelist)
         {
           gchar *filename;
-          filename = (gchar *) g_slist_nth_data (pdf_data->input_filelist,
-                                                 0);
+          filename = (gchar *) pdf_data->input_filelist->data;
           if (filename)
             {
               g_remove (filename);

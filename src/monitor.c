@@ -27,6 +27,16 @@ const guint DRAW_ON_MONITOR     = 0;
 const guint DRAW_ON_CLIPAREA    = 1;
 const guint DRAW_ON_FULLDESKTOP = 2;
 
+/**
+ * is_to_left_of:
+ * @a: Pointer to the first Monitor.
+ * @b: Pointer to the second Monitor.
+ * @data: User data (unused).
+ *
+ * Comparison function for sorting monitors by their X coordinate.
+ *
+ * Returns: -1 if monitor A is to the left of monitor B, 1 otherwise.
+ */
 int
 is_to_left_of (gconstpointer a, gconstpointer b, gpointer data)
 {
@@ -42,6 +52,15 @@ is_to_left_of (gconstpointer a, gconstpointer b, gpointer data)
     }
 }
 
+/**
+ * copy_monitor_struct:
+ * @m: Pointer to a Monitor struct.
+ *
+ * Creates a deep copy of the given Monitor struct, including its geometry.
+ *
+ * Returns: a newly allocated Monitor pointer. The caller is responsible
+ *          for freeing it with destroy_monitor_struct().
+ */
 Monitor *
 copy_monitor_struct (Monitor *m)
 {
@@ -57,6 +76,12 @@ copy_monitor_struct (Monitor *m)
   return new_m;
 }
 
+/**
+ * destroy_monitor_struct:
+ * @data: Pointer to a Monitor struct.
+ *
+ * Frees a Monitor struct and its associated geometry.
+ */
 void
 destroy_monitor_struct (gpointer data)
 {
@@ -70,6 +95,13 @@ destroy_monitor_struct (gpointer data)
   m = NULL;
 }
 
+/**
+ * debug_monitor_struct:
+ * @data: Pointer to a Monitor struct.
+ * @userdata: User data (unused).
+ *
+ * Prints debug information for a single Monitor struct.
+ */
 void
 debug_monitor_struct (gpointer data, gpointer userdata)
 {

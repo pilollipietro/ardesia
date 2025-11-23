@@ -43,7 +43,17 @@
 #include "text_window.h"
 #include "utils.h"
 
-/* Windows state event: this occurs when the windows state changes. */
+/**
+ * on_bar_window_state_event:
+ * @widget: The GTK widget (bar window) that received the event.
+ * @event: The GDK window state event.
+ * @func_data: Pointer to BarData structure.
+ *
+ * Handles window state changes for the bar (e.g., minimized/restore).
+ * If the bar is iconified, releases the annotation lock.
+ *
+ * Returns: TRUE to stop further handling.
+ */
 G_MODULE_EXPORT gboolean
 on_bar_window_state_event (GtkWidget *widget,
                            GdkEventWindowState *event,
@@ -63,6 +73,16 @@ on_bar_window_state_event (GtkWidget *widget,
   return TRUE;
 }
 
+/**
+ * on_bar_draw_event:
+ * @widget: The GTK widget that requested redraw.
+ * @cr: The Cairo context for drawing.
+ * @user_data: Pointer to user data (BarData).
+ *
+ * Called when the bar needs to be redrawn.
+ *
+ * Returns: FALSE to propagate further drawing handling.
+ */
 G_MODULE_EXPORT gboolean
 on_bar_draw_event (GtkWidget *widget, cairo_t *cr, gpointer user_data)
 {
@@ -70,14 +90,29 @@ on_bar_draw_event (GtkWidget *widget, cairo_t *cr, gpointer user_data)
   return FALSE;
 }
 
+/**
+ * on_bar_hide_event:
+ * @widget: The GTK widget being hidden.
+ * @user_data: Pointer to user data (BarData).
+ *
+ * Triggered when the bar window is hidden.
+ */
 void
 on_bar_hide_event (GtkWidget *widget, gpointer user_data)
 {
   g_debug ("bar hide event\n");
 }
 
-/* Configure events occurs.
- * Called at very start and selected defaults
+/**
+ * on_bar_configure_event:
+ * @widget: The GTK widget being configured.
+ * @event: The configure event.
+ * @func_data: Pointer to BarData.
+ *
+ * Called when the bar window is first configured or resized.
+ * Sets default options and starts the currently active tool.
+ *
+ * Returns: TRUE to stop further event propagation.
  */
 G_MODULE_EXPORT gboolean
 on_bar_configure_event (GtkWidget *widget, GdkEvent *event, gpointer func_data)
@@ -91,7 +126,16 @@ on_bar_configure_event (GtkWidget *widget, GdkEvent *event, gpointer func_data)
   return TRUE;
 }
 
-/* Called when push the quit button or the window close action */
+/**
+ * on_bar_quit:
+ * @toolbutton: The quit tool button.
+ * @func_data: Pointer to BarData.
+ *
+ * Handles the quit action. Stops recording, releases grabs,
+ * exports IWB/PDF files, cleans up annotation data, and exits GTK main loop.
+ *
+ * Returns: FALSE.
+ */
 G_MODULE_EXPORT gboolean
 on_bar_quit (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -127,7 +171,15 @@ on_bar_quit (GtkToolButton *toolbutton, gpointer func_data)
   return FALSE;
 }
 
-/* Called when push the info button. */
+/**
+ * on_bar_info:
+ * @toolbutton: The info tool button.
+ * @func_data: Pointer to BarData.
+ *
+ * Opens the info dialog window while temporarily releasing the annotation grab.
+ *
+ * Returns: TRUE.
+ */
 G_MODULE_EXPORT gboolean
 on_bar_info (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -146,18 +198,17 @@ on_bar_info (GtkToolButton *toolbutton, gpointer func_data)
   return TRUE;
 }
 
-/* Called when leave the window. */
-G_MODULE_EXPORT gboolean
-on_bar_leave_notify_event (GtkWidget *widget,
-                           GdkEvent *event,
-                           gpointer func_data)
-{
-  BarData *bar_data = (BarData *) func_data;
-  start_tool (bar_data);
-  return TRUE;
-}
-
-/* Called when enter the window. */
+/**
+ * on_bar_enter_notify_event:
+ * @widget: The GTK widget for leave events.
+ * @event: The GDK event data.
+ * @func_data: Pointer to BarData.
+ *
+ * Handle mouse entering the bar window. Starts the active tool
+ * or stops text editing if appropriate.
+ *
+ * Returns: TRUE.
+ */
 G_MODULE_EXPORT gboolean
 on_bar_enter_notify_event (GtkWidget *widget,
                            GdkEvent *event,
@@ -171,7 +222,40 @@ on_bar_enter_notify_event (GtkWidget *widget,
   return TRUE;
 }
 
-/* Push pointer button. */
+/**
+ * on_bar_leave_notify_event:
+ * @widget: The GTK widget for enter events.
+ * @event: The GDK event data.
+ * @func_data: Pointer to BarData.
+ *
+ * Handle mouse leaving the bar window. Starts the active tool
+ * or stops text editing if appropriate.
+ *
+ * Returns: TRUE.
+ */
+G_MODULE_EXPORT gboolean
+on_bar_leave_notify_event (GtkWidget *widget,
+                           GdkEvent *event,
+                           gpointer func_data)
+{
+  BarData *bar_data = (BarData *) func_data;
+  start_tool (bar_data);
+  return TRUE;
+}
+
+/**
+ * on_bar_pointer_activate:
+ * @toolbutton: The tool button clicked.
+ * @func_data: Pointer to BarData.
+ *
+ * Activate the corresponding annotation tool (pointer, text, pen mode,
+ * thickness, arrow, pencil, highlighter, filler, eraser, screenshot,
+ * PDF page add, show/hide, recorder, fonts, preferences, undo/redo,
+ * clear, color selector, predefined colors).
+ *
+ * Each function updates BarData, manages annotation grab, updates icons,
+ * and triggers necessary drawing or dialogs.
+ */
 G_MODULE_EXPORT void
 on_bar_pointer_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -179,7 +263,13 @@ on_bar_pointer_activate (GtkToolButton *toolbutton, gpointer func_data)
   release_lock (bar_data);
 }
 
-/* Push text button. */
+/**
+ * on_bar_text_activate:
+ * @toolbutton: The text tool button clicked.
+ * @func_data: Pointer to BarData.
+ *
+ * Activates the text annotation tool and locks the annotation context.
+ */
 G_MODULE_EXPORT void
 on_bar_text_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -188,7 +278,13 @@ on_bar_text_activate (GtkToolButton *toolbutton, gpointer func_data)
   g_debug ("Text tool selected");
 }
 
-/* Push mode button. */
+/**
+ * on_bar_mode_activate:
+ * @toolbutton: The mode tool button clicked.
+ * @func_data: Pointer to BarData.
+ *
+ * Switches the bar to pen mode and updates the tool settings accordingly.
+ */
 G_MODULE_EXPORT void
 on_bar_mode_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -197,7 +293,14 @@ on_bar_mode_activate (GtkToolButton *toolbutton, gpointer func_data)
   setup_bar_mode (toolbutton, bar_data);
 }
 
-/* Push thickness button. */
+/**
+ * on_bar_thick_activate:
+ * @toolbutton: The thickness tool button clicked.
+ * @func_data: Pointer to BarData.
+ *
+ * Cycles through brush thicknesses (micro, thin, medium, thick) and updates
+ * the icon on the tool button.
+ */
 G_MODULE_EXPORT void
 on_bar_thick_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -233,7 +336,13 @@ on_bar_thick_activate (GtkToolButton *toolbutton, gpointer func_data)
     }
 }
 
-/* Push arrow button. */
+/**
+ * on_bar_arrow_activate:
+ * @toolbutton: The arrow tool button clicked.
+ * @func_data: Pointer to BarData.
+ *
+ * Activates the arrow annotation tool and sets its color to the current color.
+ */
 G_MODULE_EXPORT void
 on_bar_arrow_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -245,7 +354,13 @@ on_bar_arrow_activate (GtkToolButton *toolbutton, gpointer func_data)
   g_debug ("Arrow tool selected");
 }
 
-/* Push pencil button. */
+/**
+ * on_bar_pencil_activate:
+ * @toolbutton: The pencil tool button clicked.
+ * @func_data: Pointer to BarData.
+ *
+ * Activates the pencil annotation tool and sets its color to the current color.
+ */
 G_MODULE_EXPORT void
 on_bar_pencil_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -257,7 +372,14 @@ on_bar_pencil_activate (GtkToolButton *toolbutton, gpointer func_data)
   g_debug ("Pencil tool selected");
 }
 
-/* Push highlighter button. */
+/**
+ * on_bar_highlighter_activate:
+ * @toolbutton: The highlighter tool button clicked.
+ * @func_data: Pointer to BarData.
+ *
+ * Activates the highlighter annotation tool and sets its color to the
+ * current color.
+ */
 G_MODULE_EXPORT void
 on_bar_highlighter_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -269,7 +391,13 @@ on_bar_highlighter_activate (GtkToolButton *toolbutton, gpointer func_data)
   g_debug ("Highlighter tool selected");
 }
 
-/* Push filler button. */
+/**
+ * on_bar_filler_activate:
+ * @toolbutton: The filler tool button clicked.
+ * @func_data: Pointer to BarData.
+ *
+ * Activates the filler annotation tool.
+ */
 G_MODULE_EXPORT void
 on_bar_filler_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -279,7 +407,13 @@ on_bar_filler_activate (GtkToolButton *toolbutton, gpointer func_data)
   g_debug ("Filler tool selected");
 }
 
-/* Push eraser button. */
+/**
+ * on_bar_eraser_activate:
+ * @toolbutton: The eraser tool button clicked.
+ * @func_data: Pointer to BarData.
+ *
+ * Activates the eraser annotation tool.
+ */
 G_MODULE_EXPORT void
 on_bar_eraser_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -289,7 +423,14 @@ on_bar_eraser_activate (GtkToolButton *toolbutton, gpointer func_data)
   g_debug ("Eraser tool selected");
 }
 
-/* Push save (screen-shoot) button. */
+/**
+ * on_bar_screenshot_activate:
+ * @toolbutton: The screenshot tool button clicked.
+ * @func_data: Pointer to BarData.
+ *
+ * Captures a screenshot of the annotation window. Temporarily releases grab
+ * and restores it afterward.
+ */
 G_MODULE_EXPORT void
 on_bar_screenshot_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -306,7 +447,13 @@ on_bar_screenshot_activate (GtkToolButton *toolbutton, gpointer func_data)
   start_tool (bar_data);
 }
 
-/* Add page to pdf. */
+/**
+ * on_bar_add_pdf_activate:
+ * @toolbutton: The add PDF tool button clicked.
+ * @func_data: Pointer to BarData.
+ *
+ * Adds the current annotation content as a page to the PDF.
+ */
 G_MODULE_EXPORT void
 on_bar_add_pdf_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -323,8 +470,13 @@ on_bar_add_pdf_activate (GtkToolButton *toolbutton, gpointer func_data)
   start_tool (bar_data);
 }
 
-/*
- * Hide state event: this occurs when the show/hide widget event happens
+/**
+ * on_bar_showhide_activate:
+ * @toolButton: The show/hide annotations button clicked.
+ * @func_data: Pointer to BarData.
+ *
+ * Toggles the visibility of annotations. Saves a snapshot when hiding,
+ * restores it when showing, and updates the icon and tooltip accordingly.
  */
 G_MODULE_EXPORT void
 on_bar_showhide_activate (GtkToolButton *toolButton, gpointer func_data)
@@ -408,7 +560,13 @@ on_bar_showhide_activate (GtkToolButton *toolButton, gpointer func_data)
     }
 }
 
-/* Push recorder button. */
+/**
+ * on_bar_recorder_activate:
+ * @toolbutton: The recorder tool button clicked.
+ * @func_data: Pointer to BarData.
+ *
+ * Shows or creates the recording studio window for video/screen recording.
+ */
 G_MODULE_EXPORT void
 on_bar_recorder_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -472,7 +630,13 @@ on_bar_recorder_activate (GtkToolButton *toolbutton, gpointer func_data)
     }
 }
 
-/* Push fonts button. */
+/**
+ * on_bar_fonts_clicked:
+ * @toolbutton: The fonts tool button clicked.
+ * @func_data: Pointer to BarData.
+ *
+ * Opens the font selector dialog.
+ */
 G_MODULE_EXPORT void
 on_bar_fonts_clicked (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -480,7 +644,14 @@ on_bar_fonts_clicked (GtkToolButton *toolbutton, gpointer func_data)
   show_font_selector_window ();
 }
 
-/* Push preference button. */
+/**
+ * on_bar_preferences_activate:
+ * @toolbutton: The preferences tool button clicked.
+ * @func_data: Pointer to BarData.
+ *
+ * Opens the bar preference window or shows the background selection window
+ * if already created.
+ */
 G_MODULE_EXPORT void
 on_bar_preferences_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -494,21 +665,39 @@ on_bar_preferences_activate (GtkToolButton *toolbutton, gpointer func_data)
     }
 }
 
-/* Push undo button. */
+/**
+ * on_bar_undo_activate:
+ * @toolbutton: The undo tool button clicked.
+ * @func_data: Pointer to BarData.
+ *
+ * Undoes the last annotation action.
+ */
 G_MODULE_EXPORT void
 on_bar_undo_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
   annotate_undo ();
 }
 
-/* Push redo button. */
+/**
+ * on_bar_redo_activate:
+ * @toolbutton: The redo tool button clicked.
+ * @func_data: Pointer to BarData.
+ *
+ * Redoes the last undone annotation action.
+ */
 G_MODULE_EXPORT void
 on_bar_redo_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
   annotate_redo ();
 }
 
-/* Push clear button. */
+/**
+ * on_bar_clear_activate:
+ * @toolbutton: The clear tool button clicked.
+ * @func_data: Pointer to BarData.
+ *
+ * Clears the annotation screen and adds a savepoint for undo/redo.
+ */
 G_MODULE_EXPORT void
 on_bar_clear_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -517,7 +706,14 @@ on_bar_clear_activate (GtkToolButton *toolbutton, gpointer func_data)
   annotate_add_savepoint ();
 }
 
-/* Push color selector button. */
+/**
+ * on_bar_color_activate:
+ * @toolbutton: The color selector toggle tool button clicked.
+ * @func_data: Pointer to BarData.
+ *
+ * Opens the color selector dialog, updates the annotation color if a valid
+ * color is chosen, and restores the previous grab state.
+ */
 G_MODULE_EXPORT void
 on_bar_color_activate (GtkToggleToolButton *toolbutton, gpointer func_data)
 {
@@ -550,7 +746,13 @@ on_bar_color_activate (GtkToggleToolButton *toolbutton, gpointer func_data)
   start_tool (bar_data);
 }
 
-/* Push blue color button. */
+/**
+ * on_bar_blue_activate:
+ * @toolbutton: The blue color tool button clicked.
+ * @func_data: Pointer to BarData.
+ *
+ * Sets the annotation color to blue.
+ */
 G_MODULE_EXPORT void
 on_bar_blue_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -560,7 +762,13 @@ on_bar_blue_activate (GtkToolButton *toolbutton, gpointer func_data)
   g_free (color);
 }
 
-/* Push red color button. */
+/**
+ * on_bar_red_activate:
+ * @toolbutton: The red color tool button clicked.
+ * @func_data: Pointer to BarData.
+ *
+ * Sets the annotation color to red.
+ */
 G_MODULE_EXPORT void
 on_bar_red_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -570,7 +778,13 @@ on_bar_red_activate (GtkToolButton *toolbutton, gpointer func_data)
   g_free (color);
 }
 
-/* Push green color button. */
+/**
+ * on_bar_green_activate:
+ * @toolbutton: The green color tool button clicked.
+ * @func_data: Pointer to BarData.
+ *
+ * Sets the annotation color to green.
+ */
 G_MODULE_EXPORT void
 on_bar_green_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -580,7 +794,13 @@ on_bar_green_activate (GtkToolButton *toolbutton, gpointer func_data)
   g_free (color);
 }
 
-/* Push yellow color button. */
+/**
+ * on_bar_yellow_activate:
+ * @toolbutton: The yellow color tool button clicked.
+ * @func_data: Pointer to BarData.
+ *
+ * Sets the annotation color to yellow.
+ */
 G_MODULE_EXPORT void
 on_bar_yellow_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
@@ -590,7 +810,13 @@ on_bar_yellow_activate (GtkToolButton *toolbutton, gpointer func_data)
   g_free (color);
 }
 
-/* Push white color button. */
+/**
+ * on_bar_white_activate:
+ * @toolbutton: The white color tool button clicked.
+ * @func_data: Pointer to BarData.
+ *
+ * Sets the annotation color to white.
+ */
 G_MODULE_EXPORT void
 on_bar_white_activate (GtkToolButton *toolbutton, gpointer func_data)
 {

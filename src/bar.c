@@ -175,12 +175,8 @@ init_bar_data (void)
   bar_data->screenshot_saved_location_y = -1;
   bar_data->snapshot_surface            = NULL;
   bar_data->color                       = NULL;
-  /* default to yellow highlighter */
   activate_tool_button ("buttonHighlighter");
   activate_tool_button ("buttonYellow");
-  // gchar *color = g_strdup ("FFFF0088");
-  // set_color (bar_data, color);
-  // g_free (color);
   return bar_data;
 }
 
@@ -293,11 +289,9 @@ update_thickness_in_bar (gchar *thickness)
 void
 set_icon (GtkToolButton *toolbutton, gchar *icon_id)
 {
-  GObject *obj = gtk_builder_get_object (bar_gtk_builder,
-                                         icon_id);
+  GObject *obj = gtk_builder_get_object (bar_gtk_builder, icon_id);
 
-  gtk_tool_button_set_icon_widget (toolbutton,
-                                   GTK_WIDGET (obj));
+  gtk_tool_button_set_icon_widget (toolbutton, GTK_WIDGET (obj));
 }
 
 /*
@@ -383,9 +377,14 @@ setup_bar_mode (GtkToolButton *toolbutton, BarData *bar_data)
     }
 }
 
-/*
- * Sets the rounder or rectifier icon on the buttonMode GtkToolButton
- * depending in bar_data settings.
+/**
+ * update_modifiers_in_bar:
+ * @bar_data: (in): The #BarData struct containing the current modifier flags.
+ *
+ * Updates the icon on the "buttonMode" GtkToolButton according to the
+ * modifier flags (`rectifier` and `rounder`) in @bar_data. If the
+ * `rectifier` flag is set, the button shows the rectifier icon; if the
+ * `rounder` flag is set, the button shows the rounder icon.
  */
 static void
 update_modifiers_in_bar (BarData *bar_data)
@@ -683,6 +682,7 @@ is_toggle_tool_button_active (gchar *toggle_tool_button_name)
 {
   GObject *g_object = gtk_builder_get_object (bar_gtk_builder,
                                               toggle_tool_button_name);
+
   GtkToggleToolButton *toggle_tool_button = GTK_TOGGLE_TOOL_BUTTON (g_object);
   return gtk_toggle_tool_button_get_active (toggle_tool_button);
 }
@@ -845,6 +845,7 @@ take_pen_tool (void)
     {
       GObject            *eraser_obj = gtk_builder_get_object (bar_gtk_builder,
                                                                "buttonEraser");
+
       GtkToggleToolButton *eraser_tool_button = NULL;
       eraser_tool_button = GTK_TOGGLE_TOOL_BUTTON (eraser_obj);
       gtk_toggle_tool_button_set_active (eraser_tool_button, FALSE);
@@ -863,16 +864,15 @@ take_pen_tool (void)
 
   if (is_filler_toggle_tool_button_active ())
     {
-      gchar *alpha_str = annotation_data->color + 6;
-      gint alpha_value = 0;
+      gchar *alpha_str   = annotation_data->color + 6;
+      gint   alpha_value = 0;
       sscanf (alpha_str, "%02X", &alpha_value);
-      
-      g_printerr ("alpha_value %d", alpha_value);
+
       if (alpha_value <= atoi (SEMI_OPAQUE_ALPHA))
         {
           pencil_obj = gtk_builder_get_object (bar_gtk_builder,
                                                "buttonHighlighter");
-                                               
+
           pencil_tool_button = GTK_TOGGLE_TOOL_BUTTON (pencil_obj);
         }
 
@@ -1085,50 +1085,4 @@ start_tool (BarData *bar_data)
           set_options (bar_data);
         }
     }
-}
-
-/**
- * end_clapperboard_countdown:
- * @user_data: (unused): Data passed from the timeout source.
- *
- * A timeout callback executed after the clapperboard countdown finishes.
- *
- * It hides the clapperboard overlay and re-activates the previously
- * selected tool to return the application to its prior drawing state.
- *
- * Returns: %G_SOURCE_REMOVE to ensure the timeout is not called again.
- **/
-gboolean
-end_clapperboad_countdown (gpointer user_data)
-{
-  g_debug ("END on_clapperboard_click");
-  gboolean grab_value = bar_data->grab;
-  bar_data->grab      = FALSE;
-  annotate_release_grab ();
-
-  /*
-   * Ideally we want to go back to our background
-   * settings that we had before.
-   */
-  annotation_data->is_clapperboard_visible = FALSE;
-
-  /* Make the screen black and then go back to what it was before. */
-  bar_data->grab = grab_value;
-  start_tool (bar_data);
-  gtk_widget_queue_draw (annotation_data->annotation_window);
-  return FALSE;
-}
-
-/**
- * begin_clapperboard_countdown:
- *
- * Starts a one-shot timer that triggers the end of the clapperboard sequence.
- *
- * It schedules the end_clapperboard_countdown() function to be called
- * after a predefined timeout.
- */
-void
-begin_clapperboard_countdown (void)
-{
-  timer = g_timeout_add (BAR_TO_TOP_TIMEOUT, end_clapperboad_countdown, NULL);
 }

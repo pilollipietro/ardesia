@@ -28,7 +28,18 @@
 #include "crash_dialog.h"
 #include "utils.h"
 
-/* Create a new crash data variable. */
+/**
+ * new_crash_data:
+ * @crash_report: A string containing the crash report details.
+ *
+ * Allocates and initializes a new #CrashData structure.
+ *
+ * The structure contains a GTK builder instance for the crash dialog
+ * and stores the crash report text.
+ *
+ * Returns: (transfer full): A newly allocated #CrashData structure.
+ *          The caller is responsible for freeing it with g_free().
+ */
 static CrashData *
 new_crash_data (gchar *crash_report)
 {
@@ -42,14 +53,21 @@ new_crash_data (gchar *crash_report)
 
 /**
  * start_crash_dialog:
- * @parent: the parent window for the crash dialog
- * @crash_report: textual content describing the crash
+ * @parent: The parent #GtkWindow for modal positioning.
+ * @crash_report: A string containing the crash report details.
  *
- * Opens a modal dialog asking the user whether they want to save their work
- * after a crash has occurred. The dialog is created from a GTK builder file
- * (Glade) and connects all signals automatically.
+ * Opens a modal crash dialog informing the user about an application crash
+ * and optionally allowing them to save their work. The dialog is created
+ * from a GTK builder file (Glade) and all signals are automatically connected.
  *
- * This function blocks until the user responds and then destroys the dialog.
+ * The function blocks until the user interacts with the dialog,
+ * then destroys it.
+ *
+ * Notes:
+ * - The dialog is set as transient and modal relative to @parent.
+ * - The dialog window is kept above other windows while open.
+ * - All signal handlers in the GTK builder XML are automatically connected
+ *   to the CrashData structure.
  **/
 void
 start_crash_dialog (GtkWindow *parent, gchar *crash_report)

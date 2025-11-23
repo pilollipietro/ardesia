@@ -29,7 +29,16 @@
 /* Section name in config file */
 #define ANNOTATION_SECTION "annotation"
 
-/* Convert AnnotatePaintType -> string for config storage. */
+/**
+ * annotate_paint_type_to_string:
+ * @data: The current #AnnotateData structure.
+ *
+ * Convert the currently selected paint context type into a string
+ * suitable for storage in the configuration file.
+ *
+ * Returns: (not nullable) A string representing the current tool
+ *          ("pen", "highlighter", "eraser", "filler", or "pointer").
+ **/
 static const gchar *
 annotate_paint_type_to_string (AnnotateData *data)
 {
@@ -56,10 +65,17 @@ annotate_paint_type_to_string (AnnotateData *data)
     }
 }
 
-/*
- * Convert the thickness in pixels in the corresponding label
- * If unknown, return ANNOTATE_PEN.
- */
+/**
+ * annotate_set_context_from_string:
+ * @data: The #AnnotateData structure to update.
+ * @paint_type: The string representation of a paint tool.
+ *
+ * Converts a string from the configuration file into the corresponding
+ * #AnnotatePaintContext.
+ *
+ * Returns: (nullable) The corresponding #AnnotatePaintContext,
+ *          or %NULL for "pointer". Defaults to pen if unknown.
+ **/
 static AnnotatePaintContext *
 annotate_set_context_from_string (AnnotateData *data, const gchar *paint_type)
 {
@@ -82,19 +98,12 @@ annotate_set_context_from_string (AnnotateData *data, const gchar *paint_type)
 
 /**
  * annotate_thickness_pixel_to_label:
+ * @thickness_pixel: The pen thickness in pixels.
  *
- * Convert a numeric pen thickness in pixels into a human-readable label.
+ * Converts a numeric pen thickness into a human-readable string label.
  *
- * Parameters:
- *   thickness_pixel - the thickness value in pixels
- *
- * Returns:
- *   A string label corresponding to the thickness ("micro", "thin",
- *   "medium", or "thick").
- *
- * Notes:
- *   - Used for saving or displaying thickness in the user interface
- *   or config files.
+ * Returns: (not nullable) A string label:
+ *          "micro", "thin", "medium", or "thick".
  **/
 gchar *
 annotate_thickness_pixel_to_label (gdouble thickness_pixel)
@@ -119,6 +128,15 @@ annotate_thickness_pixel_to_label (gdouble thickness_pixel)
   return "medium";
 }
 
+/**
+ * annotate_thickness_label_to_pixel:
+ * @thickness_label: The string label representing pen thickness.
+ *
+ * Converts a human-readable thickness label into a numeric pixel value.
+ *
+ * Returns: The corresponding thickness in pixels. Defaults to MEDIUM_THICKNESS
+ *          if unknown.
+ **/
 gdouble
 annotate_thickness_label_to_pixel (gchar *thickness_label)
 {
@@ -143,19 +161,16 @@ annotate_thickness_label_to_pixel (gchar *thickness_label)
 
 /**
  * annotation_config_save_state:
+ * @data: The #AnnotateData structure containing the current annotation state.
  *
- * Save the current annotation settings to the user configuration file.
- *
- * This function persists fields such as color, arrow mode, pen thickness,
- * rectify/roundify options, text tool state, and the currently selected tool.
- *
- * Parameters:
- *   data - the current AnnotateData structure containing annotation state
+ * Saves the current annotation settings to the user configuration file.
+ * This includes color, arrow mode, thickness, rectify/roundify options,
+ * text tool state, and the currently selected paint tool.
  *
  * Notes:
- *   - The user configuration file is ensured to exist before saving.
- *   - Thickness and tool type are converted to string representations
- *     for storage.
+ * - The user configuration file is ensured to exist before saving.
+ * - Thickness and tool type are converted to string representations for
+ *   storage.
  **/
 void
 annotation_config_save_state (AnnotateData *data)
@@ -198,25 +213,24 @@ annotation_config_save_state (AnnotateData *data)
 }
 
 /**
- * _config_load_boolean:
- * @key_file:       The GKeyFile to read from.
- * @key:            The key of the boolean value to load.
- * @target_variable: A pointer to the gboolean variable to update.
+ * config_load_boolean:
+ * @key_file: The #GKeyFile to read from.
+ * @key: The key of the boolean value to load.
+ * @target_variable: (out) Pointer to a gboolean variable to update.
  *
- * Safely loads a boolean value from the key file. If the key exists and
- * is a valid boolean, the target_variable is updated. Otherwise, it is
- * left unchanged.
- */
+ * Safely loads a boolean value from a key file. If the key exists and
+ * is valid, updates @target_variable. Otherwise leaves it unchanged.
+ **/
 static void
 config_load_boolean (GKeyFile     *key_file,
                       const gchar  *key,
                       gboolean     *target_variable)
 {
-  GError *error = NULL;
+  GError  *error = NULL;
   gboolean value;
 
   value = g_key_file_get_boolean (key_file, ANNOTATION_SECTION, key, &error);
-  if (!error)
+  if (! error)
     {
       *target_variable = value;
     }
@@ -225,18 +239,20 @@ config_load_boolean (GKeyFile     *key_file,
 
 /**
  * annotation_config_load_state:
- * @data: The AnnotateData structure to populate with loaded settings.
+ * @annotation_data: The #AnnotateData structure to populate with
+ *                   loaded settings.
  *
  * Loads annotation settings from the configuration file.
+ * This includes color, arrow mode, pen thickness, tool selection,
+ * rectify/roundify flags, and text tool state.
  *
- * This function restores fields such as color, arrow mode, pen thickness,
- * and the currently selected tool. Only keys present in the configuration
- * file are applied; missing keys leave the current values in @data
- * unchanged.
- *
- * Note that rectify and roundify are mutually exclusive; if both are set
- * to TRUE in the configuration, roundify will be forced to FALSE.
- */
+ * Notes:
+ * - Only keys present in the configuration file are applied;
+ *   missing keys leave the current values unchanged.
+ * - Rectify and roundify are mutually exclusive; if both are set to TRUE,
+ *   roundify is forced to FALSE.
+ * - Uses #config_load_boolean helper to safely load boolean values.
+ **/
 void
 annotation_config_load_state (AnnotateData *annotation_data)
 {
