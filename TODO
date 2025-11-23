@@ -14,9 +14,6 @@
   - Screencast recorder using a library (ffmpeg or libvlc)
 
 - Candidate features:
-  - Export to image the selected area content
-    as gnome-screenshoot 
-  - Better sketch recognition
   - Import images
   - Make an image gallery (sticky notes...)
   - Deploy the artefact online
