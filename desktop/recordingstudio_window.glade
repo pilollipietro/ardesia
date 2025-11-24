@@ -38,7 +38,7 @@
     <property name="resizable">False</property>
     <property name="destroy_with_parent">True</property>
     <signal name="delete-event" handler="on_recordingstudio_window_delete_event" swapped="no"/>
-    <signal name="destroy-event" handler="on_recordingstudio_window_destroy_event" swapped="no"/>
+    <signal name="destroy" handler="on_recordingstudio_window_destroy" swapped="no"/>
     <child type="titlebar">
       <placeholder/>
     </child>
@@ -92,6 +92,20 @@
           </packing>
         </child>
         <child>
+          <object class="GtkDrawingArea" id="timerDrawingArea">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="width_request">230</property>
+            <property name="height_request">48</property>
+            <property name="margin_start">12</property>
+            <property name="margin_end">12</property>
+            <signal name="draw" handler="on_timer_draw" swapped="no"/>
+          </object>
+          <packing>
+            <property name="position">4</property>
+          </packing>
+        </child>
+        <child>
           <object class="GtkButton" id="clapperboardButton">
             <property name="tooltip-text" translatable="yes">Clapperboard</property>
             <property name="visible">True</property>
@@ -103,7 +117,7 @@
             <signal name="button-release-event" handler="on_clapperboard_release" swapped="no"/>
           </object>
           <packing>
-            <property name="position">4</property>
+            <property name="position">5</property>
           </packing>
         </child>
         <child>
@@ -117,7 +131,7 @@
             <signal name="clicked" handler="on_cursor_click" swapped="no"/>
           </object>
           <packing>
-            <property name="position">5</property>
+            <property name="position">6</property>
           </packing>
         </child>
       </object>

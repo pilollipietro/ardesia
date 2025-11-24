@@ -2423,11 +2423,6 @@ annotate_quit (void)
           annotation_data->annotation_window = (GtkWidget *) NULL;
         }
 
-      if (annotation_data->recordingstudio_options)
-        {
-          g_free (annotation_data->recordingstudio_options);
-        }
-
       if (annotation_data->recordingstudio_window)
         {
           gtk_widget_destroy (annotation_data->recordingstudio_window);
@@ -2689,7 +2684,6 @@ create_annotation_data (void)
 
   annotation_data->recordingstudio_window_gtk_builder = NULL;
   annotation_data->recordingstudio_window             = NULL;
-  annotation_data->recordingstudio_options            = NULL;
 
   annotation_data->clapperboard_cairo_context = NULL;
 
@@ -3093,6 +3087,7 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
 
   annotate_calculate_dynamic_style (data, masterdata, pressure,
                                     &final_thickness, &final_alpha);
+
   AnnotatePoint *current_point = get_current_point (masterdata);
 
   if (! masterdata->coord_list->next)

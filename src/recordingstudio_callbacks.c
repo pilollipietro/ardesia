@@ -26,8 +26,38 @@
 #include "bar.h"
 #include "cairo_functions.h"
 #include "recorder.h"
+#include "recorder_timer.h"
 #include "recordingstudio.h"
 #include "utils.h"
+
+/**
+ * timer_tick_callback:
+ * @user_data: Unused.
+ *
+ * Called every second to update the timer display.
+ * Only redraws if the timer is running.
+ */
+static gboolean
+timer_tick_callback (gpointer user_data)
+{
+  if (! annotation_data->recordingstudio_options ||
+      ! annotation_data->recordingstudio_options->timer_state)
+    return TRUE;
+
+  TimerState *state = annotation_data->recordingstudio_options->timer_state;
+
+  if (state->running)
+    {
+      GtkBuilder *builder = annotation_data->recordingstudio_window_gtk_builder;
+      GtkWidget  *timer_area = GTK_WIDGET (
+          gtk_builder_get_object (builder, "timerDrawingArea"));
+
+      if (timer_area)
+        gtk_widget_queue_draw (timer_area);
+    }
+
+  return TRUE; // Keep timeout active
+}
 
 /**
  * on_record_click:
@@ -44,12 +74,14 @@
 G_MODULE_EXPORT void
 on_record_click (GtkToggleButton *button, gpointer func_data)
 {
-  GtkWidget *ancestor = gtk_widget_get_ancestor(GTK_WIDGET(button),
-                                                GTK_TYPE_WINDOW);
+  GtkWidget *ancestor = gtk_widget_get_ancestor (GTK_WIDGET(button),
+                                                 GTK_TYPE_WINDOW);
 
   g_debug ("on_record_click\n");
   GtkBuilder *builder = annotation_data->recordingstudio_window_gtk_builder;
-
+  annotation_data->recordingstudio_options->timer_tick_id =
+      g_timeout_add_seconds (1, timer_tick_callback, NULL);
+          
   if (! is_started ())
     {
       /* Check if recorder is available */
@@ -82,10 +114,11 @@ on_record_click (GtkToggleButton *button, gpointer func_data)
                                                       "recorder_unavailable");
 
           gtk_button_set_image ((GtkButton *) button, GTK_WIDGET (imageObj));
-          gtk_widget_set_tooltip_text (GTK_WIDGET (button),
-                                       gettext ("Error"));
+          gtk_widget_set_tooltip_text (GTK_WIDGET (button), gettext ("Error"));
           return;
         }
+
+      timer_start (annotation_data->recordingstudio_options->timer_state);
 
       GObject *record_obj = gtk_builder_get_object (builder, "recordButton");
       gtk_widget_set_sensitive (GTK_WIDGET (record_obj), FALSE);
@@ -105,7 +138,7 @@ on_record_click (GtkToggleButton *button, gpointer func_data)
  *
  * Handles the click on the pause toggle button.
  *
- * If the recording is running, it pauses it.  
+ * If the recording is running, it pauses it.
  * If the recording is already paused, it resumes it.
  */
 G_MODULE_EXPORT void
@@ -116,14 +149,18 @@ on_pause_click (GtkToggleButton *button, gpointer func_data)
   if (is_started () && ! is_paused ())
     {
       /* PAUSE recording */
-      g_debug ("Pausing recording\n");
       pause_recorder ();
+      g_debug ("Pausing recording\n");
+      if (annotation_data->recordingstudio_options->timer_state)
+        timer_stop (annotation_data->recordingstudio_options->timer_state);
     }
   else if (is_paused ())
     {
       /* RESUME recording (unpause) */
       g_debug ("Resuming from pause\n");
       resume_recorder ();
+      if (annotation_data->recordingstudio_options->timer_state)
+        timer_start (annotation_data->recordingstudio_options->timer_state);
     }
 }
 
@@ -149,6 +186,21 @@ on_stop_click (GtkButton *button, gpointer func_data)
   /* Stop recorder */
   stop_recorder ();
 
+  if (annotation_data->recordingstudio_options->timer_state)
+    {
+      timer_reset (annotation_data->recordingstudio_options->timer_state);
+
+      GtkWidget *timer_area = GTK_WIDGET (
+          gtk_builder_get_object (
+              annotation_data->recordingstudio_window_gtk_builder,
+              "timerDrawingArea"
+           )
+      );
+
+      if (timer_area)
+        gtk_widget_queue_draw (timer_area);
+    }
+
   /* Reset UI to idle state */
   GtkBuilder *builder = annotation_data->recordingstudio_window_gtk_builder;
   GtkWidget *record =
@@ -157,7 +209,7 @@ on_stop_click (GtkButton *button, gpointer func_data)
   GtkWidget *pause  =
       GTK_WIDGET (gtk_builder_get_object (builder, "pauseButton"));
 
-  GtkWidget *stop  = GTK_WIDGET (button);
+  GtkWidget *stop = GTK_WIDGET (button);
 
   g_signal_handlers_block_matched (record,
                                    G_SIGNAL_MATCH_FUNC,
@@ -243,7 +295,7 @@ on_clapperboard_click (GtkButton *button, gpointer func_data)
   const gdouble opacity    = 0.8;
   gint          height = gtk_widget_get_allocated_height (annotation_window);
   const gdouble corner_size = height * 0.07;
-  int width = gtk_widget_get_allocated_width (annotation_window);
+  int           width = gtk_widget_get_allocated_width (annotation_window);
 
   if (annotation_data->clapperboard_cairo_context == NULL)
     {
@@ -326,7 +378,7 @@ on_draw_event (GtkWidget *widget, cairo_t *cr, gpointer user_data)
  * Toggles the animated cursor overlay.
  *
  * When enabled, creates and shows the cursor window and starts the
- * periodic animation timer.  
+ * periodic animation timer.
  * When disabled, stops the timer and hides the cursor window.
  */
 G_MODULE_EXPORT void
@@ -401,21 +453,35 @@ on_cursor_click (GtkToggleButton *button, gpointer func_data)
 }
 
 /**
- * on_recordingstudio_window_destroy_event:
+ * on_recordingstudio_window_destroy:
  * @widget: The recording studio window.
  * @event: The GdkEvent associated with the destroy signal.
  * @data: Unused user data.
  *
- * Handles the destroy event of the recording studio window.
+ * Handles the destroy of the recording studio window.
  *
  * Currently only logs the event for debugging purposes.
  */
 G_MODULE_EXPORT void
-on_recordingstudio_window_destroy_event (GtkWidget *widget,
-                                         GdkEvent  *event,
-                                         gpointer   data)
+on_recordingstudio_window_destroy (GtkWidget *widget,
+                                   GdkEvent  *event,
+                                   gpointer   data)
 {
   g_debug ("Recording studio window being destroyed\n");
+  // Stop timer tick
+  if (annotation_data->recordingstudio_options->timer_tick_id > 0)
+    {
+      g_source_remove (annotation_data->recordingstudio_options->timer_tick_id);
+      annotation_data->recordingstudio_options->timer_tick_id = 0;
+    }
+
+  // Free timer state
+  if (annotation_data->recordingstudio_options->timer_state)
+    {
+      timer_state_free (annotation_data->recordingstudio_options->timer_state);
+      annotation_data->recordingstudio_options->timer_state = NULL;
+    }
+  g_free (annotation_data->recordingstudio_options);
 }
 
 /**
@@ -438,4 +504,29 @@ on_recordingstudio_window_delete_event (GtkWidget *widget,
 {
   gtk_widget_hide (widget);
   return TRUE;
+}
+
+/**
+ * on_timer_draw:
+ * @widget: The timer drawing area.
+ * @cr: Cairo context.
+ * @user_data: Unused.
+ *
+ * Draw callback for the timer display.
+ * or HH:MM:SS when running/paused.
+ */
+G_MODULE_EXPORT gboolean
+on_timer_draw (GtkWidget *widget, cairo_t *cr, gpointer user_data)
+{
+  cairo_set_source_rgb (cr, 0.9, 0.9, 0.9);
+  cairo_paint (cr);
+
+  if (! annotation_data->recordingstudio_options ||
+      ! annotation_data->recordingstudio_options->timer_state)
+    return FALSE;
+
+  timer_draw_overlay (cr, annotation_data->recordingstudio_options->timer_state,
+                      10, 10, 48);
+
+  return FALSE;
 }

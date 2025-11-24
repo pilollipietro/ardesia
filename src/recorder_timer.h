@@ -21,42 +21,35 @@
  *
  */
 
-#ifndef RECORDINGSTUDIO_H
-#define RECORDINGSTUDIO_H
+#ifndef SEVEN_SEGMENT_TIMER_H
+#define SEVEN_SEGMENT_TIMER_H
 
-#include <gdk/gdk.h>
+#include <cairo.h>
 #include <glib.h>
-#include <gtk/gtk.h>
-
-#include "config.h"
-#include "recorder_timer.h"
-
-/* Structure that contains the info passed to the callbacks. */
-typedef struct
-{
-  gboolean         recording;
-  gboolean         cursor_visible;
-  gint             cursor_step;
-  cairo_surface_t *cursor_surface;
-  TimerState      *timer_state;
-  guint            timer_tick_id;
-} RecordingStudioData;
+#include <time.h>
 
 typedef struct
 {
-  gint    x; // Ultima posizione X (relativa alla finestra)
-  gint    y; // Ultima posizione Y (relativa alla finestra)
-  gdouble r; // Colore calcolato
-  gdouble g;
-  gdouble b;
-} CursorAnimState;
+  gboolean running;
+  time_t   start_time;
+  time_t   elapsed_before;
+} TimerState;
 
-#endif // RECORDINGSTUDIO_H
+TimerState *timer_state_new (void);
 
-void update_ui_state (GtkBuilder *builder);
+void timer_state_free (TimerState *state);
 
-GtkWidget *create_cursor_window (void);
+void timer_start (TimerState *state);
 
-gboolean move_cursor_window (gpointer data);
+void timer_stop (TimerState *state);
 
-void draw_video_cursor (cairo_t *cr, GtkWidget *widget, CursorAnimState *state);
+void timer_reset (TimerState *state);
+
+time_t timer_get_elapsed (const TimerState *state);
+
+void timer_set_color (TimerState *state, gdouble r, gdouble g, gdouble b);
+
+void timer_draw_overlay (cairo_t *cr, const TimerState *state, 
+                         gdouble x, gdouble y, gdouble height);
+
+#endif /* SEVEN_SEGMENT_TIMER_H */

@@ -99,6 +99,8 @@ ardesia_SOURCES = \
 	commandline.c                             \
 	ardesia.c                                 \
 	ardesia.h                                 \
+	recorder_timer.c                          \
+	recorder_timer.h                          \
 	recordingstudio.c                         \
 	recordingstudio.h                         \
 	recordingstudio_callbacks.c               \

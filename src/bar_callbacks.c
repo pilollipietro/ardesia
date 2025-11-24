@@ -618,10 +618,17 @@ on_bar_recorder_activate (GtkToolButton *toolbutton, gpointer func_data)
           g_debug ("Failed to create the recording studio window");
           return;
         }
+
       gtk_builder_connect_signals (recording_studio_gtk_builder,
                                    (gpointer) annotation_data);
 
       gtk_widget_show (annotation_data->recordingstudio_window);
+
+      if (! annotation_data->recordingstudio_options->timer_state)
+        {
+          annotation_data->recordingstudio_options->timer_state =
+              timer_state_new ();
+        }
     }
   else
     {
