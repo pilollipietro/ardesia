@@ -484,79 +484,34 @@ on_bar_showhide_activate (GtkToolButton *toolButton, gpointer func_data)
   BarData *bar_data              = (BarData *) func_data;
   gboolean annotation_is_visible = bar_data->annotation_is_visible;
 
-  GtkWidget *window = get_annotation_window ();
-
+  GtkWidget *annotation_window = get_annotation_window ();
+  
   if (annotation_is_visible)
     {
-      /** currently annotations are visible so icon is the hidden **/
-      if (window != NULL)
-        {
-          g_debug ("Annotations hidden");
+      gtk_widget_set_opacity (annotation_window, 0);
+      
+      bar_data->annotation_is_visible = FALSE;
 
-          /* Save current drawing into a cairo surface */
-          if (bar_data->snapshot_surface)
-            {
-              cairo_surface_destroy (bar_data->snapshot_surface);
-              bar_data->snapshot_surface = NULL;
-            }
+      /* Set the stop tool-tip. */
+      gtk_tool_item_set_tooltip_text ((GtkToolItem *) toolButton,
+                                      gettext ("Show Annotations"));
 
-          {
-            GdkWindow *gdk_win = gtk_widget_get_window (window);
-            gint       width   = gdk_window_get_width (gdk_win);
-            gint       height  = gdk_window_get_height (gdk_win);
-
-            bar_data->snapshot_surface =
-              cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);
-
-            cairo_t *cr = cairo_create (bar_data->snapshot_surface);
-            gdk_cairo_set_source_window (cr, gdk_win, 0, 0);
-            cairo_paint (cr);
-            cairo_destroy (cr);
-          }
-
-          annotate_clear_screen ();
-
-          bar_data->annotation_is_visible = FALSE;
-
-          /* Set the stop tool-tip. */
-          gtk_tool_item_set_tooltip_text ((GtkToolItem *) toolButton,
-                                          gettext ("Show Annotations"));
-
-          /* Put the show icon. */
-          GtkImage *icon = get_image_from_builder (gettext ("show"));
-          gtk_tool_button_set_icon_widget (toolButton, (GtkWidget *) icon);
-        }
+      /* Put the show icon. */
+      GtkImage *icon = get_image_from_builder ("show");
+      gtk_tool_button_set_icon_widget (toolButton, (GtkWidget *) icon);
     }
   else
     {
-      /** currently annotations are hidden so icon is the showing icon **/
-      if (window != NULL)
-        {
-          g_debug ("Annotations visible");
+      gtk_widget_set_opacity (annotation_window, 1);
+      bar_data->annotation_is_visible = TRUE;
 
-          /* Restore saved drawing if available */
-          if (bar_data->snapshot_surface)
-            {
-              cairo_t *annotation_cr;
-              annotation_cr = annotation_data->annotation_cairo_context;
+      /* Set the stop tool-tip. */
+      gtk_tool_item_set_tooltip_text ((GtkToolItem *) toolButton,
+                                      gettext ("Hide Annotations"));
 
-              cairo_set_source_surface (annotation_cr,
-                                        bar_data->snapshot_surface,
-                                        0, 0);
-              cairo_paint (annotation_cr);
-              gtk_widget_queue_draw (annotation_window);
-            }
-
-          bar_data->annotation_is_visible = TRUE;
-
-          /* Set the stop tool-tip. */
-          gtk_tool_item_set_tooltip_text ((GtkToolItem *) toolButton,
-                                          gettext ("Hide Annotations"));
-
-          /* Put the hide icon. */
-          GtkImage *icon = get_image_from_builder (gettext ("hide"));
-          gtk_tool_button_set_icon_widget (toolButton, (GtkWidget *) icon);
-        }
+      /* Put the hide icon. */
+      GtkImage *icon = get_image_from_builder ("hide");
+      gtk_tool_button_set_icon_widget (toolButton, (GtkWidget *) icon);
     }
 }
 

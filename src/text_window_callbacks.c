@@ -166,7 +166,6 @@ on_text_window_button_release (GtkWidget *win,
                                GdkEventButton *ev,
                                TextData *data)
 {
-  GtkWidget *annotation_window = get_annotation_window ();
   g_debug ("on_text_window_button_release BEGIN\n");
   /* only button1 allowed */
   if (ev->button != 1)
@@ -203,11 +202,6 @@ on_text_window_button_release (GtkWidget *win,
       g_debug ("on_text_window_button_release: text pos: %f %f",
                text_data->pos->x,
                text_data->pos->y);
-
-      /* This present the ardesia bar and the panels. */
-      gtk_window_present (GTK_WINDOW (get_bar_widget ()));
-      gtk_window_present (GTK_WINDOW (annotation_window));
-      gdk_window_raise (gtk_widget_get_window (annotation_window));
 
       stop_virtual_keyboard ();
       start_virtual_keyboard ();

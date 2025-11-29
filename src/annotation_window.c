@@ -573,9 +573,19 @@ annotate_calculate_dynamic_style (AnnotateData *data,
                                   gdouble *out_thickness,
                                   gdouble *out_alpha)
 {
-  gdouble base_thickness   = annotate_get_thickness ();
-  gdouble base_a           = data->a / 255.0;
-  gdouble clamped_pressure = CLAMP (pressure, 0.0, 1.0);
+  /* Minimum line width at zero pressure */
+  const gdouble min_pressure_scale = 0.3;
+
+  /* How much pressure affects output (0-1) */
+  const gdouble pressure_response_curve = 0.7;
+
+  const gdouble clamped_pressure = CLAMP (pressure, 0.0, 1.0);
+
+  const gdouble pressure_factor =
+      (min_pressure_scale + pressure_response_curve * clamped_pressure);
+
+  gdouble base_thickness = annotate_get_thickness ();
+  gdouble base_a         = data->a / 255.0;
 
   /* Normalize weights based on alpha (0..1) */
   gdouble alpha_norm = CLAMP (data->a / 255.0, 0.0, 1.0);
@@ -584,12 +594,13 @@ annotate_calculate_dynamic_style (AnnotateData *data,
   gdouble hl_weight  = 1.0 - pen_weight;
 
   /* Pen behavior (pressure → thickness) */
-  gdouble pen_thickness = base_thickness * (0.3 + 0.7 * clamped_pressure);
-  gdouble pen_alpha     = base_a;
+  gdouble pen_thickness = base_thickness * pressure_factor;
+
+  gdouble pen_alpha = base_a;
 
   /* Highlighter behavior (pressure → alpha) */
   gdouble hl_thickness = base_thickness;
-  gdouble hl_alpha     = base_a * (0.3 + 0.7 * clamped_pressure);
+  gdouble hl_alpha     = base_a * pressure_factor;
 
   /* Blend the two behaviors smoothly */
   *out_thickness = (pen_weight * pen_thickness) + (hl_weight * hl_thickness);
@@ -1478,6 +1489,12 @@ draw_arrow_in_point (AnnotatePoint *point, gdouble width, gdouble direction)
       g_debug ("Draw arrow, direction %f\n", direction / M_PI * 180);
     }
 
+  /*
+   * Ratio for arrow base width relative to arrow head width.
+   * 0.8 means the base is 80% back from the tip
+   */
+  const gdouble arrow_head_base_ratio = 0.8;
+
   cairo_t *annotation_cairo_context;
   annotation_cairo_context = annotation_data->annotation_cairo_context;
 
@@ -1493,8 +1510,8 @@ draw_arrow_in_point (AnnotatePoint *point, gdouble width, gdouble direction)
   gdouble arrow_head_1_y = point->y - width_cos - width_sin;
 
   /* Origin. */
-  gdouble arrow_head_2_x = point->x - 0.8 * width_cos;
-  gdouble arrow_head_2_y = point->y - 0.8 * width_sin;
+  gdouble arrow_head_2_x = point->x - arrow_head_base_ratio * width_cos;
+  gdouble arrow_head_2_y = point->y - arrow_head_base_ratio * width_sin;
 
   /* Right point. */
   gdouble arrow_head_3_x = point->x - width_cos - width_sin;
@@ -1527,7 +1544,7 @@ draw_arrow_in_point (AnnotatePoint *point, gdouble width, gdouble direction)
 
   g_debug ("with vertex at (x,y)= (%f : %f)\n", arrow_head_0_x, arrow_head_0_y);
 
-  /* ---- Compute bounding box ---- */
+  /* Compute bounding box */
   gdouble min_x = MIN (MIN (arrow_head_0_x, arrow_head_1_x),
                        MIN (arrow_head_2_x, arrow_head_3_x));
   gdouble max_x = MAX (MAX (arrow_head_0_x, arrow_head_1_x),
@@ -1922,10 +1939,24 @@ annotate_set_thickness (gdouble thickness)
   annotation_data->thickness = thickness;
 }
 
+/**
+ * is_selected_color_opaque:
+ *
+ * Checks if the currently selected drawing color is considered opaque
+ * based on its alpha channel value.
+ *
+ * The check uses a threshold of 128 (out of 255). Colors with an alpha
+ * value above this threshold are often treated as opaque (Pen tool logic),
+ * while values below are treated as semi-transparent (Highlighter logic).
+ *
+ * Returns: %TRUE if the alpha component of the current color is greater
+ * than the opacity threshold, %FALSE otherwise.
+ */
 gboolean
 is_selected_color_opaque ()
 {
-  return annotation_data->a > 128;
+  const gdouble alpha_opacity_threshold = 128.0;
+  return annotation_data->a > alpha_opacity_threshold;
 }
 
 /**
@@ -2759,10 +2790,14 @@ annotate_init (Monitor *monitor)
 gboolean
 annotation_window_button_press (GdkEventButton *ev, AnnotateData *data)
 {
-  if (data->is_text_editor_visible)
+  gdouble pressure = get_pressure ((GdkEvent *) ev);
+
+  if (pressure <= 0 || data->is_text_editor_visible ||
+      data->cur_context == data->default_filler)
     {
       return FALSE;
     }
+
   GdkDevice *master = gdk_event_get_device ((GdkEvent *) ev);
   gdouble    x      = ev->x;
   gdouble    y      = ev->y;
@@ -2771,11 +2806,6 @@ annotation_window_button_press (GdkEventButton *ev, AnnotateData *data)
   GHashTable         *devdatatable = data->devdatatable;
   AnnotateDeviceData *masterdata;
   masterdata = g_hash_table_lookup (devdatatable, master);
-
-  if (data->cur_context == data->default_filler)
-    {
-      return FALSE;
-    }
 
   if (! data->is_grabbed)
     {
@@ -2807,13 +2837,6 @@ annotation_window_button_press (GdkEventButton *ev, AnnotateData *data)
       return FALSE;
     }
 #endif
-
-  gdouble pressure = get_pressure ((GdkEvent *) ev);
-
-  if (pressure <= 0)
-    {
-      return FALSE;
-    }
 
   AnnotatePoint *last_point = get_current_point (masterdata);
   if (last_point != NULL)
@@ -2875,10 +2898,6 @@ annotation_window_button_press (GdkEventButton *ev, AnnotateData *data)
 gboolean
 annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
 {
-  if (data->is_text_editor_visible)
-    {
-      return FALSE;
-    }
   GdkDevice *master = gdk_event_get_device ((GdkEvent *) ev);
   if (! ev)
     {
@@ -2888,12 +2907,21 @@ annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
       return FALSE;
     }
 
+  gdouble pressure = get_pressure ((GdkEvent *) ev);
+
+  if (pressure <= 0 || data->is_text_editor_visible ||
+      data->cur_context == data->default_filler)
+    {
+      return FALSE;
+    }
+
   GdkDevice *slave = gdk_event_get_source_device ((GdkEvent *) ev);
   if (slave == NULL)
     {
       g_warning ("Could not find slave device.");
       return FALSE;
     }
+
   GHashTable *devdatatable = data->devdatatable;
 
   /* Get the data for this device. */
@@ -2911,28 +2939,20 @@ annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
       g_warning ("Could not find device data for slave pointer.");
       return FALSE;
     }
-
-  if (data->cur_context == data->default_filler)
-    {
-      return FALSE;
-    }
-
+    
   if (ev->state != masterdata->state ||
       ev->state != slavedata->state ||
       masterdata->lastslave != slave)
     {
       annotate_select_tool (data, master, slave, ev->state);
     }
-
-  gdouble pressure = get_pressure ((GdkEvent *) ev);
-
   if (! data->is_grabbed)
     {
       return FALSE;
     }
 
-  g_debug ("Device '%s': Move at (x,y)= (%f : %f)\n",
-           gdk_device_get_name (master), ev->x, ev->y);
+    // g_debug ("Device '%s': Move at (x,y)= (%f : %f)\n",
+    //           gdk_device_get_name (master), ev->x, ev->y);
 
 #ifdef _WIN32
   if (inside_bar_window (ev->x_root, ev->y_root))
@@ -2953,16 +2973,10 @@ annotation_window_mouse_move (GdkEventMotion *ev, AnnotateData *data)
     {
       return TRUE;
     }
-
   initialize_annotation_cairo_context (data);
 
   annotate_configure_pen_options (data);
-
-  if (pressure <= 0)
-    {
-      return FALSE;
-    }
-
+    
   gdouble final_thickness;
   gdouble final_alpha;
 
@@ -3085,10 +3099,10 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
   gdouble final_thickness;
   gdouble final_alpha;
 
+  AnnotatePoint *current_point = get_current_point (masterdata);
   annotate_calculate_dynamic_style (data, masterdata, pressure,
                                     &final_thickness, &final_alpha);
 
-  AnnotatePoint *current_point = get_current_point (masterdata);
 
   if (! masterdata->coord_list->next)
     {
@@ -3102,6 +3116,12 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
     }
   else
     {
+      /*
+       * Maximum distance in pixels to consider a stroke endpoint "close enough"
+       * to the start point to automatically close the shape 
+       */
+      const gdouble snap_tolerance_px = 20.0;
+
       AnnotatePoint *oldest_point = get_oldest_point (masterdata);
 
       gdouble distance = get_distance (ev->x,
@@ -3117,9 +3137,8 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
                              (gdouble) data->b / 255.0,
                              final_alpha);
 
-      gdouble       gap            = distance - final_thickness;
-      const gdouble snap_tolerance = 20.0;
-      gboolean      closed_path    = (gap < snap_tolerance);
+      gdouble       gap               = distance - final_thickness;
+      gboolean      closed_path       = (gap < snap_tolerance_px);
 
       pressure = current_point->pressure;
       /*

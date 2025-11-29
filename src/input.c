@@ -277,95 +277,162 @@ remove_input_device (GdkDevice *device, AnnotateData *data)
 /**
  * grab_pointer:
  * @widget: The #GtkWidget whose window will own the grab.
- * @eventmask: (unused): The event mask for the grab. This parameter is
- * currently ignored.
+ * @eventmask: (unused): The event mask for the grab.
  *
- * Safely acquires a global pointer grab for the application, directing
- * all pointer events to the window associated with @widget.
+ * Safely acquires a global pointer grab for the application.
  *
- * Before attempting a new grab, it first calls ungrab_pointer() to
- * release any pre-existing grabs. It uses an X11 error trap and
- * checks the #GdkGrabStatus return value to handle potential failures
- * gracefully, printing any errors to standard error.
- **/
+ * On X11: Uses error traps to handle grab failures gracefully
+ * On Wayland: Uses generic GDK API (error traps wrapped out)
+ *
+ * Checks #GdkGrabStatus return value to validate grab success.
+ * Prints diagnostic messages on failure.
+ */
 void
 grab_pointer (GtkWidget *widget, GdkEventMask eventmask)
 {
-  GdkGrabStatus result;
-  GdkSeat      *device_manager = (GdkSeat *) NULL;
-  GdkDisplay   *display        = (GdkDisplay *) NULL;
-  display                      = gdk_display_get_default ();
+  g_return_if_fail (widget != NULL);
 
-  ungrab_pointer ();
-  device_manager = gdk_display_get_default_seat (display);
+  GdkDisplay *display = gdk_display_get_default ();
 
-  gdk_x11_display_error_trap_push (display);
-
-  result = gdk_seat_grab (device_manager,
-                          gtk_widget_get_window (widget),
-                          GDK_SEAT_CAPABILITY_ALL_POINTING,
-                          TRUE,
-                          NULL,
-                          NULL,
-                          NULL,
-                          NULL);
-
-  gdk_display_flush (display);
-  if (gdk_x11_display_error_trap_pop (display))
+  if (display == NULL)
     {
-      g_printerr ("Grab pointer error\n");
+      g_critical ("Input: Cannot get default display for grab");
+      return;
     }
 
+  GdkSeat *device_manager = gdk_display_get_default_seat (display);
+
+  if (device_manager == NULL)
+    {
+      g_critical ("Input: Cannot get default seat for grab");
+      return;
+    }
+
+  GdkWindow *gdk_window = gtk_widget_get_window (widget);
+
+  if (gdk_window == NULL)
+    {
+      g_critical ("Input: Cannot get window for grab");
+      return;
+    }
+
+  ungrab_pointer (); /* Release any existing grabs first */
+
+  /* X11-specific error trapping for grab operations */
+#ifdef GDK_WINDOWING_X11
+  if (GDK_IS_X11_DISPLAY (display))
+    {
+      gdk_x11_display_error_trap_push (display);
+    }
+#endif
+
+  GdkGrabStatus result = gdk_seat_grab (device_manager,
+                                        gdk_window,
+                                        GDK_SEAT_CAPABILITY_ALL_POINTING,
+                                        TRUE,
+                                        NULL,  /* cursor */
+                                        NULL,  /* event */
+                                        NULL,  /* prepare_func */
+                                        NULL); /* user_data */
+
+  /* X11: pop error trap and check for errors */
+#ifdef GDK_WINDOWING_X11
+  if (GDK_IS_X11_DISPLAY (display))
+    {
+      gdk_display_flush (display);
+
+      if (gdk_x11_display_error_trap_pop (display))
+        {
+          g_warning ("Input: X11 grab error occurred");
+        }
+    }
+#endif
+
+  /* Validate grab status across all backends */
   switch (result)
     {
     case GDK_GRAB_SUCCESS:
+      g_debug ("Input: Pointer grab succeeded");
       break;
+
     case GDK_GRAB_ALREADY_GRABBED:
-      g_printerr ("Grab Pointer failed: AlreadyGrabbed\n");
+      g_warning ("Input: Grab failed - pointer already grabbed");
       break;
+
     case GDK_GRAB_INVALID_TIME:
-      g_printerr ("Grab Pointer failed: GrabInvalidTime\n");
+      g_warning ("Input: Grab failed - invalid time");
       break;
+
     case GDK_GRAB_NOT_VIEWABLE:
-      g_printerr ("Grab Pointer failed: GrabNotViewable\n");
+      g_warning ("Input: Grab failed - window not viewable");
       break;
+
     case GDK_GRAB_FROZEN:
-      g_printerr ("Grab Pointer failed: GrabFrozen\n");
+      g_warning ("Input: Grab failed - pointer frozen");
       break;
+
     default:
-      g_printerr ("Grab Pointer failed: Unknown error\n");
+      g_warning ("Input: Grab failed - unknown error (%d)", result);
     }
 }
 
 /**
  * ungrab_pointer:
- * Safely releases any active pointer grab held by the application on the
- * default seat.
  *
- * This function uses an X11 error trap to gracefully handle potential
- * failures during the ungrab operation (e.g., if no grab was active
- * or the device is no longer available). If an error occurs, a
- * message is printed to standard error.
- **/
+ * Safely releases any active pointer grab held by the application.
+ *
+ * On X11: Uses error traps to handle potential grab failures
+ * On Wayland: Uses generic GDK API (error traps wrapped out)
+ *
+ * Safe to call even if no grab is active. Prints diagnostic
+ * messages on error conditions.
+ */
 void
 ungrab_pointer (void)
 {
-  GdkSeat *seat = (GdkSeat *) NULL;
+  GdkDisplay *display = gdk_display_get_default ();
 
-  GdkDisplay *display = (GdkDisplay *) NULL;
-  display             = gdk_display_get_default ();
-  seat                = gdk_display_get_default_seat (display);
+  if (display == NULL)
+    {
+      g_warning ("Input: Cannot get default display for ungrab");
+      return;
+    }
 
-  gdk_x11_display_error_trap_push (display);
+  GdkSeat *seat = gdk_display_get_default_seat (display);
+
+  if (seat == NULL)
+    {
+      g_warning ("Input: Cannot get default seat for ungrab");
+      return;
+    }
+
+    /* X11-specific error trapping for ungrab operations */
+#ifdef GDK_WINDOWING_X11
+  if (GDK_IS_X11_DISPLAY (display))
+    {
+      gdk_x11_display_error_trap_push (display);
+    }
+#endif
 
   gdk_seat_ungrab (seat);
-  gdk_display_flush (display);
-  if (gdk_x11_display_error_trap_pop (display))
+
+#ifdef GDK_WINDOWING_X11
+  if (GDK_IS_X11_DISPLAY (display))
     {
-      /*
-       * This probably means the device table is outdated,
-       * e.g. this device doesn't exist anymore.
-       */
-      g_printerr ("Ungrab pointer device error\n");
+      gdk_display_flush (display);
+
+      if (gdk_x11_display_error_trap_pop (display))
+        {
+          g_warning ("Input: X11 ungrab error - device may be unavailable");
+        }
+      else
+        {
+          g_debug ("Input: Pointer ungrab succeeded");
+        }
+    }
+  else
+#endif
+    {
+      g_debug ("Input: Pointer ungrab succeeded (non-X11 backend)");
     }
 }

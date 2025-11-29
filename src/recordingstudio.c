@@ -51,9 +51,11 @@ setup_transparency (GtkWidget *win)
 {
   GdkScreen *screen;
   GdkVisual *visual;
+  GdkDisplay *display;
 
   gtk_widget_set_app_paintable (win, TRUE);
-  screen = gdk_screen_get_default ();
+  display = gtk_widget_get_display (win);
+  screen = gdk_display_get_default_screen (display);
   visual = gdk_screen_get_rgba_visual (screen);
 
   if (visual != NULL && gdk_screen_is_composited (screen))
@@ -135,17 +137,18 @@ move_cursor_window (gpointer data)
   /* Cast the gpointer to our state struct */
   CursorAnimState *state = (CursorAnimState *) data;
 
+  GtkWidget *cursor_window = annotation_data->cursor_window;
+
   /* Get mouse position and move window */
   gint        x_screen, y_screen;
-  GdkScreen  *screen  = gdk_screen_get_default ();
+  GdkDisplay *display = gtk_widget_get_display (cursor_window);
+  GdkScreen  *screen  = gdk_display_get_default_screen (display);
   GdkWindow  *desktop = gdk_screen_get_root_window (screen);
-  GdkDisplay *display = gdk_display_get_default ();
   GdkSeat    *seat    = gdk_display_get_default_seat (display);
   GdkDevice  *device  = gdk_seat_get_pointer (seat);
 
   gdk_window_get_device_position (desktop, device, &x_screen, &y_screen, NULL);
 
-  GtkWidget *cursor_window = annotation_data->cursor_window;
   gtk_window_move (GTK_WINDOW (cursor_window), x_screen - 32, y_screen - 32);
 
   /*

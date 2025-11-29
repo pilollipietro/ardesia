@@ -86,7 +86,6 @@ resize_image_to_button (BackgroundButtonData *data, gint size)
   gint             x = 0, y = 0, w = size, h = size;
   cairo_t         *cr      = NULL;
   cairo_surface_t *surface = NULL;
-  gchar           *output  = NULL;
   GError          *error   = NULL;
   GtkToolButton   *tool_button;
   GtkWidget       *icon_widget;
@@ -109,9 +108,13 @@ resize_image_to_button (BackgroundButtonData *data, gint size)
     }
 
   GdkPixbuf *pixbuf = gdk_pixbuf_get_from_surface (surface, x, y, w, h);
+  
+  /*
+  gchar           *output  = NULL;
   output            = g_strdup_printf ("test_output%d.png", data->index);
   gdk_pixbuf_save (pixbuf, output, "png", &error, NULL);
   g_free (output);
+  */
 
   if (error != NULL)
     {

@@ -56,97 +56,77 @@ static gboolean paused = FALSE;
  *          or -1 if the recorder failed to start.
  **/
 static GPid
-call_recorder (gchar *filename, gchar *option)
+call_recorder (gchar *filename, gchar *action)
 {
   GPid pid = (GPid) 0;
+  gchar *pidfilename = NULL;
+  gchar *logfilename = NULL;
+  gchar *quoted_filename = NULL;
 
-  gchar *pidfilename = g_strdup_printf ("%s%s%s", get_project_dir (),
-                                        G_DIR_SEPARATOR_S,
-                                        "ardesia_recorder.pid");
+  /* Build temporary file paths */
+  pidfilename = g_strdup_printf ("%s%s%s", get_project_dir (), 
+                                 G_DIR_SEPARATOR_S, "ardesia_recorder.pid");
+  logfilename = g_strdup_printf ("%s%s%s", get_project_dir (), 
+                                 G_DIR_SEPARATOR_S, "ardesia_recorder.log");
+  
+  /* Quote filename for shell safety */
+  quoted_filename = g_strdup_printf ("\"%s\"", filename ? filename : "");
+  
+  g_debug("Spawn: %s %s %s %s %s",
+          RECORDER_FILE,
+          action,
+          logfilename,
+          quoted_filename,
+          pidfilename);
 
-  gchar *logfilename = g_strdup_printf ("%s%s%s", get_project_dir (),
-                                        G_DIR_SEPARATOR_S,
-                                        "ardesia_recorder.log");
+  gchar *argv[] =
+  {
+    RECORDER_FILE,
+    action,
+    logfilename,
+    quoted_filename,
+    pidfilename,
+    NULL
+  };
 
-  gchar *quoted_filename = g_strdup_printf ("%s", filename);
-
-  gchar *argv[10]        = { RECORDER_FILE,
-                             option,
-                             logfilename,
-                             "0",
-                             "0",
-                             "100",
-                             "100",
-                             quoted_filename,
-                             pidfilename,
-                             (gchar *) 0 };
-
-  gint       x = 0, y = 0;
-  GtkWidget *annotation_window = get_annotation_window ();
-
-  gdk_window_get_root_origin (gtk_widget_get_window (annotation_window),
-                              &x, &y);
-
-  argv[3] = g_strdup_printf ("%d", y);
-  argv[4] = g_strdup_printf ("%d", x);
-
-  argv[5] = g_strdup_printf (
-      "%d", gtk_widget_get_allocated_width (annotation_window));
-
-  argv[6] = g_strdup_printf (
-      "%d", gtk_widget_get_allocated_height (annotation_window));
-
-  g_debug ("call_recorder: %s %s %s %s %s %s %s\n",
-           logfilename,
-           argv[3],
-           argv[4],
-           argv[5],
-           argv[6],
-           argv[7],
-           argv[8]);
-
-  if (g_spawn_async (NULL /*working_directory*/,
+  /* Execute the command */
+  if (g_spawn_async (NULL,
                      argv,
-                     NULL /*envp*/,
+                     NULL,
                      G_SPAWN_SEARCH_PATH,
-                     NULL /*child_setup*/,
-                     NULL /*user_data*/,
-                     &pid /*child_pid*/,
-                     NULL /*error*/))
+                     NULL,
+                     NULL,
+                     &pid,
+                     NULL))
     {
       started = TRUE;
     }
-  g_free (logfilename);
-  g_free (quoted_filename);
-  g_free (argv[3]);
-  g_free (argv[4]);
-  g_free (argv[5]);
-  g_free (argv[6]);
 
-  // wait 1 second and then check to see if ardesia_recorder.pid exists
-  // if its does not then we failed to start VLC properly
+  /* Wait for PID file (logic remains the same) */
   gboolean pid_exists = file_exists (pidfilename);
-  int      wait       = 0;
-  if (! pid_exists)
+  gint wait = 0;
+  if (! pid_exists) 
     {
-      while (wait < 3 && ! pid_exists)
+      while (wait < 3 && ! pid_exists) 
         {
-#ifdef _WIN32
-          sleep (1000);
-#else
           sleep (1);
-#endif
           pid_exists = file_exists (pidfilename);
           wait++;
         }
     }
 
-  g_free (pidfilename);
-  if (! pid_exists)
+  if (! pid_exists) 
     {
       pid = -1;
     }
+  
   g_debug ("Recorder PID: %d\n", pid);
+
+  /* Free all allocated memory */
+  g_free (logfilename);
+  g_free (quoted_filename);
+  g_free (pidfilename);
+
   return pid;
 }
 
@@ -382,6 +362,8 @@ start_save_video_dialog (GtkButton *toolbutton, GtkWindow *parent)
   gint counter      = 1;
   while (access (filename_fullpath, F_OK) != -1)
     {
+      g_free (filename_copy);
+      g_free (filename_fullpath);
       /* File exists */
       filename_copy = g_strdup_printf ("%s_%d%s",
                                        filename,

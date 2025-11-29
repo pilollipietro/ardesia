@@ -39,6 +39,37 @@ Workspace         *workspace;
 CommandLine       *commandline = NULL;
 
 /**
+ * is_wayland_session:
+ *
+ * Detects if Ardesia is running under Wayland by checking XDG_SESSION_TYPE
+ * environment variable.
+ *
+ * On Wayland: compositing is always active in the protocol
+ * On X11: requires explicit composite manager
+ *
+ * Returns: TRUE if running on Wayland, FALSE on X11 or unknown
+ */
+static gboolean
+is_wayland_session (void)
+{
+  const gchar *xdg_session_type = g_getenv ("XDG_SESSION_TYPE");
+
+  if (xdg_session_type == NULL)
+    {
+      return FALSE;
+    }
+
+  gboolean is_wayland = (g_strcmp0 (xdg_session_type, "wayland") == 0);
+
+  if (is_wayland)
+    {
+      g_debug ("Display server: Wayland (compositing always available)");
+    }
+
+  return is_wayland;
+}
+
+/**
  * get_drawable_area:
  *
  * Returns the GdkRectangle representing the drawable area for annotation,
@@ -79,24 +110,41 @@ get_drawable_area (void)
         }
       else if (commandline->mode == DRAW_ON_FULLDESKTOP)
         {
-          GdkScreen *screen             = gdk_screen_get_default ();
-          GdkWindow *rootwindow         = gdk_screen_get_root_window (screen);
-          int        maxwidth           = gdk_window_get_width (rootwindow);
-          int        maxheight          = gdk_window_get_height (rootwindow);
-          commandline->clipRect->x      = 0;
-          commandline->clipRect->y      = 0;
-          commandline->clipRect->width  = maxwidth;
-          commandline->clipRect->height = maxheight;
+          GdkDisplay *display      = gdk_display_get_default ();
+          GdkMonitor *monitor      = gdk_display_get_primary_monitor (display);
+          GdkRectangle geometry;
+
+          if (monitor == NULL)
+            monitor = gdk_display_get_monitor (display, 0);
+
+          gdk_monitor_get_geometry (monitor, &geometry);
+
+          commandline->clipRect->x      = geometry.x;
+          commandline->clipRect->y      = geometry.y;
+          commandline->clipRect->width  = geometry.width;
+          commandline->clipRect->height = geometry.height;
+
           return commandline->clipRect;
         }
       else
         {
           // check clipRect bounds
-          GdkScreen *screen     = gdk_screen_get_default ();
-          GdkWindow *rootwindow = gdk_screen_get_root_window (screen);
-          int        maxwidth   = gdk_window_get_width (rootwindow);
-          int        maxheight  = gdk_window_get_height (rootwindow);
+          GdkDisplay *display = gdk_display_get_default ();
+          GdkMonitor *monitor = gdk_display_get_primary_monitor (display);
+          GdkRectangle geometry;
+          int maxwidth;
+          int maxheight;
+
+          if (monitor == NULL)
+            monitor = gdk_display_get_monitor (display, 0);
+
+          gdk_monitor_get_geometry (monitor, &geometry);
+
+          maxwidth  = geometry.width;
+          maxheight = geometry.height;
+
           g_debug ("Maximum Size: %d %d\n", maxwidth, maxheight);
+
           if (commandline->clipRect->x < 0)
             {
               commandline->clipRect->x = 0;
@@ -118,7 +166,6 @@ get_drawable_area (void)
     }
   return NULL;
 }
-
 /**
  * get_toolbar_area:
  *
@@ -188,19 +235,49 @@ run_missing_composite_manager_dialog (void)
  * check_composite_manager:
  *
  * Checks if a composite manager is active on the current screen.
- * If not, runs run_missing_composite_manager_dialog() and exits.
+ *
+ * On Wayland: compositing is always available, check is skipped
+ * On X11: validates that a composite manager is enabled
+ *
+ * If compositing is not available on X11, displays error dialog and exits.
  */
 static void
 check_composite_manager (void)
 {
-  GdkDisplay *display   = gdk_display_get_default ();
-  GdkScreen  *screen    = gdk_display_get_default_screen (display);
-  gboolean    composite = gdk_screen_is_composited (screen);
+  /* On Wayland, compositing is always part of the protocol */
+  if (is_wayland_session ())
+    {
+      g_debug ("Wayland detected");
+      return;
+    }
+
+  /* On X11, check if composite manager is running */
+  GdkDisplay *display = gdk_display_get_default ();
+
+  if (display == NULL)
+    {
+      g_critical ("Cannot get default display");
+      return;
+    }
+
+  GdkScreen *screen = gdk_display_get_default_screen (display);
+
+  if (screen == NULL)
+    {
+      g_critical ("Cannot get default screen");
+      return;
+    }
+
+  gboolean composite = gdk_screen_is_composited (screen);
 
   if (! composite)
     {
-      /* start the enable composite manager dialog. */
+      g_warning ("No composite manager detected on X11 session");
       run_missing_composite_manager_dialog ();
+    }
+  else
+    {
+      g_debug ("Composite manager is active");
     }
 }
 
@@ -299,9 +376,6 @@ main (int argc, char *argv[])
   // start GTK
   gtk_init (&argc, &argv);
 
-#ifndef _WIN32
-  check_composite_manager ();
-#endif
 
   // handle command line
   commandline = create_command_line ();
@@ -317,6 +391,10 @@ main (int argc, char *argv[])
       g_setenv ("G_MESSAGES_DEBUG", "all", TRUE);
       debug_commandline (commandline);
     }
+
+#ifndef _WIN32
+  check_composite_manager ();
+#endif
 
   /* Initialize new text configuration options. */
   text_config             = create_text_config ();

@@ -115,6 +115,7 @@ start_save_image_dialog_callback (GdkPixbuf *buffer)
   GtkWindow *parent = GTK_WINDOW (get_bar_widget ());
   GtkWidget *chooser;
   gchar     *filename = NULL;
+  gchar     *default_filename = NULL;
   gboolean   do_save  = FALSE;
 
   chooser = gtk_file_chooser_dialog_new ("Save Screenshot as PNG",
@@ -130,8 +131,7 @@ start_save_image_dialog_callback (GdkPixbuf *buffer)
 
   /*
    * Create a scaled-down thumbnail for the preview to prevent the
-   * dialog from resizing to the full screenshot dimensions. This is
-   * the correct logic from the original code.
+   * dialog from resizing to the full screenshot dimensions.
    */
   GdkPixbuf *preview_pixbuf = gdk_pixbuf_scale_simple (buffer,
                                                        128 /* width */,
@@ -144,8 +144,10 @@ start_save_image_dialog_callback (GdkPixbuf *buffer)
 
   gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (chooser),
                                        get_project_dir ());
+
+  default_filename = get_default_filename ();
   gtk_file_chooser_set_current_name (GTK_FILE_CHOOSER (chooser),
-                                     "screenshot.png");
+                                     default_filename);
 
   start_virtual_keyboard ();
 
@@ -193,6 +195,7 @@ start_save_image_dialog_callback (GdkPixbuf *buffer)
     {
       g_free (filename);
     }
+  g_free (default_filename);
 
   g_object_unref (buffer);
 }

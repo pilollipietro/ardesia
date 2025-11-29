@@ -27,7 +27,7 @@ Please be respectful and constructive in all interactions.
 Before creating bug reports, please check existing issues. When creating a bug report, include:
 
 - **OS and version** (Ubuntu 24.04, Fedora 40, etc.)
-- **Desktop environment** (GNOME/Wayland, KDE/X11, etc.)
+- **Desktop environment** (GNOME, KDE/X11, etc.)
 - **Steps to reproduce**
 - **Expected vs actual behavior**
 - **Screenshots if relevant**
@@ -135,8 +135,7 @@ Ardesia requires a composite manager for transparency:
 - Standalone: `xcompmgr` or `compton`/`picom`
 
 **Wayland:**
-- Works via XWayland (with some limitations)
-- Native Wayland support is in development
+- basic features
 
 To check if compositing is active on X11:
 ```bash
@@ -374,11 +373,9 @@ Ardesia was inactive for ~15 years and is now being revived. We're focusing on:
 
 **Phase 2: Distribution**
 - Flatpak packaging
-- Wayland compatibility testing
 - Modern build system (Meson)
 
 **Phase 3: Modernization**
-- Wayland native support
 - GSettings migration (from GConf)
 - Enhanced features
 

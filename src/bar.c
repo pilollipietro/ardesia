@@ -589,8 +589,11 @@ create_bar_window (CommandLine *commandline,
       gtk_css_provider_load_from_path (css, gtkcss_file, NULL);
       g_free (gtkcss_file);
 
+      GdkDisplay *display = gdk_display_get_default ();
+      GdkScreen  *screen  = gdk_display_get_default_screen (display);
+
       gtk_style_context_add_provider_for_screen (
-          gdk_screen_get_default (),
+          screen,
           GTK_STYLE_PROVIDER (css),
           GTK_STYLE_PROVIDER_PRIORITY_USER);
 
