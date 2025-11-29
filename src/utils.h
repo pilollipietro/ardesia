@@ -80,6 +80,17 @@ typedef struct
   gdouble pressure;
 } AnnotatePoint;
 
+#ifdef _WIN32
+typedef long PidType;
+#else
+#include <sys/types.h>
+typedef pid_t PidType;
+#endif
+
+gboolean pidutil_read (const gchar *pidfile, PidType *out_pid, GError **error);
+gboolean pidutil_alive (PidType pid);
+gboolean pidutil_alive_from_file (const gchar *pidfile, GError **error);
+
 gboolean intersect (GdkRectangle *a, GdkRectangle *b);
 
 GdkPixbuf *take_screenshot_now (void);

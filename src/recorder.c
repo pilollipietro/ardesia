@@ -58,17 +58,17 @@ static gboolean paused = FALSE;
 static GPid
 call_recorder (gchar *filename, gchar *action)
 {
-  GPid pid = (GPid) 0;
-  gchar *pidfilename = NULL;
-  gchar *logfilename = NULL;
+  GPid   pid             = (GPid) 0;
+  gchar *pidfilename     = NULL;
+  gchar *logfilename     = NULL;
   gchar *quoted_filename = NULL;
 
   /* Build temporary file paths */
-  pidfilename = g_strdup_printf ("%s%s%s", get_project_dir (), 
+  pidfilename = g_strdup_printf ("%s%s%s", get_project_dir (),
                                  G_DIR_SEPARATOR_S, "ardesia_recorder.pid");
-  logfilename = g_strdup_printf ("%s%s%s", get_project_dir (), 
+  logfilename = g_strdup_printf ("%s%s%s", get_project_dir (),
                                  G_DIR_SEPARATOR_S, "ardesia_recorder.log");
-  
+
   /* Quote filename for shell safety */
   quoted_filename = g_strdup_printf ("\"%s\"", filename ? filename : "");
   
@@ -102,12 +102,18 @@ call_recorder (gchar *filename, gchar *action)
       started = TRUE;
     }
 
-  /* Wait for PID file (logic remains the same) */
-  gboolean pid_exists = file_exists (pidfilename);
-  gint wait = 0;
-  if (! pid_exists) 
+  if (! started)
     {
-      while (wait < 3 && ! pid_exists) 
+      g_warning ("Failed to spawn recorder");
+      goto cleanup;
+    }
+
+  /* Wait for PID file */
+  gboolean pid_exists = file_exists (pidfilename);
+  gint     wait       = 0;
+  if (! pid_exists)
+    {
+      while (wait < 5 && ! pid_exists)
         {
           sleep (1);
           pid_exists = file_exists (pidfilename);
@@ -115,14 +121,16 @@ call_recorder (gchar *filename, gchar *action)
         }
     }
 
-  if (! pid_exists) 
+  if (! pid_exists)
     {
+      g_warning ("Recorder PID file not created");
       pid = -1;
+      goto cleanup;
     }
-  
+
   g_debug ("Recorder PID: %d\n", pid);
 
-  /* Free all allocated memory */
+cleanup:
   g_free (logfilename);
   g_free (quoted_filename);
   g_free (pidfilename);

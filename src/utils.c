@@ -47,6 +47,112 @@ static GSList *artifacts = NULL;
 GtkBuilder *bar_gtk_builder = NULL;
 
 /**
+ * pidutil_read:
+ * @pidfile: Path to the PID file.
+ * @out_pid: (out): Location to store the read PID.
+ * @error: (optional) (out) (nullable): Return location for a GError.
+ *
+ * Reads a PID value from a text file. The file must contain only
+ * a numeric PID. Leading or trailing whitespace is allowed.
+ *
+ * Returns: %TRUE if the PID file was successfully read and parsed,
+ *   %FALSE on error (in which case @error will be set).
+ */
+gboolean
+pidutil_read (const gchar *pidfile,
+              PidType     *out_pid,
+              GError     **error)
+{
+  g_return_val_if_fail (pidfile != NULL, FALSE);
+  g_return_val_if_fail (out_pid != NULL, FALSE);
+
+  gchar *contents = NULL;
+  gsize  len      = 0;
+
+  if (! g_file_get_contents (pidfile, &contents, &len, error))
+    return FALSE;
+
+  gchar *str = g_strstrip (contents);
+
+  if (! g_regex_match_simple ("^[0-9]+$", str, 0, 0))
+    {
+      g_set_error (error, G_FILE_ERROR, G_FILE_ERROR_INVAL,
+                   "PID file contains invalid value: '%s'", str);
+      g_free (contents);
+      return FALSE;
+    }
+
+  *out_pid = (PidType) g_ascii_strtoll (str, NULL, 10);
+  g_free (contents);
+
+  return TRUE;
+}
+
+/**
+ * pidutil_alive:
+ * @pid: Process ID to check.
+ *
+ * Checks whether a process with ID @pid is currently alive.
+ * The implementation is cross-platform: it uses `kill(pid, 0)`
+ * on Unix-like systems and `OpenProcess()` on Windows.
+ *
+ * Returns: %TRUE if the process exists and is alive,
+ *   %FALSE otherwise.
+ */
+gboolean
+pidutil_alive (PidType pid)
+{
+#ifdef _WIN32
+
+  HANDLE h = OpenProcess (SYNCHRONIZE, FALSE, (DWORD) pid);
+
+  if (h == NULL)
+    return FALSE;
+
+  DWORD result = WaitForSingleObject (h, 0);
+  CloseHandle (h);
+
+  /* WAIT_TIMEOUT = process is alive */
+  return (result == WAIT_TIMEOUT);
+
+#else /* Unix */
+
+  if (kill ((pid_t) pid, 0) == 0)
+    return TRUE;
+
+  if (errno == EPERM)
+    return TRUE;
+
+  return FALSE;
+
+#endif
+}
+
+/**
+ * pidutil_alive_from_file:
+ * @pidfile: Path to the PID file to read.
+ * @error: (optional) (out) (nullable): Return location for a GError.
+ *
+ * Convenience wrapper that reads a PID from @pidfile and checks
+ * whether the process is alive.
+ *
+ * Returns: %TRUE if the PID was read successfully and the process
+ *   is alive; %FALSE if the PID file cannot be read or the PID
+ *   does not correspond to a running process.
+ */
+gboolean
+pidutil_alive_from_file (const gchar *pidfile,
+                         GError     **error)
+{
+  PidType pid = 0;
+
+  if (! pidutil_read (pidfile, &pid, error))
+    return FALSE;
+
+  return pidutil_alive (pid);
+}
+
+/**
  * intersect:
  * @a: First rectangle.
  * @b: Second rectangle.
