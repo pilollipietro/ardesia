@@ -325,7 +325,6 @@ grab_pointer (GtkWidget *widget, GdkEventMask eventmask)
       gdk_x11_display_error_trap_push (display);
     }
 #endif
-
   GdkGrabStatus result = gdk_seat_grab (device_manager,
                                         gdk_window,
                                         GDK_SEAT_CAPABILITY_ALL_POINTING,

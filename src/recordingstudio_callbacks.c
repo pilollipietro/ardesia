@@ -81,7 +81,7 @@ on_record_click (GtkToggleButton *button, gpointer func_data)
   GtkBuilder *builder = annotation_data->recordingstudio_window_gtk_builder;
   annotation_data->recordingstudio_options->timer_tick_id =
       g_timeout_add_seconds (1, timer_tick_callback, NULL);
-          
+
   if (! is_started ())
     {
       /* Check if recorder is available */

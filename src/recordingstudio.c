@@ -49,14 +49,14 @@
 static void
 setup_transparency (GtkWidget *win)
 {
-  GdkScreen *screen;
-  GdkVisual *visual;
+  GdkScreen  *screen;
+  GdkVisual  *visual;
   GdkDisplay *display;
 
   gtk_widget_set_app_paintable (win, TRUE);
   display = gtk_widget_get_display (win);
-  screen = gdk_display_get_default_screen (display);
-  visual = gdk_screen_get_rgba_visual (screen);
+  screen  = gdk_display_get_default_screen (display);
+  visual  = gdk_screen_get_rgba_visual (screen);
 
   if (visual != NULL && gdk_screen_is_composited (screen))
     {

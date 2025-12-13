@@ -114,9 +114,9 @@ start_save_image_dialog_callback (GdkPixbuf *buffer)
 {
   GtkWindow *parent = GTK_WINDOW (get_bar_widget ());
   GtkWidget *chooser;
-  gchar     *filename = NULL;
+  gchar     *filename         = NULL;
   gchar     *default_filename = NULL;
-  gboolean   do_save  = FALSE;
+  gboolean   do_save          = FALSE;
 
   chooser = gtk_file_chooser_dialog_new ("Save Screenshot as PNG",
                                          parent,

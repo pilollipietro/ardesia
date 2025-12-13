@@ -13,7 +13,6 @@ desktop/preference_dialog.glade
 desktop/project_dialog.glade
 desktop/recordingstudio_window.glade
 desktop/share_confirmation_dialog.glade
-desktop/text_window.glade
 desktop/vertical_bar.glade
 
 src/ardesia.c

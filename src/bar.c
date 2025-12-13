@@ -644,6 +644,7 @@ create_bar_window (CommandLine *commandline,
 
   bar_window = GTK_WIDGET (bar_obj);
   gtk_widget_set_name (bar_window, BAR_WIDGET_NAME);
+
   gtk_window_set_transient_for (GTK_WINDOW (bar_window), GTK_WINDOW (parent));
 
   /* Connect all the callback from bar_gtk_builder xml file. */
@@ -846,8 +847,8 @@ take_pen_tool (void)
 
   if (is_eraser_toggle_tool_button_active ())
     {
-      GObject            *eraser_obj = gtk_builder_get_object (bar_gtk_builder,
-                                                               "buttonEraser");
+      GObject *eraser_obj = gtk_builder_get_object (bar_gtk_builder,
+                                                    "buttonEraser");
 
       GtkToggleToolButton *eraser_tool_button = NULL;
       eraser_tool_button = GTK_TOGGLE_TOOL_BUTTON (eraser_obj);

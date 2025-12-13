@@ -40,4 +40,4 @@ typedef struct
 
 } ProjectData;
 
-gchar *start_project_dialog (void);
+gchar *start_project_dialog (GtkWindow *parent_window);

@@ -1317,7 +1317,6 @@ position_annotation_window (int x, int y, int width, int height)
       g_debug ("setting annotation window position %d %d %d %d\n",
                x, y, width, height);
       gtk_window_move (GTK_WINDOW (annotation_window), x, y);
-
       gtk_window_set_keep_above (GTK_WINDOW (annotation_window), TRUE);
 
       make_annotation_window_transparent ();
@@ -3137,8 +3136,8 @@ annotation_window_button_release (GdkEventButton *ev, AnnotateData *data)
                              (gdouble) data->b / 255.0,
                              final_alpha);
 
-      gdouble       gap               = distance - final_thickness;
-      gboolean      closed_path       = (gap < snap_tolerance_px);
+      gdouble  gap         = distance - final_thickness;
+      gboolean closed_path = (gap < snap_tolerance_px);
 
       pressure = current_point->pressure;
       /*

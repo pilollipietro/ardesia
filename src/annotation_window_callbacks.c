@@ -67,18 +67,15 @@ on_configure (GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
 
   int width  = gtk_widget_get_allocated_width (widget);
   int height = gtk_widget_get_allocated_height (widget);
+  if (data->is_annotation_visible ||
+      data->is_text_editor_visible ||
+      data->is_background_visible)
+    {
+      annotation_window_change (width, height);
+    }
   if (data->is_background_visible)
     {
-      annotation_window_change (width, height);
       gtk_widget_set_opacity (data->annotation_window, 1.0);
-    }
-  if (data->is_annotation_visible)
-    {
-      annotation_window_change (width, height);
-    }
-  if (data->is_text_editor_visible)
-    {
-      annotation_window_change (width, height);
     }
   return TRUE;
 }
@@ -134,6 +131,7 @@ on_keyrelease (GtkWidget *widget, GdkEvent *event, gpointer user_data)
 
   GdkEventKey *ev = (GdkEventKey *) event;
   g_debug ("Annotation on_keyrelease event (%d, %d)\n", ev->type, ev->keyval);
+  
   return FALSE;
 }
 
@@ -325,6 +323,7 @@ on_button_release (GtkWidget *win, GdkEventButton *ev, gpointer user_data)
   g_debug ("annotation_window::on_button_release\n");
   AnnotateData *data   = (AnnotateData *) user_data;
   gboolean      retval = FALSE;
+
   if (data->is_text_editor_visible)
     {
       retval = on_text_window_button_release (win, ev, text_data);
@@ -333,6 +332,7 @@ on_button_release (GtkWidget *win, GdkEventButton *ev, gpointer user_data)
     {
       retval = annotation_window_button_release (ev, data);
     }
+
   return retval;
 }
 

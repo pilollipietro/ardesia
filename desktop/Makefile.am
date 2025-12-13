@@ -21,7 +21,6 @@ ui_DATA = vertical_bar.glade              \
 	  annotation_window.glade         \
 	  background_window.glade         \
 	  share_confirmation_dialog.glade \
-	  text_window.glade               \
 	  font_selector.glade             \
 	  info_dialog.glade	          \
 	  recordingstudio_window.glade	  \

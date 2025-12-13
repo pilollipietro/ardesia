@@ -44,7 +44,7 @@
  *   The caller is responsible for freeing the returned string.
  **/
 gchar *
-start_project_dialog (void)
+start_project_dialog (GtkWindow *parent_window)
 {
   GtkWidget   *project_dialog = NULL;
   GObject     *project_obj    = NULL;
@@ -69,17 +69,11 @@ start_project_dialog (void)
   builder     = project_data->project_dialog_gtk_builder;
   project_obj = gtk_builder_get_object (builder, "projectDialog");
 
+  gtk_window_set_transient_for (GTK_WINDOW (project_dialog),
+                                GTK_WINDOW (parent_window));
+
   project_dialog = GTK_WIDGET (project_obj);
   gtk_window_set_modal (GTK_WINDOW (project_dialog), TRUE);
-  gtk_window_set_keep_above (GTK_WINDOW (project_dialog), TRUE);
-
-#ifdef _WIN32
-  /*
-   * In Windows the parent bar go above the dialog;
-   * to avoid this behaviour I put the parent keep above to false.
-   */
-  gtk_window_set_keep_above (GTK_WINDOW (parent), FALSE);
-#endif
 
   dialog_obj = gtk_builder_get_object (project_data->project_dialog_gtk_builder,
                                        "projectDialogEntry");

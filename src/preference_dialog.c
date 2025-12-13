@@ -55,8 +55,6 @@ show_permission_denied_dialog (GtkWindow *parent)
                                                      "%s",
                                                      message_text);
 
-  gtk_window_set_keep_above (GTK_WINDOW (permission_denied_dialog), TRUE);
-
   gtk_dialog_run (GTK_DIALOG (permission_denied_dialog));
 
   if (permission_denied_dialog != NULL)
@@ -108,7 +106,7 @@ resize_image_to_button (BackgroundButtonData *data, gint size)
     }
 
   GdkPixbuf *pixbuf = gdk_pixbuf_get_from_surface (surface, x, y, w, h);
-  
+
   /*
   gchar           *output  = NULL;
   output            = g_strdup_printf ("test_output%d.png", data->index);

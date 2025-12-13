@@ -485,11 +485,11 @@ on_bar_showhide_activate (GtkToolButton *toolButton, gpointer func_data)
   gboolean annotation_is_visible = bar_data->annotation_is_visible;
 
   GtkWidget *annotation_window = get_annotation_window ();
-  
+
   if (annotation_is_visible)
     {
       gtk_widget_set_opacity (annotation_window, 0);
-      
+
       bar_data->annotation_is_visible = FALSE;
 
       /* Set the stop tool-tip. */

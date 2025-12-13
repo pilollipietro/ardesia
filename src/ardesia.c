@@ -110,8 +110,8 @@ get_drawable_area (void)
         }
       else if (commandline->mode == DRAW_ON_FULLDESKTOP)
         {
-          GdkDisplay *display      = gdk_display_get_default ();
-          GdkMonitor *monitor      = gdk_display_get_primary_monitor (display);
+          GdkDisplay  *display = gdk_display_get_default ();
+          GdkMonitor  *monitor = gdk_display_get_primary_monitor (display);
           GdkRectangle geometry;
 
           if (monitor == NULL)
@@ -129,11 +129,11 @@ get_drawable_area (void)
       else
         {
           // check clipRect bounds
-          GdkDisplay *display = gdk_display_get_default ();
-          GdkMonitor *monitor = gdk_display_get_primary_monitor (display);
+          GdkDisplay  *display = gdk_display_get_default ();
+          GdkMonitor  *monitor = gdk_display_get_primary_monitor (display);
           GdkRectangle geometry;
-          int maxwidth;
-          int maxheight;
+          int          maxwidth;
+          int          maxheight;
 
           if (monitor == NULL)
             monitor = gdk_display_get_monitor (display, 0);
@@ -329,7 +329,6 @@ build_annotation_window (void)
  * Creates and shows the toolbar window (Ardesia bar). Positions it based on
  * the toolbar area calculated from the workspace and command line options.
  *
- * The toolbar window is set to stay above other windows.
  * If the window cannot be created, quits the program.
  */
 void
@@ -345,7 +344,6 @@ build_toolbar_window (void)
       exit (EXIT_FAILURE);
     }
 
-  gtk_window_set_keep_above (GTK_WINDOW (ardesia_bar_window), TRUE);
   gtk_widget_show (ardesia_bar_window);
 }
 
@@ -375,7 +373,6 @@ main (int argc, char *argv[])
 
   // start GTK
   gtk_init (&argc, &argv);
-
 
   // handle command line
   commandline = create_command_line ();
