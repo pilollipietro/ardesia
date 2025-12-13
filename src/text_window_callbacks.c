@@ -172,14 +172,14 @@ on_text_window_button_release (GtkWidget *win,
     {
       return TRUE;
     }
-
 #ifdef _WIN32
   gboolean above = is_above_virtual_keyboard (ev->x_root, ev->y_root);
 
   if (above)
     {
+      GtkWidget *annotation_window = annotation_data->annotation_window;
       /* You have lost the focus; re grab it. */
-      grab_pointer (text_data->window, TEXT_MOUSE_EVENTS);
+      grab_pointer (annotation_window, TEXT_MOUSE_EVENTS);
       /* Ignore the data; the event will be passed to the virtual keyboard. */
       return TRUE;
     }
