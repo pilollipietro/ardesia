@@ -682,7 +682,7 @@ invalidate_character_area (CharInfo *char_info)
   gint dirty_width       = (gint) ceil (ink_rect.width + stroke_expand * 2.0);
   gint dirty_height      = (gint) ceil (ink_rect.height + stroke_expand * 2.0);
 
-  gtk_widget_queue_draw_area(annotation_window,
+  gtk_widget_queue_draw_area (annotation_window,
                               dirty_x, dirty_y,
                               dirty_width, dirty_height);
 }
@@ -940,7 +940,7 @@ delete_character (void)
        * position, expanded on all sides by half the stroke thickness,
        * plus a small safety padding for anti-aliasing.
        */
-      gdouble padding = 1.0;
+      gdouble padding = 2.0;
       gdouble rect_x =
           origin_x + ink_rect.x - (visual_thickness / 2.0) - padding;
       gdouble rect_y =
