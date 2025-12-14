@@ -40,7 +40,7 @@
 #include "recorder.h"
 #include "saver.h"
 #include "share_confirmation_dialog.h"
-#include "text_window.h"
+#include "text_input.h"
 #include "utils.h"
 
 /**
@@ -241,6 +241,34 @@ on_bar_leave_notify_event (GtkWidget *widget,
   BarData *bar_data = (BarData *) func_data;
   start_tool (bar_data);
   return TRUE;
+}
+
+/**
+ * on_bar_keypress:
+ * @widget: The #GtkWidget that emitted the signal.
+ * @event: The #GdkEventKey for the key press.
+ * @user_data: A pointer to the main #AnnotateData struct.
+ *
+ * Handles the "key-press-event" signal for the main annotation window.
+ *
+ * This function acts as a dispatcher. If the text editor mode is active,
+ * it forwards the key event to the specialized handler for the text input
+ * on annotation window (`text_input_key_press_event`).
+ * Otherwise, it ignores the key press.
+ *
+ * Returns: The value returned by the text window's handler if called,
+ * otherwise %FALSE.
+ **/
+G_MODULE_EXPORT gboolean
+on_bar_keypress (GtkWidget *widget, GdkEvent *event, gpointer user_data)
+{
+  gboolean retval = FALSE;
+
+  if (is_text_toggle_tool_button_active ())
+    {
+      retval = text_input_key_press (widget, event, user_data);
+    }
+  return retval;
 }
 
 /**

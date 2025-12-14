@@ -84,10 +84,8 @@ ardesia_SOURCES = \
 	share_confirmation_dialog.h               \
 	share_confirmation_dialog_callbacks.c     \
 	share_confirmation_dialog_callbacks.h     \
-	text_window_callbacks.c                   \
-	text_window_callbacks.h                   \
-        text_window.c                             \
-	text_window.h                             \
+        text_input.c                              \
+	text_input.h                              \
         user_config.c                             \
 	user_config.h                             \
         info_dialog.c                             \

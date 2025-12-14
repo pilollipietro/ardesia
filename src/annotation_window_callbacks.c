@@ -31,8 +31,7 @@
 #include "bar.h"
 #include "cairo_functions.h"
 #include "input.h"
-#include "text_window.h"
-#include "text_window_callbacks.h"
+#include "text_input.h"
 #include "utils.h"
 
 /**
@@ -89,8 +88,8 @@ on_configure (GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
  * Handles the "key-press-event" signal for the main annotation window.
  *
  * This function acts as a dispatcher. If the text editor mode is active,
- * it forwards the key event to the specialized handler for the text
- * window (`on_text_window_key_press_event`). Otherwise, it ignores the
+ * it forwards the key event to the specialized function for the text
+ * window (`text_input_key_press`). Otherwise, it ignores the
  * key press.
  *
  * Returns: The value returned by the text window's handler if called,
@@ -107,7 +106,7 @@ on_keypress (GtkWidget *widget, GdkEvent *event, gpointer user_data)
 
   if (data->is_text_editor_visible)
     {
-      retval = on_text_window_key_press_event (widget, event, text_data);
+      retval = text_input_key_press (widget, event, text_data);
     }
   return retval;
 }
@@ -131,7 +130,7 @@ on_keyrelease (GtkWidget *widget, GdkEvent *event, gpointer user_data)
 
   GdkEventKey *ev = (GdkEventKey *) event;
   g_debug ("Annotation on_keyrelease event (%d, %d)\n", ev->type, ev->keyval);
-  
+
   return FALSE;
 }
 
@@ -326,7 +325,7 @@ on_button_release (GtkWidget *win, GdkEventButton *ev, gpointer user_data)
 
   if (data->is_text_editor_visible)
     {
-      retval = on_text_window_button_release (win, ev, text_data);
+      retval = text_input_button_release (win, ev, text_data);
     }
   else if (data->is_annotation_visible)
     {

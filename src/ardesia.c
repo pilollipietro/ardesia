@@ -28,15 +28,14 @@
 #include "bar_callbacks.h"
 #include "commandline.h"
 #include "project_dialog.h"
-#include "text_window.h"
+#include "text_input.h"
 #include "utils.h"
 
-extern TextConfig *text_config;
-GtkWidget         *ardesia_bar_window;
-GtkWidget         *background_window;
-GtkWidget         *annotation_window;
-Workspace         *workspace;
-CommandLine       *commandline = NULL;
+GtkWidget   *ardesia_bar_window;
+GtkWidget   *background_window;
+GtkWidget   *annotation_window;
+Workspace   *workspace;
+CommandLine *commandline = NULL;
 
 /**
  * is_wayland_session:
@@ -392,11 +391,6 @@ main (int argc, char *argv[])
 #ifndef _WIN32
   check_composite_manager ();
 #endif
-
-  /* Initialize new text configuration options. */
-  text_config             = create_text_config ();
-  text_config->leftmargin = commandline->text_leftmargin;
-  text_config->tabsize    = commandline->text_tabsize;
 
   /* Handle workspace. */
   workspace = create_workspace ();

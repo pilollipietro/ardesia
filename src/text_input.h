@@ -23,8 +23,8 @@
 
 /** Widget for text insertion */
 
-#ifndef __TEXT_WINDOW_H
-#define __TEXT_WINDOW_H
+#ifndef __TEXT_INPUT_H
+#define __TEXT_INPUT_H
 
 #include <ctype.h>
 
@@ -162,12 +162,20 @@ void stop_blink_cursor (void);
 
 void save_text (void);
 
-/* Start text widget. */
 void start_text_widget (GtkWidget *parent, gchar *color, gint thickness);
 
-/* Stop text widget. */
 void stop_text_widget (void);
 
 gdouble calculate_visual_thickness (gdouble pen_width, gint font_size);
 
-#endif //__TEXT_WINDOW_H
+gboolean text_input_button_release (GtkWidget *win,
+                                    GdkEventButton *ev,
+				    TextData *data);
+
+gboolean text_input_key_press (GtkWidget *widget,
+                               GdkEvent *event,
+                               gpointer user_data);
+
+void destroy_text_config (TextConfig *cfg);
+
+#endif //__TEXT_INPUT_H

@@ -39,7 +39,7 @@
 #include "input.h"
 #include "iwb_loader.h"
 #include "spline.h"
-#include "text_window.h"
+#include "text_input.h"
 #include "utils.h"
 
 #ifdef _WIN32
@@ -1197,6 +1197,11 @@ create_annotation_window (Workspace *workspace, CommandLine *commandline)
   GError    *error  = (GError *) NULL;
 
   annotate_init (NULL);
+
+  /* Initialize new text configuration options. */
+  text_config             = create_text_config ();
+  text_config->leftmargin = commandline->text_leftmargin;
+  text_config->tabsize    = commandline->text_tabsize;
 
   /* Initialize the main window. */
   annotation_data->annotation_window_gtk_builder = gtk_builder_new ();
@@ -2379,22 +2384,6 @@ annotate_paint_context_free (AnnotatePaintContext *context)
 }
 
 /**
- * destroy_text_config:
- * Frees a TextConfig structure.
- *
- * If @cfg is NULL, the function does nothing.
- *
- * @cfg: The TextConfig structure to free.
- */
-void
-destroy_text_config (TextConfig *cfg)
-{
-  if (cfg == NULL)
-    return;
-  g_free (cfg);
-}
-
-/**
  * annotate_quit:
  *
  * Clean up and free all resources used by the annotation system.
@@ -2422,13 +2411,7 @@ annotate_quit (void)
     {
       destroy_background_data ();
     }
-
-  if (text_config)
-    {
-      destroy_text_config (text_config);
-      text_config = NULL;
-    }
-
+  destroy_text_config (text_config);
   if (annotation_data)
     {
       annotation_config_save_state (annotation_data);
