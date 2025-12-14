@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ardesia 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-09 15:36+0100\n"
+"POT-Creation-Date: 2025-12-14 17:22+0100\n"
 "PO-Revision-Date: 2025-11-09 15:59+0100\n"
 "Last-Translator: Gemini <ai@google.com>\n"
 "Language-Team: Chinese (traditional) <zh-l10n@linux.org.tw>\n"
@@ -115,22 +115,24 @@ msgid "Recording Studio"
 msgstr "錄製工作室"
 
 #: ../desktop/recordingstudio_window.glade.h:2
-msgid "Record\n"
-msgstr "錄製\n"
+#: ../desktop/vertical_bar.glade.h:27
+msgid "Record"
+msgstr "錄製"
+
+#: ../desktop/recordingstudio_window.glade.h:3
+msgid "Pause"
+msgstr ""
 
 #: ../desktop/recordingstudio_window.glade.h:4
 msgid "Stop"
 msgstr "停止"
 
 #: ../desktop/recordingstudio_window.glade.h:5
-msgid "_New"
-msgstr "新增(_N)"
-
-#: ../desktop/recordingstudio_window.glade.h:6
-msgid "_Clapperboard"
+#, fuzzy
+msgid "Clapperboard"
 msgstr "場記板(_C)"
 
-#: ../desktop/recordingstudio_window.glade.h:7 ../src/recordingstudio.c:459
+#: ../desktop/recordingstudio_window.glade.h:6
 msgid "Enable Cursor Effect"
 msgstr "啟用游標效果"
 
@@ -138,7 +140,7 @@ msgstr "啟用游標效果"
 msgid "Do you want to share your work by email?"
 msgstr "您要透過電子郵件分享您的作品嗎？"
 
-#: ../desktop/vertical_bar.glade.h:1 ../src/bar_callbacks.c:402
+#: ../desktop/vertical_bar.glade.h:1 ../src/bar_callbacks.c:538
 msgid "Hide Annotations"
 msgstr "隱藏註解"
 
@@ -215,16 +217,16 @@ msgid "Red"
 msgstr "紅色"
 
 #: ../desktop/vertical_bar.glade.h:20
+msgid "Yellow"
+msgstr "黃色"
+
+#: ../desktop/vertical_bar.glade.h:21
 msgid "Green"
 msgstr "綠色"
 
-#: ../desktop/vertical_bar.glade.h:21
+#: ../desktop/vertical_bar.glade.h:22
 msgid "Blue"
 msgstr "藍色"
-
-#: ../desktop/vertical_bar.glade.h:22
-msgid "Yellow"
-msgstr "黃色"
 
 #: ../desktop/vertical_bar.glade.h:23
 msgid "White"
@@ -241,10 +243,6 @@ msgstr "選取顏色"
 #: ../desktop/vertical_bar.glade.h:26
 msgid "Screenshot"
 msgstr "螢幕擷取"
-
-#: ../desktop/vertical_bar.glade.h:27
-msgid "Record"
-msgstr "錄製"
 
 #: ../desktop/vertical_bar.glade.h:28
 msgid "Capture Screen"
@@ -274,33 +272,23 @@ msgstr "關於"
 msgid "Quit"
 msgstr "結束"
 
-#: ../src/ardesia.c:143
+#: ../src/ardesia.c:218
 msgid "In order to run Ardesia you need to enable a composite manager"
 msgstr "您需要啟用合成管理員才能執行 Ardesia"
 
-#: ../src/bar_callbacks.c:371
+#: ../src/bar_callbacks.c:525
 msgid "Show Annotations"
 msgstr "顯示註解"
-
-#. Put the show icon.
-#: ../src/bar_callbacks.c:374
-msgid "show"
-msgstr "顯示"
-
-#. Put the hide icon.
-#: ../src/bar_callbacks.c:405
-msgid "hide"
-msgstr "隱藏"
 
 #: ../src/color_selector.c:68
 msgid "Changing color"
 msgstr "正在變更顏色"
 
-#: ../src/pdf_saver.c:53
+#: ../src/pdf_saver.c:62
 msgid "Export as pdf"
 msgstr "匯出為 PDF"
 
-#: ../src/pdf_saver.c:65 ../src/recorder.c:345
+#: ../src/pdf_saver.c:74 ../src/recorder.c:355
 msgid "Choose a file"
 msgstr "選擇檔案"
 
@@ -312,23 +300,34 @@ msgstr "開啟檔案失敗：權限不足"
 msgid "Remove"
 msgstr "移除"
 
-#: ../src/recorder.c:333
+#: ../src/recorder.c:343
 msgid "Save video as ogv"
 msgstr "將影片儲存為 OGV"
-
-#: ../src/recordingstudio.c:91
-msgid ""
-"In order to record with Ardesia you must install the vlc program and add it "
-"to the PATH environment variable"
-msgstr "您必須安裝 VLC 程式並將其路徑加入 PATH 環境變數才能使用 Ardesia 錄製"
-
-#: ../src/recordingstudio.c:475
-msgid "Disable Cursor Effect"
-msgstr "停用游標效果"
 
 #: ../src/saver.c:78
 msgid "Couldn't open file for writing: Permission denied"
 msgstr "無法寫入檔案：權限不足"
+
+#~ msgid "Record\n"
+#~ msgstr "錄製\n"
+
+#~ msgid "_New"
+#~ msgstr "新增(_N)"
+
+#~ msgid "show"
+#~ msgstr "顯示"
+
+#~ msgid "hide"
+#~ msgstr "隱藏"
+
+#~ msgid ""
+#~ "In order to record with Ardesia you must install the vlc program and add "
+#~ "it to the PATH environment variable"
+#~ msgstr ""
+#~ "您必須安裝 VLC 程式並將其路徑加入 PATH 環境變數才能使用 Ardesia 錄製"
+
+#~ msgid "Disable Cursor Effect"
+#~ msgstr "停用游標效果"
 
 #~ msgid "Show Cursor"
 #~ msgstr "顯示游標"

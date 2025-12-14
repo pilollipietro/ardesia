@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Ardesia 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-09 15:36+0100\n"
+"POT-Creation-Date: 2025-12-14 17:22+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Pilolli Pietro <pilolli.pietro@gmail.com>\n"
 "Language-Team: Ardesia Team <pilolli.pietro@gmail.com>\n"
@@ -114,22 +114,24 @@ msgid "Recording Studio"
 msgstr "Studio d'Enregistrement"
 
 #: ../desktop/recordingstudio_window.glade.h:2
-msgid "Record\n"
-msgstr "Enregistrer\n"
+#: ../desktop/vertical_bar.glade.h:27
+msgid "Record"
+msgstr "Enregistrer"
+
+#: ../desktop/recordingstudio_window.glade.h:3
+msgid "Pause"
+msgstr ""
 
 #: ../desktop/recordingstudio_window.glade.h:4
 msgid "Stop"
 msgstr "Arrêter"
 
 #: ../desktop/recordingstudio_window.glade.h:5
-msgid "_New"
-msgstr "_Nouveau"
-
-#: ../desktop/recordingstudio_window.glade.h:6
-msgid "_Clapperboard"
+#, fuzzy
+msgid "Clapperboard"
 msgstr "_Clap"
 
-#: ../desktop/recordingstudio_window.glade.h:7 ../src/recordingstudio.c:459
+#: ../desktop/recordingstudio_window.glade.h:6
 msgid "Enable Cursor Effect"
 msgstr "Activer l'effet de curseur"
 
@@ -137,7 +139,7 @@ msgstr "Activer l'effet de curseur"
 msgid "Do you want to share your work by email?"
 msgstr "Voulez-vous partager votre travail par e-mail ?"
 
-#: ../desktop/vertical_bar.glade.h:1 ../src/bar_callbacks.c:402
+#: ../desktop/vertical_bar.glade.h:1 ../src/bar_callbacks.c:538
 msgid "Hide Annotations"
 msgstr "Masquer les Annotations"
 
@@ -214,16 +216,16 @@ msgid "Red"
 msgstr "Rouge"
 
 #: ../desktop/vertical_bar.glade.h:20
+msgid "Yellow"
+msgstr "Jaune"
+
+#: ../desktop/vertical_bar.glade.h:21
 msgid "Green"
 msgstr "Vert"
 
-#: ../desktop/vertical_bar.glade.h:21
+#: ../desktop/vertical_bar.glade.h:22
 msgid "Blue"
 msgstr "Bleu"
-
-#: ../desktop/vertical_bar.glade.h:22
-msgid "Yellow"
-msgstr "Jaune"
 
 #: ../desktop/vertical_bar.glade.h:23
 msgid "White"
@@ -240,10 +242,6 @@ msgstr "Sélectionner une Couleur"
 #: ../desktop/vertical_bar.glade.h:26
 msgid "Screenshot"
 msgstr "Capture d'Écran"
-
-#: ../desktop/vertical_bar.glade.h:27
-msgid "Record"
-msgstr "Enregistrer"
 
 #: ../desktop/vertical_bar.glade.h:28
 msgid "Capture Screen"
@@ -273,34 +271,24 @@ msgstr "À propos"
 msgid "Quit"
 msgstr "Quitter"
 
-#: ../src/ardesia.c:143
+#: ../src/ardesia.c:218
 msgid "In order to run Ardesia you need to enable a composite manager"
 msgstr ""
 "Pour exécuter Ardesia, vous devez activer un gestionnaire de composition"
 
-#: ../src/bar_callbacks.c:371
+#: ../src/bar_callbacks.c:525
 msgid "Show Annotations"
 msgstr "Afficher les Annotations"
-
-#. Put the show icon.
-#: ../src/bar_callbacks.c:374
-msgid "show"
-msgstr "afficher"
-
-#. Put the hide icon.
-#: ../src/bar_callbacks.c:405
-msgid "hide"
-msgstr "masquer"
 
 #: ../src/color_selector.c:68
 msgid "Changing color"
 msgstr "Changement de couleur"
 
-#: ../src/pdf_saver.c:53
+#: ../src/pdf_saver.c:62
 msgid "Export as pdf"
 msgstr "Exporter en PDF"
 
-#: ../src/pdf_saver.c:65 ../src/recorder.c:345
+#: ../src/pdf_saver.c:74 ../src/recorder.c:355
 msgid "Choose a file"
 msgstr "Choisir un fichier"
 
@@ -312,25 +300,35 @@ msgstr "Échec d'ouverture du fichier : Permission refusée"
 msgid "Remove"
 msgstr "Supprimer"
 
-#: ../src/recorder.c:333
+#: ../src/recorder.c:343
 msgid "Save video as ogv"
 msgstr "Enregistrer la vidéo en OGV"
-
-#: ../src/recordingstudio.c:91
-msgid ""
-"In order to record with Ardesia you must install the vlc program and add it "
-"to the PATH environment variable"
-msgstr ""
-"Pour enregistrer avec Ardesia, vous devez installer le programme VLC et "
-"l'ajouter à la variable d'environnement PATH"
-
-#: ../src/recordingstudio.c:475
-msgid "Disable Cursor Effect"
-msgstr "Désactiver l'effet de curseur"
 
 #: ../src/saver.c:78
 msgid "Couldn't open file for writing: Permission denied"
 msgstr "Impossible d'ouvrir le fichier en écriture : Permission refusée"
+
+#~ msgid "Record\n"
+#~ msgstr "Enregistrer\n"
+
+#~ msgid "_New"
+#~ msgstr "_Nouveau"
+
+#~ msgid "show"
+#~ msgstr "afficher"
+
+#~ msgid "hide"
+#~ msgstr "masquer"
+
+#~ msgid ""
+#~ "In order to record with Ardesia you must install the vlc program and add "
+#~ "it to the PATH environment variable"
+#~ msgstr ""
+#~ "Pour enregistrer avec Ardesia, vous devez installer le programme VLC et "
+#~ "l'ajouter à la variable d'environnement PATH"
+
+#~ msgid "Disable Cursor Effect"
+#~ msgstr "Désactiver l'effet de curseur"
 
 #~ msgid "Show Cursor"
 #~ msgstr "Afficher le Curseur"
