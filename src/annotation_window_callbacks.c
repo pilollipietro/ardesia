@@ -106,7 +106,7 @@ on_keypress (GtkWidget *widget, GdkEvent *event, gpointer user_data)
 
   if (data->is_text_editor_visible)
     {
-      retval = text_input_key_press (widget, event, text_data);
+      retval = text_input_key_press (event);
     }
   return retval;
 }
@@ -325,7 +325,7 @@ on_button_release (GtkWidget *win, GdkEventButton *ev, gpointer user_data)
 
   if (data->is_text_editor_visible)
     {
-      retval = text_input_button_release (win, ev, text_data);
+      retval = text_input_button_release (ev);
     }
   else if (data->is_annotation_visible)
     {

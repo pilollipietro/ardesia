@@ -1056,8 +1056,7 @@ handle_printable_char (char ch)
  * Returns TRUE to indicate that the event has been handled.
  **/
 gboolean
-text_input_key_press (GtkWidget *widget, GdkEvent *event,
-                       gpointer user_data)
+text_input_key_press (GdkEvent *event)
 {
   GdkEventKey *keyEvent = (GdkEventKey *) event;
   if (event->type != GDK_KEY_PRESS)
@@ -1146,9 +1145,7 @@ is_above_virtual_keyboard (gint x, gint y)
  * Returns TRUE to indicate that the event has been handled.
  **/
 gboolean
-text_input_button_release (GtkWidget *win,
-                            GdkEventButton *ev,
-                            TextData *data)
+text_input_button_release (GdkEventButton *ev)
 {
   g_debug ("text_input_button_release BEGIN\n");
   /* only button1 allowed */

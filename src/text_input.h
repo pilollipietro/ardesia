@@ -168,13 +168,9 @@ void stop_text_widget (void);
 
 gdouble calculate_visual_thickness (gdouble pen_width, gint font_size);
 
-gboolean text_input_button_release (GtkWidget *win,
-                                    GdkEventButton *ev,
-				    TextData *data);
+gboolean text_input_button_release (GdkEventButton *ev);
 
-gboolean text_input_key_press (GtkWidget *widget,
-                               GdkEvent *event,
-                               gpointer user_data);
+gboolean text_input_key_press (GdkEvent *event);
 
 void destroy_text_config (TextConfig *cfg);
 

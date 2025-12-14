@@ -266,7 +266,7 @@ on_bar_keypress (GtkWidget *widget, GdkEvent *event, gpointer user_data)
 
   if (is_text_toggle_tool_button_active ())
     {
-      retval = text_input_key_press (widget, event, user_data);
+      retval = text_input_key_press (event);
     }
   return retval;
 }
