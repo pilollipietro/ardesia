@@ -900,8 +900,8 @@ annotate_draw_point_list (AnnotateDeviceData *devdata, GSList *list)
  *  - Malformed segments (missing endpoints) are skipped with a warning.
  */
 static void
-annotate_draw_curve(AnnotateDeviceData *devdata,
-                    SplineResult       *spline_res)
+annotate_draw_curve (AnnotateDeviceData *devdata,
+                     SplineResult       *spline_res)
 {
   if (! spline_res || ! spline_res->start_point || ! spline_res->segments)
     return;

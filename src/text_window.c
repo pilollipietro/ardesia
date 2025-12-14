@@ -498,7 +498,8 @@ init_text_widget (GtkWidget *widget)
   assign_text_cursor_to_window (widget);
 
 #ifdef _WIN32
-  grab_pointer (text_data->window, TEXT_MOUSE_EVENTS);
+  GtkWidget *annotation_window = annotation_data->annotation_window;
+  grab_pointer (annotation_window, TEXT_MOUSE_EVENTS);
 #endif
 
   clear_if_empty ();
