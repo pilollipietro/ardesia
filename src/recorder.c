@@ -478,14 +478,8 @@ start_save_video_dialog (GtkButton *toolbutton, GtkWindow *parent)
 gboolean
 check_and_alert_recorder_support (GtkWindow *parent)
 {
-  GdkDisplay  *display;
-  const gchar *display_name;
-
-  display      = gdk_display_get_default ();
-  display_name = gdk_display_get_name (display);
-
   /* Wayland sessions are not supported */
-  if (display_name && g_strstr_len (display_name, -1, "wayland"))
+  if (is_wayland_session ())
     {
       visualize_missing_recorder_program_dialog (
           parent, gettext ("Screen recording is not supported on Wayland.\n\n"

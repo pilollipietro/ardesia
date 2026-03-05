@@ -1202,3 +1202,27 @@ save_cairo_context (cairo_t *cr, gchar *savedir, gchar *category, int index)
   g_debug ("Saving cairo context image to %s\n", filename);
   g_free (filename);
 }
+
+/**
+ * is_wayland_session:
+ *
+ * Detects if the application is running under Wayland by checking
+ * the WAYLAND_DISPLAY environment variable.
+ *
+ * This variable is set when a Wayland compositor provides a display
+ * socket to the client.
+ *
+ * Returns: TRUE if running under Wayland, FALSE otherwise.
+ */
+gboolean
+is_wayland_session (void)
+{
+  const gchar *wayland_display = g_getenv ("WAYLAND_DISPLAY");
+
+  if (wayland_display != NULL && *wayland_display != '\0')
+    {
+      return TRUE;
+    }
+
+  return FALSE;
+}

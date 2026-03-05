@@ -557,6 +557,10 @@ on_bar_recorder_activate (GtkToolButton *toolbutton, gpointer func_data)
 
   if (! check_and_alert_recorder_support (parent))
     {
+      g_signal_handlers_block_by_func (toolbutton,
+                                       G_CALLBACK (on_bar_recorder_activate),
+                                       func_data);
+
       gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON (toolbutton),
                                          FALSE);
 
@@ -564,6 +568,10 @@ on_bar_recorder_activate (GtkToolButton *toolbutton, gpointer func_data)
 
       gtk_widget_set_tooltip_text (GTK_WIDGET (toolbutton),
                                    gettext ("Recorder not available"));
+
+      g_signal_handlers_unblock_by_func (toolbutton,
+                                     G_CALLBACK (on_bar_recorder_activate),
+                                     func_data);
       return;
     }
 

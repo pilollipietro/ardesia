@@ -193,4 +193,5 @@ void save_cairo_context (cairo_t *cr,
                          gchar *category,
                          int index);
 
+gboolean is_wayland_session (void);
 #endif // UTILS_H

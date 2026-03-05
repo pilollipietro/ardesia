@@ -38,37 +38,6 @@ Workspace   *workspace;
 CommandLine *commandline = NULL;
 
 /**
- * is_wayland_session:
- *
- * Detects if Ardesia is running under Wayland by checking XDG_SESSION_TYPE
- * environment variable.
- *
- * On Wayland: compositing is always active in the protocol
- * On X11: requires explicit composite manager
- *
- * Returns: TRUE if running on Wayland, FALSE on X11 or unknown
- */
-static gboolean
-is_wayland_session (void)
-{
-  const gchar *xdg_session_type = g_getenv ("XDG_SESSION_TYPE");
-
-  if (xdg_session_type == NULL)
-    {
-      return FALSE;
-    }
-
-  gboolean is_wayland = (g_strcmp0 (xdg_session_type, "wayland") == 0);
-
-  if (is_wayland)
-    {
-      g_debug ("Display server: Wayland (compositing always available)");
-    }
-
-  return is_wayland;
-}
-
-/**
  * get_drawable_area:
  *
  * Returns the GdkRectangle representing the drawable area for annotation,
