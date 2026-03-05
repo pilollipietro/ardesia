@@ -1,5 +1,10 @@
 #!/bin/bash
 # Ardesia Screencast Script - Fullscreen, PID corretto, crop rimosso
+# Usage examples:
+# ./screencast.sh start /tmp/ardesia.log /tmp/record.ogv /tmp/ardesia.pid
+# ./screencast.sh pause /tmp/ardesia.log /tmp/record.ogv /tmp/ardesia.pid
+# ./screencast.sh resume /tmp/ardesia.log /tmp/record.ogv /tmp/ardesia.pid
+# ./screencast.sh stop /tmp/ardesia.log /tmp/record.ogv /tmp/ardesia.pid
 
 ACTION="$1"
 LOGFILE="$2"
