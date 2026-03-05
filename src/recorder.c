@@ -456,3 +456,52 @@ start_save_video_dialog (GtkButton *toolbutton, GtkWindow *parent)
 
   return status;
 }
+
+/**
+ * check_and_alert_recorder_support:
+ * @parent: The parent #GtkWindow used for modal dialog positioning.
+ *
+ * Verifies that the current environment supports screen recording.
+ *
+ * The function performs two checks:
+ * 1. Ensures the session is not running on Wayland, since the recorder
+ *    requires an X11 environment.
+ * 2. Verifies that the external recorder program (VLC) is available
+ *    in the system PATH.
+ *
+ * If one of the checks fails, an error dialog is displayed explaining
+ * the problem to the user.
+ *
+ * Returns: %TRUE if screen recording is supported and available,
+ *          %FALSE otherwise.
+ */
+gboolean
+check_and_alert_recorder_support (GtkWindow *parent)
+{
+  GdkDisplay  *display;
+  const gchar *display_name;
+
+  display      = gdk_display_get_default ();
+  display_name = gdk_display_get_name (display);
+
+  /* Wayland sessions are not supported */
+  if (display_name && g_strstr_len (display_name, -1, "wayland"))
+    {
+      visualize_missing_recorder_program_dialog (
+          parent, gettext ("Screen recording is not supported on Wayland.\n\n"
+                           "Try logging in with an X11 session."));
+      return FALSE;
+    }
+
+  /* Verify that VLC is available */
+  if (! is_recorder_available ())
+    {
+      visualize_missing_recorder_program_dialog (
+          parent,
+          gettext ("In order to record with Ardesia you must install the "
+                   "vlc program and add it to the PATH environment variable"));
+      return FALSE;
+    }
+
+  return TRUE;
+}

@@ -84,24 +84,6 @@ on_record_click (GtkToggleButton *button, gpointer func_data)
 
   if (! is_started ())
     {
-      /* Check if recorder is available */
-      if (! is_recorder_available ())
-        {
-          visualize_missing_recorder_program_dialog (
-              GTK_WINDOW (ancestor),
-              gettext ("In order to record with Ardesia you must install the "
-                       "vlc program and add it to the PATH environment "
-                       "variable"));
-
-          GObject *imageObj = gtk_builder_get_object (builder,
-                                                      "recorder_unavailable");
-
-          gtk_button_set_image ((GtkButton *) button, GTK_WIDGET (imageObj));
-          gtk_widget_set_tooltip_text (GTK_WIDGET (button),
-                                       gettext ("Unavailable"));
-          return;
-        }
-
       /* START recording */
       g_debug ("Starting recording\n");
 

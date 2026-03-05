@@ -47,3 +47,5 @@ gboolean is_recorder_available (void);
 
 void visualize_missing_recorder_program_dialog (GtkWindow *parent_window,
                                                 gchar *message);
+
+gboolean check_and_alert_recorder_support (GtkWindow *parent);

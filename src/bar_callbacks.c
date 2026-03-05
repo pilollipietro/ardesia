@@ -553,6 +553,20 @@ on_bar_showhide_activate (GtkToolButton *toolButton, gpointer func_data)
 G_MODULE_EXPORT void
 on_bar_recorder_activate (GtkToolButton *toolbutton, gpointer func_data)
 {
+  GtkWindow *parent = GTK_WINDOW (get_bar_widget ());
+
+  if (! check_and_alert_recorder_support (parent))
+    {
+      gtk_toggle_tool_button_set_active (GTK_TOGGLE_TOOL_BUTTON (toolbutton),
+                                         FALSE);
+
+      gtk_widget_set_sensitive (GTK_WIDGET (toolbutton), FALSE);
+
+      gtk_widget_set_tooltip_text (GTK_WIDGET (toolbutton),
+                                   gettext ("Recorder not available"));
+      return;
+    }
+
   GError *error = (GError *) NULL;
   // we want to show the recording studio window at this point
   if (annotation_data->recordingstudio_window == NULL)
