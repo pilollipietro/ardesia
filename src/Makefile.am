@@ -111,9 +111,9 @@ if !PLATFORM_WIN32
 if WITH_GNU_LD
 ardesia_LDFLAGS += -Wl,--export-dynamic
 endif
+ardesia_LDADD = $(ARDESIA_LIBS) -lm
 else
 #This create a windows executable instead an msdos ones
 ardesia_LDFLAGS += -mwindows -lbfd -lintl -liberty -limagehlp -lole32 -luuid
-endif
-
 ardesia_LDADD = $(ARDESIA_LIBS)
+endif
